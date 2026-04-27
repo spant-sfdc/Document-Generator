@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <brand>
+        <headerColor>#032D60</headerColor>
+        <shouldOverrideOrgTheme>false</shouldOverrideOrgTheme>
+    </brand>
+    <description>Document Generation Template Builder — create, map, and generate documents from Salesforce data.</description>
+    <formFactors>Large</formFactors>
+    <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
+    <isNavPersonalizationDisabled>false</isNavPersonalizationDisabled>
+    <isNavTabPersistenceDisabled>false</isNavTabPersistenceDisabled>
+    <label>Document Generator</label>
+    <navType>Console</navType>
+    <profileActionOverrides>
+        <actionName>Tab</actionName>
+        <content>DocGen_Template_Builder_Home</content>
+        <formFactor>Large</formFactor>
+        <pageOrSobjectType>standard-home</pageOrSobjectType>
+        <type>Flexipage</type>
+        <profile>Admin</profile>
+    </profileActionOverrides>
+    <profileActionOverrides>
+        <actionName>Tab</actionName>
+        <content>DocGen_Template_Builder_Home</content>
+        <formFactor>Large</formFactor>
+        <pageOrSobjectType>standard-home</pageOrSobjectType>
+        <type>Flexipage</type>
+        <profile>Standard</profile>
+    </profileActionOverrides>
+    <tabs>standard-home</tabs>
+    <tabs>Document_Template__c</tabs>
+    <tabs>Document_Field_Mapping__c</tabs>
+    <tabs>Document_Variable__c</tabs>
+    <tabs>Document_Generation_Log__c</tabs>
+    <tabs>standard-report</tabs>
+    <uiType>Lightning</uiType>
+</CustomApplication>

@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Full access to all Document Generator components — objects, Apex, VF page, tabs, and app.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>DocGen Full Access</label>
+    <license>Salesforce</license>
+
+    <!-- ── Object Permissions ── -->
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>true</modifyAllRecords>
+        <object>Document_Template__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>true</modifyAllRecords>
+        <object>Document_Field_Mapping__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>true</modifyAllRecords>
+        <object>Document_Variable__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>true</modifyAllRecords>
+        <object>Document_Generation_Log__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+
+    <!-- ── Field Permissions: Document_Template__c ── -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Template__c.Template_Content_Version_Id__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Template__c.Status__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Template__c.Version__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Template__c.Language__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Template__c.Is_Active__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Template__c.Description__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- ── Field Permissions: Document_Field_Mapping__c ── -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Field_Mapping__c.Source_Object__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Field_Mapping__c.Source_Field__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Field_Mapping__c.Relationship_Path__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Field_Mapping__c.Mapping_Type__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Field_Mapping__c.Is_Repeating_Section__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Field_Mapping__c.Format_Override__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Field_Mapping__c.Static_Value__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Field_Mapping__c.Repeat_Object__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- ── Field Permissions: Document_Variable__c ── -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Variable__c.Static_Value__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Variable__c.Image_Content_Version_Id__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- ── Field Permissions: Document_Generation_Log__c ── -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Generation_Log__c.Record_Id__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Generation_Log__c.Generated_At__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Generation_Log__c.Status__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Generation_Log__c.Error_Message__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Document_Generation_Log__c.Output_Content_Document_Id__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- ── Apex Class Access ── -->
+    <classAccesses>
+        <apexClass>DocGen_Controller</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>DocGen_DataResolverService</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>DocGen_DocumentGeneratorService</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>DocGen_Exception</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>DocGen_FileService</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>DocGen_MergeEngineService</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>DocGen_PdfController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>DocGen_SchemaService</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>DocGen_TemplateService</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>DocGen_VariableResolverService</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>DocGen_Wrappers</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+
+    <!-- ── Visualforce Page Access ── -->
+    <pageAccesses>
+        <apexPage>DocGen_PdfRenderer</apexPage>
+        <enabled>true</enabled>
+    </pageAccesses>
+
+    <!-- ── Tab Settings ── -->
+    <tabSettings>
+        <tab>Document_Template__c</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>Document_Field_Mapping__c</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>Document_Variable__c</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>Document_Generation_Log__c</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+
+    <!-- ── App Access ── -->
+    <applicationVisibilities>
+        <application>DocGen_Document_Generator</application>
+        <visible>true</visible>
+    </applicationVisibilities>
+
+    <!-- ── User Permissions needed for file upload and generation ── -->
+    <userPermissions>
+        <enabled>true</enabled>
+        <name>ContentWorkspaces</name>
+    </userPermissions>
+</PermissionSet>

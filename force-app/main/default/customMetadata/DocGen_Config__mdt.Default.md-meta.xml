@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Default</label>
+    <protected>false</protected>
+    <values>
+        <field>PDF_Page_Size__c</field>
+        <value xsi:type="xsd:string">Letter</value>
+    </values>
+    <values>
+        <field>Default_Date_Format__c</field>
+        <value xsi:type="xsd:string">MM/dd/yyyy</value>
+    </values>
+    <values>
+        <field>Max_Repeating_Rows__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+    <values>
+        <field>Org_Display_Name__c</field>
+        <value xsi:type="xsd:string">Hope Forward Foundation</value>
+    </values>
+    <values>
+        <field>Org_EIN__c</field>
+        <value xsi:type="xsd:string">47-1234567</value>
+    </values>
+    <values>
+        <field>Org_Address__c</field>
+        <value xsi:type="xsd:string">123 Mission Way, Suite 400, San Francisco, CA 94105</value>
+    </values>
+    <values>
+        <field>Org_Phone__c</field>
+        <value xsi:type="xsd:string">(415) 555-0192</value>
+    </values>
+    <values>
+        <field>Org_Website__c</field>
+        <value xsi:type="xsd:string">www.hopeforwardfoundation.org</value>
+    </values>
+</CustomMetadata>

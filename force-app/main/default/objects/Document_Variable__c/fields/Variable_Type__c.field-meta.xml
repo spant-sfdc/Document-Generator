@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Variable_Type__c</fullName>
+    <label>Variable Type</label>
+    <required>true</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>SYSTEM_DATE</fullName><default>false</default><label>System Date</label></value>
+            <value><fullName>CURRENT_USER</fullName><default>false</default><label>Current User</label></value>
+            <value><fullName>ORG_NAME</fullName><default>false</default><label>Org Name</label></value>
+            <value><fullName>CONSTANT</fullName><default>true</default><label>Constant</label></value>
+            <value><fullName>IMAGE</fullName><default>false</default><label>Image</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

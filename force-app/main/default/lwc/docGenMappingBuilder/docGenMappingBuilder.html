@@ -1,0 +1,106 @@
+<template>
+    <lightning-card title="Step 4: Map Tokens to Fields" icon-name="utility:mapping">
+        <div class="slds-p-around_medium">
+            <c-doc-gen-error-panel errors={error}></c-doc-gen-error-panel>
+
+            <p class="slds-m-bottom_medium slds-text-color_weak">
+                Map each detected token to a source object field or provide a constant value.
+            </p>
+
+            <template if:true={hasMappings}>
+                <table class="slds-table slds-table_bordered slds-table_col-bordered mapping-table">
+                    <thead>
+                        <tr>
+                            <th>Token</th>
+                            <th>Type</th>
+                            <th>Source Object</th>
+                            <th>Source Field</th>
+                            <th>Constant Value</th>
+                            <th>Format</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={tokenMappings} for:item="mapping">
+                            <tr key={mapping.token}>
+                                <td>
+                                    <c-doc-gen-token-badge token={mapping.token}></c-doc-gen-token-badge>
+                                </td>
+                                <td>
+                                    <lightning-combobox
+                                        variant="label-hidden"
+                                        options={mappingTypeOptions}
+                                        value={mapping.mappingType}
+                                        data-token={mapping.token}
+                                        data-field="mappingType"
+                                        onchange={handleMappingChange}>
+                                    </lightning-combobox>
+                                </td>
+                                <td>
+                                    <template if:true={mapping.isFieldType}>
+                                        <lightning-combobox
+                                            variant="label-hidden"
+                                            placeholder="Select Object"
+                                            options={objectOptions}
+                                            value={mapping.sourceObject}
+                                            data-token={mapping.token}
+                                            data-field="sourceObject"
+                                            onchange={handleMappingChange}>
+                                        </lightning-combobox>
+                                    </template>
+                                </td>
+                                <td>
+                                    <template if:true={mapping.isFieldType}>
+                                        <lightning-combobox
+                                            variant="label-hidden"
+                                            placeholder="Select Field"
+                                            options={mapping.fieldOptions}
+                                            value={mapping.sourceField}
+                                            data-token={mapping.token}
+                                            data-field="sourceField"
+                                            onchange={handleMappingChange}>
+                                        </lightning-combobox>
+                                    </template>
+                                </td>
+                                <td>
+                                    <template if:true={mapping.isConstantType}>
+                                        <lightning-input
+                                            variant="label-hidden"
+                                            placeholder="Enter value"
+                                            value={mapping.staticValue}
+                                            data-token={mapping.token}
+                                            data-field="staticValue"
+                                            onchange={handleMappingChange}>
+                                        </lightning-input>
+                                    </template>
+                                </td>
+                                <td>
+                                    <lightning-input
+                                        variant="label-hidden"
+                                        placeholder="e.g. date:MM/dd/yyyy"
+                                        value={mapping.formatOverride}
+                                        data-token={mapping.token}
+                                        data-field="formatOverride"
+                                        onchange={handleMappingChange}>
+                                    </lightning-input>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </template>
+
+            <template if:false={hasMappings}>
+                <p class="slds-text-color_weak">No tokens detected. Go back and upload a template with &#123;&#123;token&#125;&#125; placeholders.</p>
+            </template>
+
+            <div class="slds-grid slds-grid_align-spread slds-m-top_medium">
+                <lightning-button label="Back" onclick={handleBack}></lightning-button>
+                <lightning-button
+                    label="Next: Add Variables"
+                    variant="brand"
+                    onclick={handleNext}>
+                </lightning-button>
+            </div>
+        </div>
+    </lightning-card>
+</template>

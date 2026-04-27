@@ -1,0 +1,12 @@
+.token-badge {
+    display: inline-block;
+    margin: 2px 4px;
+    padding: 4px 8px;
+    background-color: #e8f4fd;
+    color: #0070d2;
+    border: 1px solid #0070d2;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    cursor: default;
+}

@@ -1,0 +1,37 @@
+<template>
+    <lightning-card title="Step 4: System Variables" icon-name="utility:formula">
+        <div class="slds-p-around_medium">
+
+            <p class="slds-m-bottom_medium slds-text-color_weak">
+                These tokens are automatically resolved at generation time — no mapping required.
+                Update values in <strong>Setup → Custom Metadata Types → DocGen Config → Default</strong>.
+            </p>
+
+            <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                <thead>
+                    <tr>
+                        <th>Token</th>
+                        <th>Resolves To</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={systemVariables} for:item="sv">
+                        <tr key={sv.token}>
+                            <td><c-doc-gen-token-badge token={sv.token}></c-doc-gen-token-badge></td>
+                            <td class="slds-text-color_weak">{sv.description}</td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+
+            <div class="slds-grid slds-grid_align-spread slds-m-top_medium">
+                <lightning-button label="Back" onclick={handleBack}></lightning-button>
+                <lightning-button
+                    label="Next: Preview"
+                    variant="brand"
+                    onclick={handleNext}>
+                </lightning-button>
+            </div>
+        </div>
+    </lightning-card>
+</template>

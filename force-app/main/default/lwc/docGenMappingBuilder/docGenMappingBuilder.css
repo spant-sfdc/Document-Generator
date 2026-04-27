@@ -1,0 +1,13 @@
+.mapping-table {
+    width: 100%;
+    font-size: 13px;
+}
+.mapping-table th {
+    background: #f4f6f9;
+    font-weight: 600;
+    padding: 8px;
+}
+.mapping-table td {
+    padding: 6px 8px;
+    vertical-align: middle;
+}

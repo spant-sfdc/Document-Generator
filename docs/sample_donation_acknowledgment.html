@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body {
+      font-family: Georgia, serif;
+      font-size: 13pt;
+      color: #1a1a1a;
+      margin: 0;
+      padding: 0;
+      background: #fff;
+    }
+    .page {
+      width: 680px;
+      margin: 40px auto;
+      padding: 50px 60px;
+      border: 1px solid #ddd;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid #032D60;
+      padding-bottom: 18px;
+      margin-bottom: 28px;
+    }
+    .org-name {
+      font-size: 22pt;
+      font-weight: bold;
+      color: #032D60;
+    }
+    .org-tagline {
+      font-size: 9pt;
+      color: #555;
+      margin-top: 4px;
+    }
+    .letter-date {
+      font-size: 10pt;
+      color: #444;
+      text-align: right;
+    }
+    h2 {
+      color: #032D60;
+      font-size: 14pt;
+      margin-top: 0;
+      margin-bottom: 6px;
+    }
+    .address-block {
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+    .salutation {
+      font-size: 13pt;
+      margin-bottom: 16px;
+    }
+    p {
+      line-height: 1.8;
+      margin-bottom: 14px;
+    }
+    .gift-summary-box {
+      border: 1px solid #032D60;
+      border-radius: 6px;
+      padding: 18px 24px;
+      margin: 28px 0;
+      background: #f5f8ff;
+    }
+    .gift-summary-box h3 {
+      margin: 0 0 14px 0;
+      color: #032D60;
+      font-size: 11pt;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .gift-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11pt;
+    }
+    .gift-table th {
+      text-align: left;
+      border-bottom: 1px solid #ccc;
+      padding: 6px 8px;
+      font-size: 10pt;
+      color: #555;
+      font-weight: normal;
+    }
+    .gift-table td {
+      padding: 8px 8px;
+      border-bottom: 1px solid #eee;
+    }
+    .gift-table tr:last-child td {
+      border-bottom: none;
+      font-weight: bold;
+    }
+    .tax-notice {
+      font-size: 9pt;
+      color: #555;
+      border-top: 1px solid #ddd;
+      margin-top: 32px;
+      padding-top: 14px;
+      line-height: 1.6;
+    }
+    .signature-block {
+      margin-top: 40px;
+    }
+    .signature-line {
+      border-bottom: 1px solid #333;
+      width: 220px;
+      margin-bottom: 6px;
+    }
+    .signature-name {
+      font-weight: bold;
+    }
+    .footer {
+      margin-top: 40px;
+      border-top: 1px solid #ddd;
+      padding-top: 12px;
+      font-size: 8.5pt;
+      color: #777;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ══ HEADER ══ -->
+  <div class="header">
+    <div>
+      <div class="org-name">{{sys.orgName}}</div>
+      <div class="org-tagline">Empowering Communities · Changing Lives</div>
+    </div>
+    <div class="letter-date">
+      Date: {{sys.today}}<br/>
+      Receipt No: {{ReceiptNumber}}
+    </div>
+  </div>
+
+  <!-- ══ DONOR ADDRESS ══ -->
+  <div class="address-block">
+    <strong>{{DonorName}}</strong><br/>
+    {{DonorOrganization}}<br/>
+    {{DonorMailingStreet}}<br/>
+    {{DonorMailingCity}}, {{DonorMailingState}} {{DonorMailingPostalCode}}<br/>
+    {{DonorMailingCountry}}
+  </div>
+
+  <!-- ══ SALUTATION ══ -->
+  <div class="salutation">Dear {{DonorFirstName}},</div>
+
+  <!-- ══ BODY ══ -->
+  <p>
+    On behalf of everyone at <strong>{{sys.orgName}}</strong>, thank you sincerely for your
+    generous contribution. Your support helps us continue our mission and make a meaningful
+    difference in the lives of those we serve.
+  </p>
+
+  <p>
+    This letter serves as your official tax receipt for the gift(s) listed below. Please retain
+    it for your records.
+  </p>
+
+  <!-- ══ GIFT SUMMARY BOX ══ -->
+  <div class="gift-summary-box">
+    <h3>Gift Summary</h3>
+    <table class="gift-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Campaign / Fund</th>
+          <th>Payment Method</th>
+          <th style="text-align:right;">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- Repeating section — one row per donation line item -->
+        {{#DonationItems}}
+        <tr>
+          <td>{{ItemCloseDate}}</td>
+          <td>{{ItemCampaignName}}</td>
+          <td>{{ItemPaymentMethod}}</td>
+          <td style="text-align:right;">{{ItemAmount}}</td>
+        </tr>
+        {{/DonationItems}}
+
+        <!-- Total row -->
+        <tr>
+          <td colspan="3" style="text-align:right; padding-right:12px;">Total:</td>
+          <td style="text-align:right;">{{TotalGiftAmount}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══ CONDITIONAL — only shown if donor gave $1,000 or more ══ -->
+  {{#if IsMajorDonor}}
+  <p>
+    Your extraordinary generosity qualifies you as a <strong>Major Donor</strong> for the
+    current fiscal year. Our Executive Director will be in touch shortly to share how your
+    gift will be put to work.
+  </p>
+  {{/if}}
+
+  <p>
+    No goods or services were provided in exchange for this contribution. Your gift is therefore
+    fully tax-deductible to the extent allowed by law.
+  </p>
+
+  <p>
+    If you have any questions about this receipt, please do not hesitate to contact us at
+    <strong>{{sys.userEmail}}</strong>.
+  </p>
+
+  <p>With heartfelt gratitude,</p>
+
+  <!-- ══ SIGNATURE ══ -->
+  <div class="signature-block">
+    <div class="signature-line"></div>
+    <div class="signature-name">{{sys.currentUser}}</div>
+    <div>Development &amp; Donor Relations</div>
+    <div>{{sys.orgName}}</div>
+  </div>
+
+  <!-- ══ TAX NOTICE ══ -->
+  <div class="tax-notice">
+    <strong>Tax Information:</strong> {{sys.orgName}} is a registered 501(c)(3) nonprofit
+    organization. Our federal Tax Identification Number (EIN) is {{sys.orgEIN}}. This letter
+    constitutes the entire receipt required by the IRS for a charitable contribution.
+    Please consult your tax advisor for deductibility questions.
+  </div>
+
+  <!-- ══ FOOTER ══ -->
+  <div class="footer">
+    {{sys.orgName}} · {{sys.orgAddress}} · {{sys.orgPhone}} · {{sys.orgWebsite}}<br/>
+    Generated on {{sys.today}} by {{sys.currentUser}}
+  </div>
+
+</div>
+</body>
+</html>

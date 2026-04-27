@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Mapping_Type__c</fullName>
+    <label>Mapping Type</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>FIELD</fullName><default>true</default><label>Field</label></value>
+            <value><fullName>CONSTANT</fullName><default>false</default><label>Constant</label></value>
+            <value><fullName>VARIABLE</fullName><default>false</default><label>Variable</label></value>
+            <value><fullName>EXPRESSION</fullName><default>false</default><label>Expression</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -1,0 +1,14 @@
+<template>
+    <div class="field-picker slds-m-bottom_medium">
+        <h3 class="slds-text-heading_small slds-m-bottom_x-small">{objectLabel}</h3>
+        <lightning-dual-listbox
+            name={objectName}
+            label="Select Fields"
+            source-label="Available Fields"
+            selected-label="Selected Fields"
+            options={fieldOptions}
+            value={selectedValues}
+            onchange={handleChange}>
+        </lightning-dual-listbox>
+    </div>
+</template>

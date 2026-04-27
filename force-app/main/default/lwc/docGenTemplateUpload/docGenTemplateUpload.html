@@ -1,0 +1,54 @@
+<template>
+    <lightning-card title="Step 1: Upload Template" icon-name="utility:upload">
+        <div class="slds-p-around_medium">
+            <c-doc-gen-error-panel errors={error}></c-doc-gen-error-panel>
+
+            <div class="slds-form-element slds-m-bottom_medium">
+                <label class="slds-form-element__label">Select Template File (.html or .txt)</label>
+                <div class="slds-form-element__control">
+                    <input
+                        type="file"
+                        accept=".html,.htm,.txt,.docx"
+                        class="slds-input"
+                        onchange={handleFileSelected}/>
+                </div>
+                <p class="slds-form-element__help">
+                    Upload an HTML template with <strong>&#123;&#123;tokenName&#125;&#125;</strong> placeholders.
+                </p>
+            </div>
+
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Processing..." size="small"></lightning-spinner>
+            </template>
+
+            <template if:true={uploadedFileName}>
+                <div class="slds-box slds-theme_success slds-m-bottom_medium">
+                    <lightning-icon icon-name="utility:success" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                    <strong>{uploadedFileName}</strong> uploaded successfully.
+                </div>
+            </template>
+
+            <template if:true={tokens.length}>
+                <div class="slds-m-bottom_medium">
+                    <h3 class="slds-text-heading_small slds-m-bottom_x-small">
+                        Detected Tokens ({tokenCount})
+                    </h3>
+                    <div class="token-cloud">
+                        <template for:each={tokens} for:item="token">
+                            <c-doc-gen-token-badge key={token} token={token}></c-doc-gen-token-badge>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            <div class="slds-m-top_medium">
+                <lightning-button
+                    label="Next: Select Object"
+                    variant="brand"
+                    onclick={handleNext}
+                    disabled={isNextDisabled}>
+                </lightning-button>
+            </div>
+        </div>
+    </lightning-card>
+</template>

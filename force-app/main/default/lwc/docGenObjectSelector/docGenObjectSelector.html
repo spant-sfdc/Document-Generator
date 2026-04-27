@@ -1,0 +1,98 @@
+<template>
+    <lightning-card title="Step 2: Select Objects" icon-name="utility:standard_objects">
+        <div class="slds-p-around_medium">
+            <c-doc-gen-error-panel errors={error}></c-doc-gen-error-panel>
+
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading objects..." size="small"></lightning-spinner>
+            </template>
+
+            <!-- Search Input -->
+            <div class="slds-form-element slds-m-bottom_medium">
+                <label class="slds-form-element__label">
+                    <abbr class="slds-required" title="required">*</abbr>
+                    Search &amp; Select Objects
+                </label>
+                <div class="slds-form-element__control search-wrapper">
+                    <div class="slds-input-has-icon slds-input-has-icon_left">
+                        <lightning-icon
+                            icon-name="utility:search"
+                            size="x-small"
+                            class="slds-icon slds-input__icon slds-input__icon_left slds-icon-text-default">
+                        </lightning-icon>
+                        <input
+                            type="text"
+                            class="slds-input search-input"
+                            placeholder={searchPlaceholder}
+                            oninput={handleSearchInput}
+                            onblur={handleSearchBlur}
+                            autocomplete="off" />
+                    </div>
+
+                    <!-- Suggestions dropdown -->
+                    <template if:true={showSuggestions}>
+                        <div class="suggestions-dropdown">
+                            <template for:each={suggestions} for:item="obj">
+                                <div
+                                    key={obj.apiName}
+                                    class="suggestion-item"
+                                    data-api-name={obj.apiName}
+                                    data-label={obj.label}
+                                    onmousedown={handleSelectSuggestion}>
+                                    <span class="obj-label">{obj.label}</span>
+                                    <span class="obj-api">{obj.apiName}</span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+                <p class="slds-form-element__help">
+                    First selection becomes the primary object. Additional selections become related objects.
+                </p>
+            </div>
+
+            <!-- Primary Object Chip -->
+            <template if:true={primaryObject}>
+                <div class="slds-m-bottom_small">
+                    <p class="slds-text-title_caps slds-m-bottom_x-small" style="font-size:11px;color:#444;">Primary Object</p>
+                    <div class="chip chip-primary">
+                        <lightning-icon icon-name="utility:record" size="xx-small" class="chip-icon"></lightning-icon>
+                        <span class="chip-label">{primaryLabel}</span>
+                        <span class="chip-api">({primaryObject})</span>
+                        <button class="chip-remove" onclick={handleRemovePrimary} title="Remove">&#x2715;</button>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Related Object Chips -->
+            <template if:true={hasRelated}>
+                <div class="slds-m-bottom_medium">
+                    <p class="slds-text-title_caps slds-m-bottom_x-small" style="font-size:11px;color:#444;">Related Objects</p>
+                    <div class="chips-row">
+                        <template for:each={relatedObjects} for:item="rel">
+                            <div key={rel.apiName} class="chip chip-related">
+                                <span class="chip-label">{rel.label}</span>
+                                <span class="chip-api">({rel.apiName})</span>
+                                <button
+                                    class="chip-remove"
+                                    data-api-name={rel.apiName}
+                                    onclick={handleRemoveRelated}
+                                    title="Remove">&#x2715;</button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            <div class="slds-grid slds-grid_align-spread slds-m-top_medium">
+                <lightning-button label="Back" onclick={handleBack}></lightning-button>
+                <lightning-button
+                    label="Next: Map Tokens"
+                    variant="brand"
+                    onclick={handleNext}
+                    disabled={isNextDisabled}>
+                </lightning-button>
+            </div>
+        </div>
+    </lightning-card>
+</template>

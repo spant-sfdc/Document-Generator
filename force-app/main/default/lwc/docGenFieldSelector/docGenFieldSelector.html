@@ -1,0 +1,34 @@
+<template>
+    <lightning-card title="Step 3: Select Fields" icon-name="utility:form">
+        <div class="slds-p-around_medium">
+            <c-doc-gen-error-panel errors={error}></c-doc-gen-error-panel>
+
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading fields..." size="small"></lightning-spinner>
+            </template>
+
+            <template if:false={isLoading}>
+                <template for:each={objectTabs} for:item="tab">
+                    <div key={tab.objectName} class="slds-m-bottom_large">
+                        <c-doc-gen-field-picker-dual
+                            object-name={tab.objectName}
+                            object-label={tab.label}
+                            fields={tab.fields}
+                            onfieldselectionchanged={handleFieldSelectionChanged}>
+                        </c-doc-gen-field-picker-dual>
+                    </div>
+                </template>
+            </template>
+
+            <div class="slds-grid slds-grid_align-spread slds-m-top_medium">
+                <lightning-button label="Back" onclick={handleBack}></lightning-button>
+                <lightning-button
+                    label="Next: Map Tokens"
+                    variant="brand"
+                    onclick={handleNext}
+                    disabled={isLoading}>
+                </lightning-button>
+            </div>
+        </div>
+    </lightning-card>
+</template>

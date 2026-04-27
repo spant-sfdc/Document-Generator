@@ -1,0 +1,8 @@
+<template>
+    <template if:true={hasError}>
+        <div class="slds-notify slds-notify_alert slds-theme_error" role="alert">
+            <lightning-icon icon-name="utility:error" size="x-small" class="slds-m-right_x-small" alternative-text="Error"></lightning-icon>
+            <span>{message}</span>
+        </div>
+    </template>
+</template>
