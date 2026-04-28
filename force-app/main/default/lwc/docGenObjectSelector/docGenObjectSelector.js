@@ -1,5 +1,5 @@
-import { LightningElement, api, track, wire } from 'lwc';
-import getObjects from '@salesforce/apex/DocGen_Controller.getObjects';
+import { LightningElement, api, track } from 'lwc';
+import searchObjects from '@salesforce/apex/DocGen_Controller.searchObjects';
 
 export default class DocGenObjectSelector extends LightningElement {
     @api templateTokens     = [];
@@ -8,28 +8,27 @@ export default class DocGenObjectSelector extends LightningElement {
     @api savedParentObjects = [];
     @api savedChildObjects  = [];
 
-    @track allObjects      = [];
     @track suggestions     = [];
     @track showSuggestions = false;
     @track primaryObject   = null;
     @track primaryLabel    = '';
     @track parentObjects   = [];
     @track childObjects    = [];
-    @track isLoading       = true;
+    @track isSearching     = false;
     @track error           = null;
     @track childWarning    = null;
 
     _addMode       = 'PARENT';
     _debounceTimer = null;
 
-    get isNextDisabled()   { return !this.primaryObject || this.isLoading; }
-    get hasParents()       { return this.parentObjects.length > 0; }
-    get hasChildren()      { return this.childObjects.length > 0; }
-    get showModeToggle()   { return !!this.primaryObject; }
-    get parentModeClass()  { return `mode-btn${this._addMode === 'PARENT' ? ' active-parent' : ''}`; }
-    get childModeClass()   { return `mode-btn${this._addMode === 'CHILD'  ? ' active-child'  : ''}`; }
+    get isNextDisabled()  { return !this.primaryObject || this.isSearching; }
+    get hasParents()      { return this.parentObjects.length > 0; }
+    get hasChildren()     { return this.childObjects.length > 0; }
+    get showModeToggle()  { return !!this.primaryObject; }
+    get parentModeClass() { return `mode-btn${this._addMode === 'PARENT' ? ' active-parent' : ''}`; }
+    get childModeClass()  { return `mode-btn${this._addMode === 'CHILD'  ? ' active-child'  : ''}`; }
     get searchPlaceholder() {
-        if (!this.primaryObject) return 'Type to search and select the primary object...';
+        if (!this.primaryObject) return 'Type 2+ characters to search primary object...';
         return this._addMode === 'PARENT'
             ? 'Search to add a parent object (lookup from primary)...'
             : 'Search to add a child object (has repeating rows in template)...';
@@ -52,38 +51,38 @@ export default class DocGenObjectSelector extends LightningElement {
         }
     }
 
-    @wire(getObjects)
-    wiredObjects({ data, error }) {
-        this.isLoading = false;
-        if (data)  { this.allObjects = data; }
-        else if (error) { this.error = error; }
-    }
-
     handleSearchInput(evt) {
-        this.searchTerm = evt.target.value;
+        const term = evt.target.value || '';
         clearTimeout(this._debounceTimer);
-        this._debounceTimer = setTimeout(() => {
-            this._filterSuggestions(this.searchTerm);
-        }, 300);
-    }
-
-    _filterSuggestions(term) {
-        if (!term || term.trim().length < 1) {
+        if (term.trim().length < 2) {
             this.suggestions     = [];
             this.showSuggestions = false;
             return;
         }
-        const lower = term.toLowerCase();
-        const taken = new Set([
-            this.primaryObject,
-            ...this.parentObjects.map(r => r.apiName),
-            ...this.childObjects.map(r  => r.apiName)
-        ].filter(Boolean));
-        this.suggestions = this.allObjects
-            .filter(o => !taken.has(o.apiName) &&
-                (o.label.toLowerCase().includes(lower) || o.apiName.toLowerCase().includes(lower)))
-            .slice(0, 10);
-        this.showSuggestions = this.suggestions.length > 0;
+        this._debounceTimer = setTimeout(() => {
+            this._search(term.trim());
+        }, 300);
+    }
+
+    async _search(term) {
+        this.isSearching = true;
+        this.error       = null;
+        try {
+            const results = await searchObjects({ searchTerm: term });
+            const taken   = new Set([
+                this.primaryObject,
+                ...this.parentObjects.map(r => r.apiName),
+                ...this.childObjects.map(r  => r.apiName)
+            ].filter(Boolean));
+            this.suggestions     = (results || []).filter(o => !taken.has(o.apiName));
+            this.showSuggestions = this.suggestions.length > 0;
+        } catch (e) {
+            this.error           = e;
+            this.suggestions     = [];
+            this.showSuggestions = false;
+        } finally {
+            this.isSearching = false;
+        }
     }
 
     handleSelectSuggestion(evt) {

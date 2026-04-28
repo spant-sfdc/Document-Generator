@@ -1,27 +1,27 @@
 public with sharing class DocGen_SchemaService {
 
-    public static List<DocGen_Wrappers.ObjectDescribeWrapper> getAllObjects() {
+    // Server-side search: fires a scoped EntityDefinition SOQL query for each
+    // keystroke. LIMIT 50 guarantees results always fit in one batch, which is
+    // required because EntityDefinition does not support queryMore().
+    public static List<DocGen_Wrappers.ObjectDescribeWrapper> searchObjects(String searchTerm) {
         List<DocGen_Wrappers.ObjectDescribeWrapper> result = new List<DocGen_Wrappers.ObjectDescribeWrapper>();
-        // EntityDefinition SOQL is a single query and avoids the CPU limit caused
-        // by calling Schema.getDescribe() on every object in the org (600-800+ calls).
+        if (String.isBlank(searchTerm) || searchTerm.trim().length() < 2) return result;
+        String term = '%' + String.escapeSingleQuotes(searchTerm.trim()) + '%';
         for (EntityDefinition ed : [
-            SELECT QualifiedApiName, Label, IsCustomizable
+            SELECT QualifiedApiName, Label
             FROM   EntityDefinition
             WHERE  IsQueryable = true
+            AND    (Label LIKE :term OR QualifiedApiName LIKE :term)
             ORDER  BY Label ASC
-            LIMIT  1000
+            LIMIT  50
         ]) {
             String apiName = ed.QualifiedApiName;
             String lbl     = ed.Label;
-            // Skip objects with missing/internal labels (system-only objects)
             if (String.isBlank(lbl) || lbl.startsWith('__MISSING')) continue;
-            // Skip audit/system objects not useful for document generation
-            if (apiName.endsWith('Share')       || apiName.endsWith('History')      ||
-                apiName.endsWith('Feed')        || apiName.endsWith('Tag')          ||
-                apiName.endsWith('ChangeEvent') || apiName.endsWith('ViewStat')     ||
-                apiName.endsWith('VoteStat')    || apiName.endsWith('DataCategorySelection')) {
-                continue;
-            }
+            if (apiName.endsWith('Share')       || apiName.endsWith('History')  ||
+                apiName.endsWith('Feed')        || apiName.endsWith('Tag')      ||
+                apiName.endsWith('ChangeEvent') || apiName.endsWith('VoteStat') ||
+                apiName.endsWith('ViewStat')) continue;
             DocGen_Wrappers.ObjectDescribeWrapper w = new DocGen_Wrappers.ObjectDescribeWrapper();
             w.apiName  = apiName;
             w.label    = lbl;

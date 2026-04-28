@@ -1,9 +1,9 @@
 public with sharing class DocGen_Controller {
 
     @AuraEnabled(cacheable=true)
-    public static List<DocGen_Wrappers.ObjectDescribeWrapper> getObjects() {
+    public static List<DocGen_Wrappers.ObjectDescribeWrapper> searchObjects(String searchTerm) {
         try {
-            return DocGen_SchemaService.getAllObjects();
+            return DocGen_SchemaService.searchObjects(searchTerm);
         } catch (Exception e) {
             throw new AuraHandledException(e.getMessage());
         }

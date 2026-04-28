@@ -3,8 +3,8 @@
         <div class="slds-p-around_medium">
             <c-doc-gen-error-panel errors={error}></c-doc-gen-error-panel>
 
-            <template if:true={isLoading}>
-                <lightning-spinner alternative-text="Loading objects..." size="small"></lightning-spinner>
+            <template if:true={isSearching}>
+                <lightning-spinner alternative-text="Searching..." size="small"></lightning-spinner>
             </template>
 
             <!-- Search Input -->
