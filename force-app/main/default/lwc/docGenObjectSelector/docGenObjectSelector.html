@@ -8,7 +8,7 @@
             </template>
 
             <!-- Search Input -->
-            <div class="slds-form-element slds-m-bottom_medium">
+            <div class="slds-form-element slds-m-bottom_small">
                 <label class="slds-form-element__label">
                     <abbr class="slds-required" title="required">*</abbr>
                     Search &amp; Select Objects
@@ -46,15 +46,25 @@
                         </div>
                     </template>
                 </div>
-                <p class="slds-form-element__help">
-                    First selection becomes the primary object. Additional selections become related objects.
-                </p>
             </div>
+
+            <!-- Mode Toggle — visible after primary is set -->
+            <template if:true={showModeToggle}>
+                <div class="mode-toggle slds-m-bottom_medium">
+                    <span class="mode-label">Adding next object as:</span>
+                    <button class={parentModeClass} onclick={handleSetModeParent}>
+                        ↑ Parent Object
+                    </button>
+                    <button class={childModeClass} onclick={handleSetModeChild}>
+                        ↓ Child Object
+                    </button>
+                </div>
+            </template>
 
             <!-- Primary Object Chip -->
             <template if:true={primaryObject}>
                 <div class="slds-m-bottom_small">
-                    <p class="slds-text-title_caps slds-m-bottom_x-small" style="font-size:11px;color:#444;">Primary Object</p>
+                    <p class="section-label" style="color:#032D60;">Primary Object</p>
                     <div class="chip chip-primary">
                         <lightning-icon icon-name="utility:record" size="xx-small" class="chip-icon"></lightning-icon>
                         <span class="chip-label">{primaryLabel}</span>
@@ -64,23 +74,59 @@
                 </div>
             </template>
 
-            <!-- Related Object Chips -->
-            <template if:true={hasRelated}>
-                <div class="slds-m-bottom_medium">
-                    <p class="slds-text-title_caps slds-m-bottom_x-small" style="font-size:11px;color:#444;">Related Objects</p>
+            <!-- Parent Object Chips -->
+            <template if:true={hasParents}>
+                <div class="slds-m-bottom_small">
+                    <p class="section-label" style="color:#1b5e20;">
+                        Parent Objects
+                        <span class="section-hint">— single related record, accessed via lookup from primary</span>
+                    </p>
                     <div class="chips-row">
-                        <template for:each={relatedObjects} for:item="rel">
-                            <div key={rel.apiName} class="chip chip-related">
+                        <template for:each={parentObjects} for:item="rel">
+                            <div key={rel.apiName} class="chip chip-parent-obj">
+                                <lightning-icon icon-name="utility:record_lookup" size="xx-small" class="chip-icon"></lightning-icon>
                                 <span class="chip-label">{rel.label}</span>
                                 <span class="chip-api">({rel.apiName})</span>
                                 <button
                                     class="chip-remove"
                                     data-api-name={rel.apiName}
-                                    onclick={handleRemoveRelated}
+                                    onclick={handleRemoveParent}
                                     title="Remove">&#x2715;</button>
                             </div>
                         </template>
                     </div>
+                </div>
+            </template>
+
+            <!-- Child Object Chips -->
+            <template if:true={hasChildren}>
+                <div class="slds-m-bottom_small">
+                    <p class="section-label" style="color:#c75300;">
+                        Child Objects
+                        <span class="section-hint">— multiple records, require a repeating section in template</span>
+                    </p>
+                    <div class="chips-row">
+                        <template for:each={childObjects} for:item="rel">
+                            <div key={rel.apiName} class="chip chip-child">
+                                <lightning-icon icon-name="utility:list" size="xx-small" class="chip-icon"></lightning-icon>
+                                <span class="chip-label">{rel.label}</span>
+                                <span class="chip-api">({rel.apiName})</span>
+                                <button
+                                    class="chip-remove"
+                                    data-api-name={rel.apiName}
+                                    onclick={handleRemoveChild}
+                                    title="Remove">&#x2715;</button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Child Warning -->
+            <template if:true={childWarning}>
+                <div class="child-warning slds-m-bottom_small">
+                    <lightning-icon icon-name="utility:warning" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                    {childWarning}
                 </div>
             </template>
 

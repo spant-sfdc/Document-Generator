@@ -90,7 +90,7 @@ public with sharing class DocGen_Controller {
                 fileName = 'Document_' + Datetime.now().format('yyyyMMdd_HHmmss') + '.pdf';
             } else {
                 content  = Blob.valueOf(mergedHtml);
-                fileName = 'Document_' + Datetime.now().format('yyyyMMdd_HHmmss') + '.docx';
+                fileName = 'Document_' + Datetime.now().format('yyyyMMdd_HHmmss') + '.doc';
             }
 
             // Resolve Document_Template__c record ID from ContentVersion ID

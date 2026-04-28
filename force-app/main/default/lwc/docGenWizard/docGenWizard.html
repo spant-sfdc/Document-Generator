@@ -30,9 +30,11 @@
 
             <template if:true={isStep1}>
                 <c-doc-gen-object-selector
+                    template-tokens={wizardState.templateTokens}
                     saved-primary-object={wizardState.primaryObject}
                     saved-primary-label={wizardState.primaryObjectLabel}
-                    saved-related={wizardState.relatedObjectsWithLabels}
+                    saved-parent-objects={wizardState.parentObjects}
+                    saved-child-objects={wizardState.childObjects}
                     onstepcomplete={handleStepComplete}
                     onstepback={handleBack}>
                 </c-doc-gen-object-selector>
@@ -42,7 +44,8 @@
                 <c-doc-gen-mapping-builder
                     template-tokens={wizardState.templateTokens}
                     primary-object={wizardState.primaryObject}
-                    related-objects={wizardState.relatedObjects}
+                    parent-objects={wizardState.parentObjects}
+                    child-objects={wizardState.childObjects}
                     saved-mappings={wizardState.tokenMappings}
                     onstepcomplete={handleStepComplete}
                     onstepback={handleBack}>

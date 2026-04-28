@@ -7,6 +7,8 @@ const EMPTY_STATE  = {
     templateTokens:          [],
     primaryObject:           null,
     primaryObjectLabel:      '',
+    parentObjects:           [],
+    childObjects:            [],
     relatedObjects:          [],
     relatedObjectsWithLabels:[],
     tokenMappings:           [],
@@ -24,6 +26,11 @@ export default class DocGenWizard extends LightningElement {
             const saved = sessionStorage.getItem(SESSION_KEY);
             if (saved) {
                 const parsed = JSON.parse(saved);
+                // Migrate old sessions that used flat relatedObjects instead of parent/child split
+                if (!parsed.parentObjects && parsed.relatedObjectsWithLabels && parsed.relatedObjectsWithLabels.length > 0) {
+                    parsed.parentObjects = parsed.relatedObjectsWithLabels;
+                    parsed.childObjects  = [];
+                }
                 this.wizardState = { ...EMPTY_STATE, ...parsed };
             }
         } catch (e) { /* ignore corrupt session */ }

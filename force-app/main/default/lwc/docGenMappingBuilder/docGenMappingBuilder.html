@@ -59,6 +59,17 @@
                                             data-field="sourceField"
                                             onchange={handleMappingChange}>
                                         </lightning-combobox>
+                                        <template if:true={mapping.isParentType}>
+                                            <lightning-input
+                                                variant="label-hidden"
+                                                placeholder="Rel. path e.g. Account.Name"
+                                                value={mapping.relationshipPath}
+                                                data-token={mapping.token}
+                                                data-field="relationshipPath"
+                                                class="rel-path-input"
+                                                onchange={handleMappingChange}>
+                                            </lightning-input>
+                                        </template>
                                     </template>
                                 </td>
                                 <td>

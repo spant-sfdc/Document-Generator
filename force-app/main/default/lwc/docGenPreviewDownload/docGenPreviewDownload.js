@@ -23,7 +23,11 @@ export default class DocGenPreviewDownload extends NavigationMixin(LightningElem
         if (this._previewHtmlPending && this.previewHtml) {
             const container = this.template.querySelector('.preview-html-container');
             if (container) {
-                container.innerHTML = this.previewHtml;
+                const clean = this.previewHtml
+                    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+                    .replace(/<link[^>]*/gi, '')
+                    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+                container.innerHTML = clean;
                 this._previewHtmlPending = false;
             }
         }

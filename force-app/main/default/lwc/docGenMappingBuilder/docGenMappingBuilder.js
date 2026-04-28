@@ -10,7 +10,8 @@ const MAPPING_TYPE_OPTIONS = [
 export default class DocGenMappingBuilder extends LightningElement {
     @api templateTokens  = [];
     @api primaryObject   = null;
-    @api relatedObjects  = [];
+    @api parentObjects   = [];
+    @api childObjects    = [];
     @api savedMappings   = [];
 
     @track tokenMappings = [];
@@ -22,8 +23,17 @@ export default class DocGenMappingBuilder extends LightningElement {
     get hasMappings() { return this.tokenMappings.length > 0; }
 
     get objectOptions() {
-        const objs = [this.primaryObject, ...(this.relatedObjects || [])].filter(Boolean);
-        return objs.map(o => ({ label: o, value: o }));
+        const opts = [];
+        if (this.primaryObject) {
+            opts.push({ label: `${this.primaryObject} (Primary)`, value: this.primaryObject });
+        }
+        (this.parentObjects || []).forEach(p => {
+            opts.push({ label: `${p.label || p.apiName} (Parent)`, value: p.apiName });
+        });
+        (this.childObjects || []).forEach(c => {
+            opts.push({ label: `${c.label || c.apiName} (Child)`, value: c.apiName });
+        });
+        return opts;
     }
 
     async connectedCallback() {
@@ -41,28 +51,62 @@ export default class DocGenMappingBuilder extends LightningElement {
                     ...m,
                     fieldOptions:   this.buildFieldOptions(obj),
                     isFieldType:    m.mappingType === 'FIELD',
-                    isConstantType: m.mappingType === 'CONSTANT'
+                    isConstantType: m.mappingType === 'CONSTANT',
+                    isParentType:   this._isParent(m.sourceObject)
                 };
             }));
         } else {
-            this.tokenMappings = (this.templateTokens || []).map(token => ({
-                token,
-                mappingType:    'FIELD',
-                sourceObject:   this.primaryObject,
-                sourceField:    '',
-                staticValue:    '',
-                formatOverride: '',
-                isRepeating:    false,
-                repeatObject:   '',
-                fieldOptions:   this.buildFieldOptions(this.primaryObject),
-                isFieldType:    true,
-                isConstantType: false
-            }));
+            this.tokenMappings = (this.templateTokens || []).map(token => {
+                const isSectionOpen = token.startsWith('{{#');
+                if (isSectionOpen) {
+                    const sectionName  = token.replace('{{#', '').replace('}}', '').trim();
+                    const matchedChild = (this.childObjects || []).find(
+                        c => c.apiName.toLowerCase() === sectionName.toLowerCase()
+                    );
+                    const childApi = matchedChild
+                        ? matchedChild.apiName
+                        : ((this.childObjects || [])[0] ? this.childObjects[0].apiName : this.primaryObject);
+                    return {
+                        token,
+                        mappingType:    'FIELD',
+                        sourceObject:   childApi,
+                        sourceField:    '',
+                        staticValue:    '',
+                        formatOverride: '',
+                        relationshipPath: '',
+                        isRepeating:    true,
+                        repeatObject:   childApi,
+                        fieldOptions:   this.buildFieldOptions(childApi),
+                        isFieldType:    true,
+                        isConstantType: false,
+                        isParentType:   false
+                    };
+                }
+                return {
+                    token,
+                    mappingType:    'FIELD',
+                    sourceObject:   this.primaryObject,
+                    sourceField:    '',
+                    staticValue:    '',
+                    formatOverride: '',
+                    relationshipPath: '',
+                    isRepeating:    false,
+                    repeatObject:   '',
+                    fieldOptions:   this.buildFieldOptions(this.primaryObject),
+                    isFieldType:    true,
+                    isConstantType: false,
+                    isParentType:   false
+                };
+            });
         }
     }
 
     async preloadFields() {
-        const allObjects = [this.primaryObject, ...(this.relatedObjects || [])].filter(Boolean);
+        const allObjects = [
+            this.primaryObject,
+            ...(this.parentObjects || []).map(p => p.apiName),
+            ...(this.childObjects  || []).map(c => c.apiName)
+        ].filter(Boolean);
         for (const obj of allObjects) {
             if (!this.fieldCache[obj]) {
                 try {
@@ -78,6 +122,14 @@ export default class DocGenMappingBuilder extends LightningElement {
     buildFieldOptions(objectName) {
         const fields = this.fieldCache[objectName] || [];
         return fields.map(f => ({ label: `${f.label} (${f.apiName})`, value: f.apiName }));
+    }
+
+    _isParent(apiName) {
+        return (this.parentObjects || []).some(p => p.apiName === apiName);
+    }
+
+    _isChild(apiName) {
+        return (this.childObjects || []).some(c => c.apiName === apiName);
     }
 
     async handleMappingChange(evt) {
@@ -96,9 +148,27 @@ export default class DocGenMappingBuilder extends LightningElement {
                         this.fieldCache[value] = f;
                     } catch (e) { this.fieldCache[value] = []; }
                 }
-                updated.fieldOptions = this.buildFieldOptions(value);
-                updated.sourceField  = '';
+                updated.fieldOptions      = this.buildFieldOptions(value);
+                updated.sourceField       = '';
+                updated.relationshipPath  = '';
+                updated.isParentType      = this._isParent(value);
+                if (this._isChild(value)) {
+                    updated.isRepeating  = true;
+                    updated.repeatObject = value;
+                } else {
+                    updated.isRepeating  = false;
+                    updated.repeatObject = '';
+                }
             }
+
+            if (field === 'sourceField') {
+                if (updated.isParentType && value) {
+                    updated.relationshipPath = `${updated.sourceObject}.${value}`;
+                } else if (!updated.isParentType) {
+                    updated.relationshipPath = '';
+                }
+            }
+
             if (field === 'mappingType') {
                 updated.isFieldType    = value === 'FIELD';
                 updated.isConstantType = value === 'CONSTANT';
@@ -113,15 +183,15 @@ export default class DocGenMappingBuilder extends LightningElement {
 
     handleNext() {
         const mappings = this.tokenMappings.map(m => ({
-            token:          m.token,
-            sourceObject:   m.sourceObject,
-            sourceField:    m.sourceField,
-            relationshipPath: '',
-            mappingType:    m.mappingType,
-            staticValue:    m.staticValue,
-            formatOverride: m.formatOverride,
-            isRepeating:    m.isRepeating,
-            repeatObject:   m.repeatObject
+            token:            m.token,
+            sourceObject:     m.sourceObject,
+            sourceField:      m.sourceField,
+            relationshipPath: m.relationshipPath || '',
+            mappingType:      m.mappingType,
+            staticValue:      m.staticValue,
+            formatOverride:   m.formatOverride,
+            isRepeating:      m.isRepeating,
+            repeatObject:     m.repeatObject
         }));
         this.dispatchEvent(new CustomEvent('stepcomplete', {
             bubbles: true,

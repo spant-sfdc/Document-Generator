@@ -8,7 +8,6 @@ public with sharing class DocGen_PdfController {
             List<ContentVersion> cvList = [
                 SELECT VersionData FROM ContentVersion
                 WHERE Id = :cvId
-                WITH SECURITY_ENFORCED
                 LIMIT 1
             ];
             if (!cvList.isEmpty()) {

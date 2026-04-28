@@ -111,9 +111,16 @@ public with sharing class DocGen_DataResolverService {
         for (DocGen_Wrappers.TokenMappingWrapper m : mappings) {
             if (m.mappingType != 'FIELD') continue;
             String objKey = String.isNotBlank(m.sourceObject) ? m.sourceObject : primaryObject;
-            if (!result.containsKey(objKey)) result.put(objKey, new Set<String>());
             String fieldKey = String.isNotBlank(m.relationshipPath) ? m.relationshipPath : m.sourceField;
-            if (String.isNotBlank(fieldKey)) result.get(objKey).add(fieldKey);
+            if (String.isBlank(fieldKey)) continue;
+            // Parent object mappings use a traversal path (e.g. Account.Name) queried
+            // via the primary object's SOQL — add them to the primary set, not the parent's set
+            if (m.isRepeating != true && objKey != primaryObject && String.isNotBlank(m.relationshipPath)) {
+                result.get(primaryObject).add(m.relationshipPath);
+            } else {
+                if (!result.containsKey(objKey)) result.put(objKey, new Set<String>());
+                result.get(objKey).add(fieldKey);
+            }
         }
         return result;
     }
