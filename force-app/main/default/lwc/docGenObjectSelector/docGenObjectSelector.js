@@ -1,7 +1,11 @@
-import { LightningElement, track, wire } from 'lwc';
+import { LightningElement, api, track, wire } from 'lwc';
 import getObjects from '@salesforce/apex/DocGen_Controller.getObjects';
 
 export default class DocGenObjectSelector extends LightningElement {
+    @api savedPrimaryObject = null;
+    @api savedPrimaryLabel  = '';
+    @api savedRelated       = [];
+
     @track allObjects       = [];
     @track suggestions      = [];
     @track showSuggestions  = false;
@@ -20,6 +24,18 @@ export default class DocGenObjectSelector extends LightningElement {
         return this.primaryObject
             ? 'Search to add a related object...'
             : 'Type an object name to search...';
+    }
+
+    connectedCallback() {
+        if (this.savedPrimaryObject) {
+            this.primaryObject = this.savedPrimaryObject;
+            this.primaryLabel  = this.savedPrimaryLabel || this.savedPrimaryObject;
+        }
+        if (this.savedRelated && this.savedRelated.length > 0) {
+            this.relatedObjects = this.savedRelated.map(r =>
+                typeof r === 'object' ? r : { apiName: r, label: r }
+            );
+        }
     }
 
     @wire(getObjects)
@@ -102,8 +118,10 @@ export default class DocGenObjectSelector extends LightningElement {
             bubbles: true,
             composed: true,
             detail: {
-                primaryObject:  this.primaryObject,
-                relatedObjects: this.relatedObjects.map(r => r.apiName)
+                primaryObject:            this.primaryObject,
+                primaryObjectLabel:        this.primaryLabel,
+                relatedObjects:            this.relatedObjects.map(r => r.apiName),
+                relatedObjectsWithLabels:  this.relatedObjects.map(r => ({ apiName: r.apiName, label: r.label }))
             }
         }));
     }

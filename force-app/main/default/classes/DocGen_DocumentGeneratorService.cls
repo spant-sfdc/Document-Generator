@@ -20,6 +20,10 @@ public with sharing class DocGen_DocumentGeneratorService {
     }
 
     public static Blob generatePdf(String mergedHtml) {
+        System.debug(LoggingLevel.INFO, 'DocGen_DocumentGeneratorService.generatePdf: mergedHtml length=' + (mergedHtml != null ? mergedHtml.length() : 0));
+        if (String.isBlank(mergedHtml)) {
+            System.debug(LoggingLevel.WARN, 'DocGen_DocumentGeneratorService.generatePdf: mergedHtml is blank — PDF will be empty');
+        }
         String styledHtml = injectPrintStyles(mergedHtml);
         ContentVersion cv = new ContentVersion(
             Title        = 'DocGen_Temp_' + String.valueOf(System.now().getTime()),

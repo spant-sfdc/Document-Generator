@@ -11,7 +11,7 @@ export default class DocGenMappingBuilder extends LightningElement {
     @api templateTokens  = [];
     @api primaryObject   = null;
     @api relatedObjects  = [];
-    @api selectedFields  = {};
+    @api savedMappings   = [];
 
     @track tokenMappings = [];
     @track fieldCache    = {};
@@ -28,19 +28,37 @@ export default class DocGenMappingBuilder extends LightningElement {
 
     async connectedCallback() {
         await this.preloadFields();
-        this.tokenMappings = (this.templateTokens || []).map(token => ({
-            token,
-            mappingType:    'FIELD',
-            sourceObject:   this.primaryObject,
-            sourceField:    '',
-            staticValue:    '',
-            formatOverride: '',
-            isRepeating:    false,
-            repeatObject:   '',
-            fieldOptions:   this.buildFieldOptions(this.primaryObject),
-            isFieldType:    true,
-            isConstantType: false
-        }));
+        if (this.savedMappings && this.savedMappings.length > 0) {
+            this.tokenMappings = await Promise.all(this.savedMappings.map(async m => {
+                const obj = m.sourceObject || this.primaryObject;
+                if (obj && !this.fieldCache[obj]) {
+                    try {
+                        const f = await getFields({ objectName: obj });
+                        this.fieldCache[obj] = f;
+                    } catch(e) { this.fieldCache[obj] = []; }
+                }
+                return {
+                    ...m,
+                    fieldOptions:   this.buildFieldOptions(obj),
+                    isFieldType:    m.mappingType === 'FIELD',
+                    isConstantType: m.mappingType === 'CONSTANT'
+                };
+            }));
+        } else {
+            this.tokenMappings = (this.templateTokens || []).map(token => ({
+                token,
+                mappingType:    'FIELD',
+                sourceObject:   this.primaryObject,
+                sourceField:    '',
+                staticValue:    '',
+                formatOverride: '',
+                isRepeating:    false,
+                repeatObject:   '',
+                fieldOptions:   this.buildFieldOptions(this.primaryObject),
+                isFieldType:    true,
+                isConstantType: false
+            }));
+        }
     }
 
     async preloadFields() {

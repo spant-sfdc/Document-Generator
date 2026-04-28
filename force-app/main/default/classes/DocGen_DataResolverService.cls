@@ -44,7 +44,10 @@ public with sharing class DocGen_DataResolverService {
 
         for (DocGen_Wrappers.TokenMappingWrapper m : mappings) {
             if (m.isRepeating != true || String.isBlank(m.repeatObject)) continue;
-            if (result.childRecords.containsKey(m.repeatObject)) continue;
+            String sectionKey = String.isNotBlank(m.token)
+                ? m.token.replace('{{#', '').replace('}}', '').trim()
+                : m.repeatObject;
+            if (result.childRecords.containsKey(sectionKey)) continue;
             DocGen_SchemaService.validateObjectName(m.repeatObject);
             Set<String> childFields = fieldsByObject.get(m.repeatObject);
             if (childFields == null) childFields = new Set<String>();
@@ -56,7 +59,8 @@ public with sharing class DocGen_DataResolverService {
                              + ' WITH SECURITY_ENFORCED'
                              + ' LIMIT '  + maxRows;
             List<SObject> childList = Database.query(childSoql);
-            result.childRecords.put(m.repeatObject, flattenRecords(childList));
+            System.debug(LoggingLevel.INFO, 'DocGen_DataResolverService: sectionKey=' + sectionKey + ', rows=' + childList.size());
+            result.childRecords.put(sectionKey, flattenRecords(childList));
         }
         return result;
     }

@@ -1,19 +1,33 @@
 import { LightningElement, track } from 'lwc';
 
-const STEP_LABELS = ['Upload', 'Object', 'Mapping', 'Variables', 'Preview'];
+const STEP_LABELS  = ['Upload', 'Object', 'Mapping', 'Variables', 'Preview'];
+const SESSION_KEY  = 'docgen_wizard_state';
+const EMPTY_STATE  = {
+    templateId:              null,
+    templateTokens:          [],
+    primaryObject:           null,
+    primaryObjectLabel:      '',
+    relatedObjects:          [],
+    relatedObjectsWithLabels:[],
+    tokenMappings:           [],
+    variables:               []
+};
 
 export default class DocGenWizard extends LightningElement {
     @track currentStep = 0;
-    @track wizardState = {
-        templateId:     null,
-        templateTokens: [],
-        primaryObject:  null,
-        relatedObjects: [],
-        tokenMappings:  [],
-        variables:      []
-    };
+    @track wizardState = { ...EMPTY_STATE };
 
     stepLabels = STEP_LABELS;
+
+    connectedCallback() {
+        try {
+            const saved = sessionStorage.getItem(SESSION_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                this.wizardState = { ...EMPTY_STATE, ...parsed };
+            }
+        } catch (e) { /* ignore corrupt session */ }
+    }
 
     get isStep0() { return this.currentStep === 0; }
     get isStep1() { return this.currentStep === 1; }
@@ -34,6 +48,7 @@ export default class DocGenWizard extends LightningElement {
     handleStepComplete(evt) {
         const payload = evt.detail || {};
         this.wizardState = { ...this.wizardState, ...payload };
+        try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(this.wizardState)); } catch(e) {}
         if (this.currentStep < STEP_LABELS.length - 1) {
             this.currentStep++;
         }
@@ -41,5 +56,11 @@ export default class DocGenWizard extends LightningElement {
 
     handleBack() {
         if (this.currentStep > 0) this.currentStep--;
+    }
+
+    handleReset() {
+        this.wizardState = { ...EMPTY_STATE };
+        this.currentStep = 0;
+        try { sessionStorage.removeItem(SESSION_KEY); } catch(e) {}
     }
 }

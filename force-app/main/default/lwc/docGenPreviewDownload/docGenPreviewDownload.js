@@ -17,6 +17,18 @@ export default class DocGenPreviewDownload extends NavigationMixin(LightningElem
     @track savedTemplateName = null;
     @track error             = null;
 
+    _previewHtmlPending = false;
+
+    renderedCallback() {
+        if (this._previewHtmlPending && this.previewHtml) {
+            const container = this.template.querySelector('.preview-html-container');
+            if (container) {
+                container.innerHTML = this.previewHtml;
+                this._previewHtmlPending = false;
+            }
+        }
+    }
+
     get hasPreview()       { return !!this.previewHtml; }
     get hasSavedTemplate() { return !!this.savedTemplateId; }
     get fileUrl()          { return this.savedFileId ? `/lightning/r/ContentDocument/${this.savedFileId}/view` : '#'; }
@@ -26,12 +38,14 @@ export default class DocGenPreviewDownload extends NavigationMixin(LightningElem
     }
 
     async handleGeneratePreview() {
-        this.isLoading   = true;
-        this.error       = null;
-        this.previewHtml = null;
+        this.isLoading            = true;
+        this.error                = null;
+        this.previewHtml          = null;
+        this._previewHtmlPending  = false;
         try {
-            const config = { ...this.templateConfig, recordId: this.recordId };
+            const config     = { ...this.templateConfig, recordId: this.recordId };
             this.previewHtml = await generatePreview({ configJson: JSON.stringify(config) });
+            this._previewHtmlPending = true;
         } catch (e) {
             this.error = e;
         } finally {
@@ -44,7 +58,7 @@ export default class DocGenPreviewDownload extends NavigationMixin(LightningElem
     }
 
     async handleDownloadWord() {
-        await this._downloadDocument('WORD', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        await this._downloadDocument('WORD', 'application/msword');
     }
 
     async _downloadDocument(format, mimeType) {

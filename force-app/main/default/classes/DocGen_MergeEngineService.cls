@@ -7,6 +7,9 @@ public class DocGen_MergeEngineService {
         Map<String, String> resolvedVariables,
         List<DocGen_Wrappers.TokenMappingWrapper> mappings
     ) {
+        System.debug(LoggingLevel.INFO, 'DocGen_MergeEngineService.mergeTemplate: templateHtml.length=' + (templateHtml != null ? templateHtml.length() : 0));
+        System.debug(LoggingLevel.INFO, 'DocGen_MergeEngineService.mergeTemplate: primaryData.keys=' + (primaryData != null ? primaryData.keySet() : null));
+        System.debug(LoggingLevel.INFO, 'DocGen_MergeEngineService.mergeTemplate: childData.keys=' + (childData != null ? childData.keySet() : null));
         if (String.isBlank(templateHtml)) return '';
         String result = templateHtml;
 
@@ -32,6 +35,7 @@ public class DocGen_MergeEngineService {
                 }
             }
         }
+        System.debug(LoggingLevel.INFO, 'DocGen_MergeEngineService.mergeTemplate: result.length=' + result.length());
         return result;
     }
 
@@ -54,6 +58,7 @@ public class DocGen_MergeEngineService {
             String fullMatch   = m.group(0);
             String expanded    = '';
 
+            System.debug(LoggingLevel.INFO, 'DocGen_MergeEngineService.processRepeatingSections: sectionName=' + sectionName + ', childData.keys=' + (childData != null ? childData.keySet() : null));
             if (childData != null && childData.containsKey(sectionName)) {
                 List<Map<String, Object>> rows = childData.get(sectionName);
                 List<DocGen_Wrappers.TokenMappingWrapper> sectionMappings =
