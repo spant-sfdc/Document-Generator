@@ -1,22 +1,60 @@
 <!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════════════════╗
+  ║           DOCGEN SAMPLE TEMPLATE — Donation Acknowledgment Letter       ║
+  ╠══════════════════════════════════════════════════════════════════════════╣
+  ║                                                                          ║
+  ║  PRIMARY OBJECT:  Opportunity                                            ║
+  ║    {{RecordName}}       → Name                                           ║
+  ║    {{CloseDate}}        → CloseDate          (format: date:MM/dd/yyyy)   ║
+  ║    {{TotalAmount}}      → Amount             (format: currency)          ║
+  ║    {{Stage}}            → StageName                                      ║
+  ║    {{ReceiptNumber}}    → Description                                    ║
+  ║    {{IsMajorDonor}}     → IsMajorGift__c     (true/false for {{#if}})   ║
+  ║                                                                          ║
+  ║  PARENT OBJECT:   Account  (via Opportunity → AccountId)                ║
+  ║    {{DonorOrgName}}     → Account.Name                                  ║
+  ║    {{DonorPhone}}       → Account.Phone                                  ║
+  ║    {{DonorBillingCity}} → Account.BillingCity                            ║
+  ║    {{DonorBillingState}}→ Account.BillingState                           ║
+  ║    {{DonorWebsite}}     → Account.Website                                ║
+  ║                                                                          ║
+  ║  CHILD OBJECT:    OpportunityLineItem  (OpportunityId → Opportunity.Id)  ║
+  ║    Section token: {{#DonationItems}} ... {{/DonationItems}}              ║
+  ║    {{ItemName}}         → Name                                           ║
+  ║    {{ItemDate}}         → ServiceDate        (format: date:MM/dd/yyyy)   ║
+  ║    {{ItemFund}}         → Description                                    ║
+  ║    {{ItemQty}}          → Quantity           (format: number:0)          ║
+  ║    {{ItemUnitPrice}}    → UnitPrice          (format: currency)          ║
+  ║    {{ItemTotal}}        → TotalPrice         (format: currency)          ║
+  ║                                                                          ║
+  ║  SYSTEM VARIABLES (auto-resolved — no mapping needed):                  ║
+  ║    {{sys.today}}        {{sys.orgName}}       {{sys.orgEIN}}             ║
+  ║    {{sys.orgAddress}}   {{sys.orgPhone}}      {{sys.orgWebsite}}         ║
+  ║    {{sys.currentUser}}  {{sys.userEmail}}                                ║
+  ╚══════════════════════════════════════════════════════════════════════════╝
+-->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <style>
     body {
       font-family: Georgia, serif;
-      font-size: 13pt;
+      font-size: 12pt;
       color: #1a1a1a;
       margin: 0;
       padding: 0;
-      background: #fff;
+      background: #f4f4f4;
     }
     .page {
-      width: 680px;
-      margin: 40px auto;
-      padding: 50px 60px;
-      border: 1px solid #ddd;
+      width: 720px;
+      margin: 36px auto;
+      padding: 52px 64px;
+      background: #fff;
+      border: 1px solid #d0d0d0;
     }
+
+    /* ── HEADER ── */
     .header {
       display: flex;
       justify-content: space-between;
@@ -25,99 +63,130 @@
       padding-bottom: 18px;
       margin-bottom: 28px;
     }
-    .org-name {
-      font-size: 22pt;
+    .org-name    { font-size: 20pt; font-weight: bold; color: #032D60; }
+    .org-tagline { font-size: 9pt; color: #666; margin-top: 4px; }
+    .letter-meta { font-size: 10pt; color: #444; text-align: right; line-height: 1.7; }
+
+    /* ── DONOR INFO (Parent Object — Account) ── */
+    .section-header {
+      font-size: 7.5pt;
       font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+      margin-bottom: 4px;
+    }
+    .donor-block    { margin-bottom: 24px; }
+    .donor-org      { font-size: 14pt; font-weight: bold; color: #032D60; margin-bottom: 2px; }
+    .donor-contact  { font-size: 10pt; color: #555; line-height: 1.7; }
+    .donor-address  { margin-top: 10px; font-size: 10pt; color: #333; line-height: 1.6; }
+
+    /* ── SALUTATION ── */
+    .salutation { font-size: 12pt; margin-bottom: 16px; }
+
+    /* ── BODY TEXT ── */
+    p { line-height: 1.8; margin-bottom: 14px; }
+
+    /* ── OPPORTUNITY SUMMARY (Primary Object) ── */
+    .opp-summary-box {
+      background: #eef4ff;
+      border: 1px solid #aac4f4;
+      border-left: 5px solid #032D60;
+      border-radius: 4px;
+      padding: 16px 22px;
+      margin: 24px 0;
+    }
+    .opp-summary-box h3 {
+      margin: 0 0 10px 0;
       color: #032D60;
-    }
-    .org-tagline {
-      font-size: 9pt;
-      color: #555;
-      margin-top: 4px;
-    }
-    .letter-date {
       font-size: 10pt;
-      color: #444;
-      text-align: right;
-    }
-    h2 {
-      color: #032D60;
-      font-size: 14pt;
-      margin-top: 0;
-      margin-bottom: 6px;
-    }
-    .address-block {
-      margin-bottom: 28px;
-      line-height: 1.6;
-    }
-    .salutation {
-      font-size: 13pt;
-      margin-bottom: 16px;
-    }
-    p {
-      line-height: 1.8;
-      margin-bottom: 14px;
-    }
-    .gift-summary-box {
-      border: 1px solid #032D60;
-      border-radius: 6px;
-      padding: 18px 24px;
-      margin: 28px 0;
-      background: #f5f8ff;
-    }
-    .gift-summary-box h3 {
-      margin: 0 0 14px 0;
-      color: #032D60;
-      font-size: 11pt;
       text-transform: uppercase;
       letter-spacing: 0.06em;
+    }
+    .opp-row { display: flex; gap: 40px; flex-wrap: wrap; }
+    .opp-field label { font-size: 8.5pt; color: #666; display: block; margin-bottom: 2px; }
+    .opp-field span  { font-size: 11pt; font-weight: bold; color: #032D60; }
+
+    /* ── CHILD OBJECT — Repeating Gift Table ── */
+    .gift-section {
+      margin: 28px 0;
+    }
+    .gift-section h3 {
+      color: #032D60;
+      font-size: 10pt;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
     }
     .gift-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 11pt;
+      font-size: 10.5pt;
+    }
+    .gift-table thead tr {
+      background: #032D60;
+      color: #fff;
     }
     .gift-table th {
+      padding: 9px 12px;
       text-align: left;
-      border-bottom: 1px solid #ccc;
-      padding: 6px 8px;
-      font-size: 10pt;
-      color: #555;
-      font-weight: normal;
-    }
-    .gift-table td {
-      padding: 8px 8px;
-      border-bottom: 1px solid #eee;
-    }
-    .gift-table tr:last-child td {
-      border-bottom: none;
-      font-weight: bold;
-    }
-    .tax-notice {
       font-size: 9pt;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .gift-table th.right,
+    .gift-table td.right { text-align: right; }
+    .gift-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #eee;
+      font-size: 10.5pt;
+    }
+    .gift-table tbody tr:nth-child(even) { background: #f9f9f9; }
+    .gift-table tfoot tr {
+      background: #f0f4ff;
+      border-top: 2px solid #032D60;
+    }
+    .gift-table tfoot td {
+      font-weight: bold;
+      padding: 10px 12px;
+      font-size: 11pt;
+      color: #032D60;
+    }
+
+    /* ── MAJOR DONOR BLOCK (Conditional) ── */
+    .major-donor-box {
+      background: #fffbea;
+      border: 1px solid #f4c430;
+      border-left: 5px solid #c8a000;
+      border-radius: 4px;
+      padding: 14px 20px;
+      margin: 20px 0;
+      font-size: 11pt;
+      line-height: 1.7;
+    }
+
+    /* ── SIGNATURE ── */
+    .signature-block { margin-top: 36px; }
+    .signature-line  { border-bottom: 1px solid #444; width: 220px; margin-bottom: 6px; }
+    .signature-name  { font-weight: bold; font-size: 11pt; }
+
+    /* ── TAX NOTICE ── */
+    .tax-notice {
+      font-size: 8.5pt;
       color: #555;
       border-top: 1px solid #ddd;
       margin-top: 32px;
       padding-top: 14px;
-      line-height: 1.6;
+      line-height: 1.65;
     }
-    .signature-block {
-      margin-top: 40px;
-    }
-    .signature-line {
-      border-bottom: 1px solid #333;
-      width: 220px;
-      margin-bottom: 6px;
-    }
-    .signature-name {
-      font-weight: bold;
-    }
+
+    /* ── FOOTER ── */
     .footer {
-      margin-top: 40px;
+      margin-top: 32px;
       border-top: 1px solid #ddd;
       padding-top: 12px;
-      font-size: 8.5pt;
-      color: #777;
+      font-size: 8pt;
+      color: #888;
       text-align: center;
     }
   </style>
@@ -125,115 +194,192 @@
 <body>
 <div class="page">
 
-  <!-- ══ HEADER ══ -->
+  <!-- ═══════════════════════════════════════════
+       HEADER — uses SYSTEM VARIABLES
+       ══════════════════════════════════════════ -->
   <div class="header">
     <div>
       <div class="org-name">{{sys.orgName}}</div>
       <div class="org-tagline">Empowering Communities · Changing Lives</div>
     </div>
-    <div class="letter-date">
-      Date: {{sys.today}}<br/>
-      Receipt No: {{ReceiptNumber}}
+    <div class="letter-meta">
+      Date: <strong>{{sys.today}}</strong><br/>
+      Receipt No: <strong>{{ReceiptNumber}}</strong>
     </div>
   </div>
 
-  <!-- ══ DONOR ADDRESS ══ -->
-  <div class="address-block">
-    <strong>{{DonorName}}</strong><br/>
-    {{DonorOrganization}}<br/>
-    {{DonorMailingStreet}}<br/>
-    {{DonorMailingCity}}, {{DonorMailingState}} {{DonorMailingPostalCode}}<br/>
-    {{DonorMailingCountry}}
+
+  <!-- ═══════════════════════════════════════════
+       PARENT OBJECT — Account
+       (Accessed via Opportunity → AccountId)
+       Map tokens below to Account fields using
+       Relationship Path:  Account.FieldName
+       ══════════════════════════════════════════ -->
+  <div class="donor-block">
+    <div class="section-header">Donor / Organization — Account (Parent Object)</div>
+    <div class="donor-org">{{DonorOrgName}}</div>
+    <div class="donor-contact">
+      Phone: {{DonorPhone}} &nbsp;|&nbsp; Web: {{DonorWebsite}}
+    </div>
+    <div class="donor-address">
+      {{DonorBillingCity}}, {{DonorBillingState}}
+    </div>
   </div>
 
-  <!-- ══ SALUTATION ══ -->
-  <div class="salutation">Dear {{DonorFirstName}},</div>
 
-  <!-- ══ BODY ══ -->
+  <!-- ═══════════════════════════════════════════
+       SALUTATION
+       ══════════════════════════════════════════ -->
+  <div class="salutation">Dear {{DonorOrgName}},</div>
+
+
+  <!-- ═══════════════════════════════════════════
+       BODY PARAGRAPH
+       ══════════════════════════════════════════ -->
   <p>
-    On behalf of everyone at <strong>{{sys.orgName}}</strong>, thank you sincerely for your
-    generous contribution. Your support helps us continue our mission and make a meaningful
-    difference in the lives of those we serve.
+    On behalf of everyone at <strong>{{sys.orgName}}</strong>, we extend our heartfelt gratitude
+    for your generous contribution. Your support directly fuels our mission and creates lasting
+    impact in the communities we serve.
   </p>
 
   <p>
-    This letter serves as your official tax receipt for the gift(s) listed below. Please retain
-    it for your records.
+    This letter serves as your official donation receipt. Please retain it for your tax records.
   </p>
 
-  <!-- ══ GIFT SUMMARY BOX ══ -->
-  <div class="gift-summary-box">
-    <h3>Gift Summary</h3>
+
+  <!-- ═══════════════════════════════════════════
+       PRIMARY OBJECT — Opportunity
+       Map each {{token}} to an Opportunity field
+       in Step 3: Map Tokens
+       ══════════════════════════════════════════ -->
+  <div class="opp-summary-box">
+    <h3>Donation Record — Opportunity (Primary Object)</h3>
+    <div class="opp-row">
+      <div class="opp-field">
+        <label>Record Name</label>
+        <span>{{RecordName}}</span>
+      </div>
+      <div class="opp-field">
+        <label>Close Date</label>
+        <span>{{CloseDate}}</span>
+      </div>
+      <div class="opp-field">
+        <label>Stage</label>
+        <span>{{Stage}}</span>
+      </div>
+      <div class="opp-field">
+        <label>Total Amount</label>
+        <span>{{TotalAmount}}</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       CHILD OBJECT — OpportunityLineItem
+       Repeating section — one row per line item
+       Section opens with:  {{#DonationItems}}
+       Section closes with: {{/DonationItems}}
+       Map tokens inside to OpportunityLineItem fields,
+       set Source Object = OpportunityLineItem (Child)
+       ══════════════════════════════════════════ -->
+  <div class="gift-section">
+    <h3>Gift Line Items — OpportunityLineItem (Child Object)</h3>
     <table class="gift-table">
       <thead>
         <tr>
+          <th>Item / Fund</th>
           <th>Date</th>
-          <th>Campaign / Fund</th>
-          <th>Payment Method</th>
-          <th style="text-align:right;">Amount</th>
+          <th>Fund / Description</th>
+          <th class="right">Qty</th>
+          <th class="right">Unit Price</th>
+          <th class="right">Total</th>
         </tr>
       </thead>
       <tbody>
 
-        <!-- Repeating section — one row per donation line item -->
         {{#DonationItems}}
         <tr>
-          <td>{{ItemCloseDate}}</td>
-          <td>{{ItemCampaignName}}</td>
-          <td>{{ItemPaymentMethod}}</td>
-          <td style="text-align:right;">{{ItemAmount}}</td>
+          <td>{{ItemName}}</td>
+          <td>{{ItemDate}}</td>
+          <td>{{ItemFund}}</td>
+          <td class="right">{{ItemQty}}</td>
+          <td class="right">{{ItemUnitPrice}}</td>
+          <td class="right">{{ItemTotal}}</td>
         </tr>
         {{/DonationItems}}
 
-        <!-- Total row -->
-        <tr>
-          <td colspan="3" style="text-align:right; padding-right:12px;">Total:</td>
-          <td style="text-align:right;">{{TotalGiftAmount}}</td>
-        </tr>
       </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="5" style="text-align:right; padding-right:16px;">Grand Total:</td>
+          <td class="right">{{TotalAmount}}</td>
+        </tr>
+      </tfoot>
     </table>
   </div>
 
-  <!-- ══ CONDITIONAL — only shown if donor gave $1,000 or more ══ -->
+
+  <!-- ═══════════════════════════════════════════
+       CONDITIONAL BLOCK
+       Shown only when IsMajorDonor = true
+       Map {{IsMajorDonor}} to a boolean/checkbox
+       field on Opportunity
+       ══════════════════════════════════════════ -->
   {{#if IsMajorDonor}}
-  <p>
-    Your extraordinary generosity qualifies you as a <strong>Major Donor</strong> for the
-    current fiscal year. Our Executive Director will be in touch shortly to share how your
-    gift will be put to work.
-  </p>
+  <div class="major-donor-box">
+    &#9733; <strong>Major Donor Recognition</strong> &#9733;<br/>
+    Your extraordinary generosity qualifies you as a <strong>Major Donor</strong> for this
+    fiscal year. Our Executive Director will be reaching out to share how your gift will
+    be put to work.
+  </div>
   {{/if}}
 
+
+  <!-- ═══════════════════════════════════════════
+       CLOSING PARAGRAPHS
+       ══════════════════════════════════════════ -->
   <p>
-    No goods or services were provided in exchange for this contribution. Your gift is therefore
-    fully tax-deductible to the extent allowed by law.
+    No goods or services were provided in exchange for this contribution. Your gift is fully
+    tax-deductible to the extent permitted by law.
   </p>
 
   <p>
-    If you have any questions about this receipt, please do not hesitate to contact us at
-    <strong>{{sys.userEmail}}</strong>.
+    For questions about this receipt, contact us at <strong>{{sys.userEmail}}</strong>
+    or call <strong>{{sys.orgPhone}}</strong>.
   </p>
 
-  <p>With heartfelt gratitude,</p>
+  <p>With deep appreciation,</p>
 
-  <!-- ══ SIGNATURE ══ -->
+
+  <!-- ═══════════════════════════════════════════
+       SIGNATURE — uses SYSTEM VARIABLES
+       ══════════════════════════════════════════ -->
   <div class="signature-block">
     <div class="signature-line"></div>
     <div class="signature-name">{{sys.currentUser}}</div>
-    <div>Development &amp; Donor Relations</div>
-    <div>{{sys.orgName}}</div>
+    <div style="font-size:10pt; color:#555;">Development &amp; Donor Relations</div>
+    <div style="font-size:10pt; color:#555;">{{sys.orgName}}</div>
   </div>
 
-  <!-- ══ TAX NOTICE ══ -->
+
+  <!-- ═══════════════════════════════════════════
+       TAX NOTICE
+       ══════════════════════════════════════════ -->
   <div class="tax-notice">
-    <strong>Tax Information:</strong> {{sys.orgName}} is a registered 501(c)(3) nonprofit
-    organization. Our federal Tax Identification Number (EIN) is {{sys.orgEIN}}. This letter
-    constitutes the entire receipt required by the IRS for a charitable contribution.
-    Please consult your tax advisor for deductibility questions.
+    <strong>Tax Information:</strong>
+    {{sys.orgName}} is a registered 501(c)(3) nonprofit organization.
+    Federal Tax ID (EIN): <strong>{{sys.orgEIN}}</strong>.
+    This letter constitutes the entire receipt required by the IRS for a charitable contribution.
+    Please consult your tax advisor regarding deductibility.
   </div>
 
-  <!-- ══ FOOTER ══ -->
+
+  <!-- ═══════════════════════════════════════════
+       FOOTER
+       ══════════════════════════════════════════ -->
   <div class="footer">
-    {{sys.orgName}} · {{sys.orgAddress}} · {{sys.orgPhone}} · {{sys.orgWebsite}}<br/>
+    {{sys.orgName}} &nbsp;·&nbsp; {{sys.orgAddress}} &nbsp;·&nbsp; {{sys.orgPhone}} &nbsp;·&nbsp; {{sys.orgWebsite}}<br/>
     Generated on {{sys.today}} by {{sys.currentUser}}
   </div>
 
