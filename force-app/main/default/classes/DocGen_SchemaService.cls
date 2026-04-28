@@ -2,17 +2,32 @@ public with sharing class DocGen_SchemaService {
 
     public static List<DocGen_Wrappers.ObjectDescribeWrapper> getAllObjects() {
         List<DocGen_Wrappers.ObjectDescribeWrapper> result = new List<DocGen_Wrappers.ObjectDescribeWrapper>();
-        Map<String, Schema.SObjectType> gd = Schema.getGlobalDescribe();
-        for (String key : gd.keySet()) {
-            Schema.DescribeSObjectResult dr = gd.get(key).getDescribe();
-            if (!dr.isQueryable() || !dr.isAccessible()) continue;
+        // EntityDefinition SOQL is a single query and avoids the CPU limit caused
+        // by calling Schema.getDescribe() on every object in the org (600-800+ calls).
+        for (EntityDefinition ed : [
+            SELECT QualifiedApiName, Label, IsCustomizable
+            FROM   EntityDefinition
+            WHERE  IsQueryable = true
+            ORDER  BY Label ASC
+            LIMIT  1000
+        ]) {
+            String apiName = ed.QualifiedApiName;
+            String lbl     = ed.Label;
+            // Skip objects with missing/internal labels (system-only objects)
+            if (String.isBlank(lbl) || lbl.startsWith('__MISSING')) continue;
+            // Skip audit/system objects not useful for document generation
+            if (apiName.endsWith('Share')       || apiName.endsWith('History')      ||
+                apiName.endsWith('Feed')        || apiName.endsWith('Tag')          ||
+                apiName.endsWith('ChangeEvent') || apiName.endsWith('ViewStat')     ||
+                apiName.endsWith('VoteStat')    || apiName.endsWith('DataCategorySelection')) {
+                continue;
+            }
             DocGen_Wrappers.ObjectDescribeWrapper w = new DocGen_Wrappers.ObjectDescribeWrapper();
-            w.apiName = dr.getName();
-            w.label   = dr.getLabel();
-            w.isCustom = dr.isCustom();
+            w.apiName  = apiName;
+            w.label    = lbl;
+            w.isCustom = apiName.endsWith('__c');
             result.add(w);
         }
-        result.sort();
         return result;
     }
 
