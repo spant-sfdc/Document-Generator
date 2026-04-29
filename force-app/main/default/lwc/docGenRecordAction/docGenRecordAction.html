@@ -1,0 +1,164 @@
+<template>
+    <!-- Trigger button on the record page -->
+    <lightning-button
+        label="Generate Document"
+        variant="brand"
+        icon-name="utility:file"
+        onclick={handleOpenModal}>
+    </lightning-button>
+
+    <!-- Modal overlay -->
+    <template if:true={isModalOpen}>
+        <section role="dialog" tabindex="-1" aria-modal="true"
+                 class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container modal-container">
+
+                <!-- Header -->
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                            title="Close" onclick={handleClose}>
+                        <lightning-icon icon-name="utility:close" size="small"
+                                        alternative-text="Close"></lightning-icon>
+                    </button>
+                    <h2 class="slds-modal__title slds-has-flexi-truncate">
+                        <lightning-icon icon-name="utility:file" size="small"
+                                        class="slds-m-right_x-small"></lightning-icon>
+                        <template if:true={isSelectView}>Select Template</template>
+                        <template if:true={isPreviewView}>
+                            Preview — {selectedTemplateName}
+                        </template>
+                    </h2>
+                </header>
+
+                <!-- Content -->
+                <div class="slds-modal__content slds-p-around_medium modal-content">
+
+                    <!-- Error banner -->
+                    <template if:true={error}>
+                        <div class="slds-notify slds-notify_alert slds-theme_error slds-m-bottom_small"
+                             role="alert">
+                            <lightning-icon icon-name="utility:error" size="x-small"
+                                            class="slds-m-right_x-small"></lightning-icon>
+                            {error}
+                        </div>
+                    </template>
+
+                    <!-- Loading spinner -->
+                    <template if:true={isLoading}>
+                        <div class="slds-align_absolute-center slds-p-around_large">
+                            <lightning-spinner size="medium" variant="brand"
+                                              alternative-text="Loading..."></lightning-spinner>
+                        </div>
+                    </template>
+
+                    <!-- ── SELECT VIEW ── -->
+                    <template if:true={isSelectView}>
+                        <template if:false={isLoading}>
+                            <template if:true={hasTemplates}>
+                                <p class="slds-m-bottom_small slds-text-color_weak">
+                                    Choose a template to generate a document for this record.
+                                </p>
+                                <ul class="slds-has-dividers_top-space">
+                                    <template for:each={templates} for:item="tmpl">
+                                        <li key={tmpl.Id} class="slds-item">
+                                            <button class="slds-button slds-button_reset template-btn slds-p-around_small"
+                                                    data-id={tmpl.Id}
+                                                    onclick={handleSelectTemplate}>
+                                                <lightning-icon icon-name="utility:file"
+                                                                size="small"
+                                                                class="slds-m-right_small"></lightning-icon>
+                                                <span class="template-btn-name">{tmpl.Name}</span>
+                                                <span class="slds-m-left_x-small slds-text-color_weak template-btn-obj">
+                                                    ({tmpl.Primary_Object__c})
+                                                </span>
+                                            </button>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </template>
+
+                            <template if:false={hasTemplates}>
+                                <div class="slds-align_absolute-center slds-p-around_large empty-state">
+                                    <lightning-icon icon-name="utility:file"
+                                                   size="large"
+                                                   class="slds-m-bottom_medium"></lightning-icon>
+                                    <p class="slds-text-color_weak slds-m-bottom_x-small">
+                                        No active templates found for this object type.
+                                    </p>
+                                    <p class="slds-text-color_weak">
+                                        Visit the <strong>Document Generator</strong> app to create a template first.
+                                    </p>
+                                </div>
+                            </template>
+                        </template>
+                    </template>
+
+                    <!-- ── PREVIEW VIEW ── -->
+                    <template if:true={isPreviewView}>
+                        <template if:false={isLoading}>
+
+                            <div class="preview-frame-wrapper slds-m-bottom_medium">
+                                <iframe class="preview-iframe"
+                                        title="Document Preview"
+                                        src={previewSrc}></iframe>
+                            </div>
+
+                            <div class="slds-button-group slds-m-bottom_small">
+                                <lightning-button
+                                    label="Open as PDF (New Tab)"
+                                    variant="brand"
+                                    icon-name="utility:new_window"
+                                    onclick={handleOpenPdf}
+                                    disabled={isGenerating}>
+                                </lightning-button>
+                                <lightning-button
+                                    label="Download as Word"
+                                    variant="neutral"
+                                    icon-name="utility:download"
+                                    onclick={handleDownloadWord}
+                                    disabled={isGenerating}>
+                                </lightning-button>
+                                <lightning-button
+                                    label="Save to Salesforce Files"
+                                    variant="neutral"
+                                    icon-name="utility:salesforce1"
+                                    onclick={handleSaveToFiles}
+                                    disabled={isGenerating}>
+                                </lightning-button>
+                            </div>
+
+                            <template if:true={isGenerating}>
+                                <lightning-spinner size="small"
+                                                  alternative-text="Generating..."></lightning-spinner>
+                            </template>
+
+                            <template if:true={savedFileId}>
+                                <div class="slds-notify slds-notify_alert slds-theme_success slds-m-top_small"
+                                     role="status">
+                                    <lightning-icon icon-name="utility:success" size="x-small"
+                                                    class="slds-m-right_x-small"></lightning-icon>
+                                    Document saved to Salesforce Files.
+                                    <a href={fileUrl} target="_blank" class="slds-m-left_small">View File</a>
+                                </div>
+                            </template>
+                        </template>
+                    </template>
+                </div>
+
+                <!-- Footer -->
+                <footer class="slds-modal__footer">
+                    <template if:true={isPreviewView}>
+                        <lightning-button
+                            label="Back to Templates"
+                            icon-name="utility:back"
+                            onclick={handleBackToTemplates}
+                            class="slds-m-right_small">
+                        </lightning-button>
+                    </template>
+                    <lightning-button label="Close" onclick={handleClose}></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>

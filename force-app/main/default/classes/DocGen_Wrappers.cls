@@ -35,8 +35,23 @@ public class DocGen_Wrappers {
 
     public class TemplateConfigWrapper {
         @AuraEnabled public String templateId;
+        @AuraEnabled public String templateName;
+        @AuraEnabled public String existingTemplateRecordId;
         @AuraEnabled public String primaryObject;
         @AuraEnabled public String recordId;
+        @AuraEnabled public List<TokenMappingWrapper> tokenMappings;
+        @AuraEnabled public List<DocumentVariableWrapper> variables;
+    }
+
+    public class TemplateLoadResultWrapper {
+        @AuraEnabled public String templateId;
+        @AuraEnabled public String templateRecordId;
+        @AuraEnabled public String templateName;
+        @AuraEnabled public String primaryObject;
+        @AuraEnabled public List<String> templateTokens;
+        @AuraEnabled public List<String> sysTokens;
+        @AuraEnabled public List<ObjectDescribeWrapper> parentObjects;
+        @AuraEnabled public List<ObjectDescribeWrapper> childObjects;
         @AuraEnabled public List<TokenMappingWrapper> tokenMappings;
         @AuraEnabled public List<DocumentVariableWrapper> variables;
     }

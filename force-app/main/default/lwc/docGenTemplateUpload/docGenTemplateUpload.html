@@ -41,6 +41,24 @@
                 </div>
             </template>
 
+            <template if:true={hasSysTokens}>
+                <div class="slds-m-bottom_medium">
+                    <h3 class="slds-text-heading_small slds-m-bottom_x-small">
+                        <lightning-icon icon-name="utility:lock" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                        System Variable Tokens ({sysTokenCount}) — auto-resolved, no mapping required
+                    </h3>
+                    <div class="token-cloud">
+                        <template for:each={sysTokens} for:item="token">
+                            <c-doc-gen-token-badge key={token} token={token}></c-doc-gen-token-badge>
+                        </template>
+                    </div>
+                    <p class="slds-form-element__help slds-m-top_x-small">
+                        These tokens are resolved automatically from org configuration and user info.
+                        Configure their values in Setup &rarr; Custom Metadata &rarr; DocGen Config.
+                    </p>
+                </div>
+            </template>
+
             <div class="slds-m-top_medium">
                 <lightning-button
                     label="Next: Select Object"

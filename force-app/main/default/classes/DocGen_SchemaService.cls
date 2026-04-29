@@ -1,31 +1,36 @@
 public with sharing class DocGen_SchemaService {
 
-    // Server-side search: fires a scoped EntityDefinition SOQL query for each
-    // keystroke. LIMIT 50 guarantees results always fit in one batch, which is
-    // required because EntityDefinition does not support queryMore().
+    // Search by filtering Schema.getGlobalDescribe() keys (no SOQL, no EntityDefinition,
+    // no queryMore issues). Step 1 is a cheap string-contains on map keys; Step 2
+    // calls getDescribe() only on the small set of matched candidates.
     public static List<DocGen_Wrappers.ObjectDescribeWrapper> searchObjects(String searchTerm) {
         List<DocGen_Wrappers.ObjectDescribeWrapper> result = new List<DocGen_Wrappers.ObjectDescribeWrapper>();
         if (String.isBlank(searchTerm) || searchTerm.trim().length() < 2) return result;
-        String term = '%' + String.escapeSingleQuotes(searchTerm.trim()) + '%';
-        for (EntityDefinition ed : [
-            SELECT QualifiedApiName, Label
-            FROM   EntityDefinition
-            WHERE  IsQueryable = true
-            AND    (Label LIKE :term OR QualifiedApiName LIKE :term)
-            ORDER  BY Label ASC
-            LIMIT  50
-        ]) {
-            String apiName = ed.QualifiedApiName;
-            String lbl     = ed.Label;
+        String lower = searchTerm.trim().toLowerCase();
+
+        Map<String, Schema.SObjectType> gd = Schema.getGlobalDescribe();
+
+        List<String> candidates = new List<String>();
+        for (String key : gd.keySet()) {
+            if (!key.contains(lower)) continue;
+            if (key.endsWith('share')       || key.endsWith('history')     ||
+                key.endsWith('feed')        || key.endsWith('tag')         ||
+                key.endsWith('changeevent') || key.endsWith('votestat')    ||
+                key.endsWith('viewstat')) continue;
+            candidates.add(key);
+        }
+        candidates.sort();
+
+        for (String key : candidates) {
+            if (result.size() >= 30) break;
+            Schema.DescribeSObjectResult dr = gd.get(key).getDescribe();
+            if (!dr.isQueryable() || !dr.isAccessible()) continue;
+            String lbl = dr.getLabel();
             if (String.isBlank(lbl) || lbl.startsWith('__MISSING')) continue;
-            if (apiName.endsWith('Share')       || apiName.endsWith('History')  ||
-                apiName.endsWith('Feed')        || apiName.endsWith('Tag')      ||
-                apiName.endsWith('ChangeEvent') || apiName.endsWith('VoteStat') ||
-                apiName.endsWith('ViewStat')) continue;
             DocGen_Wrappers.ObjectDescribeWrapper w = new DocGen_Wrappers.ObjectDescribeWrapper();
-            w.apiName  = apiName;
+            w.apiName  = dr.getName();
             w.label    = lbl;
-            w.isCustom = apiName.endsWith('__c');
+            w.isCustom = dr.isCustom();
             result.add(w);
         }
         return result;

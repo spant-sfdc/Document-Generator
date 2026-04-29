@@ -1,17 +1,16 @@
 .preview-frame-wrapper {
     border: 1px solid #ddd;
     border-radius: 4px;
-    overflow-y: auto;
-    max-height: 60vh;
-    padding: 16px;
-    background: #fff;
+    background: #f4f4f4;
+    overflow: hidden;
 }
 
-.preview-html-container {
-    font-size: 14px;
-    font-family: Arial, sans-serif;
-    line-height: 1.5;
-    color: #080707;
+.preview-iframe {
+    display: block;
+    width: 100%;
+    height: 600px;
+    border: none;
+    background: #fff;
 }
 
 .slds-button-group lightning-button {

@@ -2,17 +2,30 @@ import { LightningElement, api, track } from 'lwc';
 import getFields from '@salesforce/apex/DocGen_Controller.getFields';
 
 const MAPPING_TYPE_OPTIONS = [
-    { label: 'Field', value: 'FIELD' },
+    { label: 'Field',    value: 'FIELD'    },
     { label: 'Constant', value: 'CONSTANT' },
     { label: 'Variable', value: 'VARIABLE' }
 ];
 
+// Static descriptions for the sys.* namespace — shown as read-only reference rows
+const SYS_DESCRIPTIONS = {
+    'sys.today':       "Today's date",
+    'sys.currentUser': 'Running user full name',
+    'sys.orgName':     'Org display name (DocGen Config or Salesforce org name)',
+    'sys.userEmail':   'Running user email address',
+    'sys.orgEIN':      'Federal EIN — set in DocGen Config custom metadata',
+    'sys.orgAddress':  'Org address — set in DocGen Config custom metadata',
+    'sys.orgPhone':    'Org phone — set in DocGen Config custom metadata',
+    'sys.orgWebsite':  'Org website — set in DocGen Config custom metadata'
+};
+
 export default class DocGenMappingBuilder extends LightningElement {
-    @api templateTokens  = [];
-    @api primaryObject   = null;
-    @api parentObjects   = [];
-    @api childObjects    = [];
-    @api savedMappings   = [];
+    @api templateTokens = [];
+    @api primaryObject  = null;
+    @api parentObjects  = [];
+    @api childObjects   = [];
+    @api savedMappings  = [];
+    @api sysTokens      = [];
 
     @track tokenMappings = [];
     @track fieldCache    = {};
@@ -20,7 +33,18 @@ export default class DocGenMappingBuilder extends LightningElement {
 
     mappingTypeOptions = MAPPING_TYPE_OPTIONS;
 
-    get hasMappings() { return this.tokenMappings.length > 0; }
+    get hasMappings()    { return this.tokenMappings.length > 0; }
+    get hasSysTokens()   { return (this.sysTokens || []).length > 0; }
+
+    get sysTokenRows() {
+        return (this.sysTokens || []).map(tok => {
+            const key = tok.replace('{{', '').replace('}}', '').trim();
+            return {
+                token:       tok,
+                description: SYS_DESCRIPTIONS[key] || 'Auto-resolved system variable'
+            };
+        });
+    }
 
     get objectOptions() {
         const opts = [];
@@ -38,67 +62,74 @@ export default class DocGenMappingBuilder extends LightningElement {
 
     async connectedCallback() {
         await this.preloadFields();
-        if (this.savedMappings && this.savedMappings.length > 0) {
-            this.tokenMappings = await Promise.all(this.savedMappings.map(async m => {
-                const obj = m.sourceObject || this.primaryObject;
-                if (obj && !this.fieldCache[obj]) {
-                    try {
-                        const f = await getFields({ objectName: obj });
-                        this.fieldCache[obj] = f;
-                    } catch(e) { this.fieldCache[obj] = []; }
-                }
-                return {
-                    ...m,
-                    fieldOptions:   this.buildFieldOptions(obj),
-                    isFieldType:    m.mappingType === 'FIELD',
-                    isConstantType: m.mappingType === 'CONSTANT',
-                    isParentType:   this._isParent(m.sourceObject)
-                };
-            }));
-        } else {
-            this.tokenMappings = (this.templateTokens || []).map(token => {
-                const isSectionOpen = token.startsWith('{{#');
-                if (isSectionOpen) {
-                    const sectionName  = token.replace('{{#', '').replace('}}', '').trim();
-                    const matchedChild = (this.childObjects || []).find(
-                        c => c.apiName.toLowerCase() === sectionName.toLowerCase()
-                    );
-                    const childApi = matchedChild
-                        ? matchedChild.apiName
-                        : ((this.childObjects || [])[0] ? this.childObjects[0].apiName : this.primaryObject);
+
+        // savedMappings supplies pre-filled values; templateTokens is the canonical list
+        const savedByToken = {};
+        (this.savedMappings || []).forEach(m => { if (m.token) savedByToken[m.token] = m; });
+
+        this.tokenMappings = await Promise.all(
+            (this.templateTokens || []).map(async token => {
+                if (savedByToken[token]) {
+                    const m   = savedByToken[token];
+                    const obj = m.sourceObject || this.primaryObject;
+                    if (obj && !this.fieldCache[obj]) {
+                        try { this.fieldCache[obj] = await getFields({ objectName: obj }); }
+                        catch (e) { this.fieldCache[obj] = []; }
+                    }
                     return {
-                        token,
-                        mappingType:    'FIELD',
-                        sourceObject:   childApi,
-                        sourceField:    '',
-                        staticValue:    '',
-                        formatOverride: '',
-                        relationshipPath: '',
-                        isRepeating:    true,
-                        repeatObject:   childApi,
-                        fieldOptions:   this.buildFieldOptions(childApi),
-                        isFieldType:    true,
-                        isConstantType: false,
-                        isParentType:   false
+                        ...m,
+                        fieldOptions:   this.buildFieldOptions(obj),
+                        isFieldType:    m.mappingType === 'FIELD',
+                        isConstantType: m.mappingType === 'CONSTANT',
+                        isParentType:   this._isParent(m.sourceObject)
                     };
                 }
-                return {
-                    token,
-                    mappingType:    'FIELD',
-                    sourceObject:   this.primaryObject,
-                    sourceField:    '',
-                    staticValue:    '',
-                    formatOverride: '',
-                    relationshipPath: '',
-                    isRepeating:    false,
-                    repeatObject:   '',
-                    fieldOptions:   this.buildFieldOptions(this.primaryObject),
-                    isFieldType:    true,
-                    isConstantType: false,
-                    isParentType:   false
-                };
-            });
+                return this._buildFreshMapping(token);
+            })
+        );
+    }
+
+    _buildFreshMapping(token) {
+        const isSectionOpen = token.startsWith('{{#');
+        if (isSectionOpen) {
+            const sectionName  = token.replace('{{#', '').replace('}}', '').trim();
+            const matchedChild = (this.childObjects || []).find(
+                c => c.apiName.toLowerCase() === sectionName.toLowerCase()
+            );
+            const childApi = matchedChild
+                ? matchedChild.apiName
+                : ((this.childObjects || [])[0] ? this.childObjects[0].apiName : this.primaryObject);
+            return {
+                token,
+                mappingType:      'FIELD',
+                sourceObject:     childApi,
+                sourceField:      '',
+                staticValue:      '',
+                formatOverride:   '',
+                relationshipPath: '',
+                isRepeating:      true,
+                repeatObject:     childApi,
+                fieldOptions:     this.buildFieldOptions(childApi),
+                isFieldType:      true,
+                isConstantType:   false,
+                isParentType:     false
+            };
         }
+        return {
+            token,
+            mappingType:      'FIELD',
+            sourceObject:     this.primaryObject,
+            sourceField:      '',
+            staticValue:      '',
+            formatOverride:   '',
+            relationshipPath: '',
+            isRepeating:      false,
+            repeatObject:     '',
+            fieldOptions:     this.buildFieldOptions(this.primaryObject),
+            isFieldType:      true,
+            isConstantType:   false,
+            isParentType:     false
+        };
     }
 
     async preloadFields() {
@@ -110,8 +141,7 @@ export default class DocGenMappingBuilder extends LightningElement {
         for (const obj of allObjects) {
             if (!this.fieldCache[obj]) {
                 try {
-                    const fields = await getFields({ objectName: obj });
-                    this.fieldCache[obj] = fields;
+                    this.fieldCache[obj] = await getFields({ objectName: obj });
                 } catch (e) {
                     this.fieldCache[obj] = [];
                 }
@@ -144,8 +174,7 @@ export default class DocGenMappingBuilder extends LightningElement {
             if (field === 'sourceObject') {
                 if (!this.fieldCache[value]) {
                     try {
-                        const f = await getFields({ objectName: value });
-                        this.fieldCache[value] = f;
+                        this.fieldCache[value] = await getFields({ objectName: value });
                     } catch (e) { this.fieldCache[value] = []; }
                 }
                 updated.fieldOptions      = this.buildFieldOptions(value);
@@ -194,9 +223,9 @@ export default class DocGenMappingBuilder extends LightningElement {
             repeatObject:     m.repeatObject
         }));
         this.dispatchEvent(new CustomEvent('stepcomplete', {
-            bubbles: true,
+            bubbles:  true,
             composed: true,
-            detail: { tokenMappings: mappings }
+            detail:   { tokenMappings: mappings }
         }));
     }
 }

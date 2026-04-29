@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Document Generation Template Builder — create and edit document templates</description>
+    <flexiPage>DocGen_Wizard_Page</flexiPage>
+    <label>Document Generator</label>
+    <motif>Custom73: Puzzle</motif>
+</CustomTab>

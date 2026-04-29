@@ -1,15 +1,29 @@
 import { LightningElement, api, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import generatePreview    from '@salesforce/apex/DocGen_Controller.generatePreview';
-import generateDocument   from '@salesforce/apex/DocGen_Controller.generateDocument';
-import saveTemplateConfig from '@salesforce/apex/DocGen_Controller.saveTemplateConfig';
+import generatePreview      from '@salesforce/apex/DocGen_Controller.generatePreview';
+import storePreviewHtml     from '@salesforce/apex/DocGen_Controller.storePreviewHtml';
+import generateDocument     from '@salesforce/apex/DocGen_Controller.generateDocument';
+import saveTemplateConfig   from '@salesforce/apex/DocGen_Controller.saveTemplateConfig';
+import updateTemplateConfig from '@salesforce/apex/DocGen_Controller.updateTemplateConfig';
 
 export default class DocGenPreviewDownload extends NavigationMixin(LightningElement) {
-    @api templateConfig = null;
+    // Use getter/setter so templateName can be pre-populated in edit mode
+    _templateConfig = null;
+    @api
+    get templateConfig() { return this._templateConfig; }
+    set templateConfig(val) {
+        this._templateConfig = val;
+        // Pre-fill name only on first assignment (don't overwrite what the user typed)
+        if (val && val.templateName && !this.templateName) {
+            this.templateName = val.templateName;
+        }
+    }
 
     @track recordId          = '';
+    @track templateName      = '';
     @track previewHtml       = null;
+    @track previewCvId       = null;
     @track isLoading         = false;
     @track isGenerating      = false;
     @track savedFileId       = null;
@@ -17,39 +31,26 @@ export default class DocGenPreviewDownload extends NavigationMixin(LightningElem
     @track savedTemplateName = null;
     @track error             = null;
 
-    _previewHtmlPending = false;
-
-    renderedCallback() {
-        if (this._previewHtmlPending && this.previewHtml) {
-            const container = this.template.querySelector('.preview-html-container');
-            if (container) {
-                const clean = this.previewHtml
-                    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-                    .replace(/<link[^>]*/gi, '')
-                    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
-                container.innerHTML = clean;
-                this._previewHtmlPending = false;
-            }
-        }
-    }
-
-    get hasPreview()       { return !!this.previewHtml; }
+    // True when editing an already-saved template
+    get isEditMode()       { return !!(this._templateConfig && this._templateConfig.existingTemplateRecordId); }
+    get saveButtonLabel()  { return this.isEditMode ? 'Update Template' : 'Save Template Config'; }
+    get hasPreview()       { return !!this.previewCvId; }
     get hasSavedTemplate() { return !!this.savedTemplateId; }
     get fileUrl()          { return this.savedFileId ? `/lightning/r/ContentDocument/${this.savedFileId}/view` : '#'; }
+    get previewSrc()       { return this.previewCvId ? `/apex/DocGen_HtmlViewer?cvId=${this.previewCvId}` : 'about:blank'; }
 
-    handleRecordIdChange(evt) {
-        this.recordId = evt.target.value;
-    }
+    handleRecordIdChange(evt)    { this.recordId    = evt.target.value; }
+    handleTemplateNameChange(evt){ this.templateName = evt.target.value; }
 
     async handleGeneratePreview() {
-        this.isLoading            = true;
-        this.error                = null;
-        this.previewHtml          = null;
-        this._previewHtmlPending  = false;
+        this.isLoading   = true;
+        this.error       = null;
+        this.previewHtml = null;
+        this.previewCvId = null;
         try {
             const config     = { ...this.templateConfig, recordId: this.recordId };
             this.previewHtml = await generatePreview({ configJson: JSON.stringify(config) });
-            this._previewHtmlPending = true;
+            this.previewCvId = await storePreviewHtml({ htmlContent: this.previewHtml });
         } catch (e) {
             this.error = e;
         } finally {
@@ -57,8 +58,9 @@ export default class DocGenPreviewDownload extends NavigationMixin(LightningElem
         }
     }
 
-    async handleDownloadPdf() {
-        await this._downloadDocument('PDF', 'application/pdf');
+    handleDownloadPdf() {
+        if (!this.previewCvId) return;
+        window.open(`/apex/DocGen_HtmlViewer?cvId=${this.previewCvId}`, '_blank');
     }
 
     async handleDownloadWord() {
@@ -116,14 +118,23 @@ export default class DocGenPreviewDownload extends NavigationMixin(LightningElem
     async handleSaveConfig() {
         this.error = null;
         try {
-            const result = await saveTemplateConfig({
-                configJson: JSON.stringify(this.templateConfig)
-            });
+            const config = { ...this.templateConfig, templateName: this.templateName };
+            let result;
+
+            if (this.isEditMode) {
+                result = await updateTemplateConfig({
+                    templateRecordId: config.existingTemplateRecordId,
+                    configJson:       JSON.stringify(config)
+                });
+            } else {
+                result = await saveTemplateConfig({ configJson: JSON.stringify(config) });
+            }
+
             this.savedTemplateId   = result.templateId;
             this.savedTemplateName = result.templateName;
             this.dispatchEvent(new ShowToastEvent({
-                title:   'Template Saved',
-                message: `Template ${result.templateName} created successfully.`,
+                title:   this.isEditMode ? 'Template Updated' : 'Template Saved',
+                message: `"${result.templateName}" ${this.isEditMode ? 'updated' : 'created'} successfully.`,
                 variant: 'success',
                 mode:    'sticky'
             }));
@@ -134,11 +145,8 @@ export default class DocGenPreviewDownload extends NavigationMixin(LightningElem
 
     handleViewTemplate() {
         this[NavigationMixin.Navigate]({
-            type: 'standard__recordPage',
-            attributes: {
-                recordId:   this.savedTemplateId,
-                actionName: 'view'
-            }
+            type:       'standard__recordPage',
+            attributes: { recordId: this.savedTemplateId, actionName: 'view' }
         });
     }
 

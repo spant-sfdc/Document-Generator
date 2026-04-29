@@ -11,3 +11,17 @@
     padding: 6px 8px;
     vertical-align: middle;
 }
+.sys-var-row {
+    background: #f8f9fa;
+    opacity: 0.9;
+}
+.sys-var-row td {
+    font-style: italic;
+}
+.sys-var-badge {
+    background: #e8f4f8;
+    color: #0070d2;
+    border: 1px solid #b3d9f0;
+    font-size: 11px;
+    font-style: normal;
+}

@@ -1,0 +1,26 @@
+<template>
+    <div class="slds-m-around_small">
+        <template if:true={error}>
+            <div class="slds-notify slds-notify_alert slds-theme_error slds-m-bottom_small" role="alert">
+                <lightning-icon icon-name="utility:error" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                {error}
+            </div>
+        </template>
+
+        <lightning-button
+            label="Edit Template"
+            variant="brand"
+            icon-name="utility:edit"
+            onclick={handleEdit}
+            disabled={isLoading}>
+        </lightning-button>
+
+        <template if:true={isLoading}>
+            <lightning-spinner
+                size="small"
+                alternative-text="Loading template configuration..."
+                class="slds-m-left_small">
+            </lightning-spinner>
+        </template>
+    </div>
+</template>

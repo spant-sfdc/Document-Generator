@@ -8,16 +8,28 @@
                 <div class="slds-media__body">
                     <h2 class="slds-card__header-title" style="color:#fff;font-size:1.2rem;">
                         Document Generation Template Builder
+                        <template if:true={isEditMode}>
+                            <span class="slds-badge slds-badge_lightest slds-m-left_x-small" style="font-size:11px;vertical-align:middle;">Editing Template</span>
+                        </template>
                     </h2>
                     <p style="color:#aed6f1;font-size:12px;">Build, map, and generate documents from Salesforce data</p>
                 </div>
+                <template if:true={isEditMode}>
+                    <lightning-button
+                        label="Cancel Edit"
+                        variant="destructive-text"
+                        icon-name="utility:close"
+                        onclick={handleReset}
+                        style="--sds-c-button-text-color:#f4a261;">
+                    </lightning-button>
+                </template>
             </div>
         </div>
 
         <div class="slds-p-around_medium">
             <c-doc-gen-progress-bar
-                steps={stepLabels}
-                current-step={currentStep}>
+                steps={activeStepLabels}
+                current-step={progressStep}>
             </c-doc-gen-progress-bar>
         </div>
 
@@ -43,6 +55,7 @@
             <template if:true={isStep2}>
                 <c-doc-gen-mapping-builder
                     template-tokens={wizardState.templateTokens}
+                    sys-tokens={wizardState.sysTokens}
                     primary-object={wizardState.primaryObject}
                     parent-objects={wizardState.parentObjects}
                     child-objects={wizardState.childObjects}
@@ -65,6 +78,15 @@
                     onstepback={handleBack}>
                 </c-doc-gen-preview-download>
             </template>
+        </div>
+
+        <div class="slds-p-around_medium slds-border_top" style="text-align:right;">
+            <lightning-button
+                label="Reset Wizard"
+                variant="destructive-text"
+                icon-name="utility:refresh"
+                onclick={handleReset}>
+            </lightning-button>
         </div>
     </div>
 </template>

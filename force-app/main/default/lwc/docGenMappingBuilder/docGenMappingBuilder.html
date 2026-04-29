@@ -1,5 +1,5 @@
 <template>
-    <lightning-card title="Step 4: Map Tokens to Fields" icon-name="utility:mapping">
+    <lightning-card title="Step 3: Map Tokens to Fields" icon-name="utility:mapping">
         <div class="slds-p-around_medium">
             <c-doc-gen-error-panel errors={error}></c-doc-gen-error-panel>
 
@@ -102,6 +102,39 @@
 
             <template if:false={hasMappings}>
                 <p class="slds-text-color_weak">No tokens detected. Go back and upload a template with &#123;&#123;token&#125;&#125; placeholders.</p>
+            </template>
+
+            <!-- System Variable reference rows — read-only, auto-resolved -->
+            <template if:true={hasSysTokens}>
+                <div class="slds-m-top_large">
+                    <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_x-small">
+                        <lightning-icon icon-name="utility:lock" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                        <span class="slds-text-heading_small">System Variables</span>
+                        <span class="slds-m-left_x-small slds-text-color_weak" style="font-size:12px;">— auto-resolved from org configuration, no mapping required</span>
+                    </div>
+                    <table class="slds-table slds-table_bordered slds-table_col-bordered mapping-table slds-m-top_x-small">
+                        <thead>
+                            <tr>
+                                <th>Token</th>
+                                <th>Type</th>
+                                <th>Resolves To</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={sysTokenRows} for:item="row">
+                                <tr key={row.token} class="sys-var-row">
+                                    <td>
+                                        <c-doc-gen-token-badge token={row.token}></c-doc-gen-token-badge>
+                                    </td>
+                                    <td>
+                                        <span class="slds-badge sys-var-badge">System Variable</span>
+                                    </td>
+                                    <td class="slds-text-color_weak">{row.description}</td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
             </template>
 
             <div class="slds-grid slds-grid_align-spread slds-m-top_medium">

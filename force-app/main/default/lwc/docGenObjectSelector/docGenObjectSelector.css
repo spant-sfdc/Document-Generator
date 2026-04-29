@@ -1,5 +1,26 @@
 .search-wrapper {
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-btn {
+    flex-shrink: 0;
+}
+
+.clear-all-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    color: #c23934;
+    text-decoration: underline;
+    padding: 0;
+}
+
+.clear-all-btn:hover {
+    color: #8e1f0b;
 }
 
 .suggestions-dropdown {

@@ -201,14 +201,26 @@
         <apexClass>DocGen_Wrappers</apexClass>
         <enabled>true</enabled>
     </classAccesses>
+    <classAccesses>
+        <apexClass>DocGen_HtmlViewerController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
 
     <!-- ── Visualforce Page Access ── -->
+    <pageAccesses>
+        <apexPage>DocGen_HtmlViewer</apexPage>
+        <enabled>true</enabled>
+    </pageAccesses>
     <pageAccesses>
         <apexPage>DocGen_PdfRenderer</apexPage>
         <enabled>true</enabled>
     </pageAccesses>
 
     <!-- ── Tab Settings ── -->
+    <tabSettings>
+        <tab>DocGen_Wizard</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
     <tabSettings>
         <tab>Document_Template__c</tab>
         <visibility>Visible</visibility>

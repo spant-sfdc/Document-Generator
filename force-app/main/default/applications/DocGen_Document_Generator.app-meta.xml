@@ -28,6 +28,7 @@
         <profile>Standard</profile>
     </profileActionOverrides>
     <tabs>standard-home</tabs>
+    <tabs>DocGen_Wizard</tabs>
     <tabs>Document_Template__c</tabs>
     <tabs>Document_Field_Mapping__c</tabs>
     <tabs>Document_Variable__c</tabs>

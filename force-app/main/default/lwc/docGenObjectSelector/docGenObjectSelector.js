@@ -18,17 +18,17 @@ export default class DocGenObjectSelector extends LightningElement {
     @track error           = null;
     @track childWarning    = null;
 
-    _addMode       = 'PARENT';
-    _debounceTimer = null;
+    _addMode = 'PARENT';
 
     get isNextDisabled()  { return !this.primaryObject || this.isSearching; }
     get hasParents()      { return this.parentObjects.length > 0; }
     get hasChildren()     { return this.childObjects.length > 0; }
     get showModeToggle()  { return !!this.primaryObject; }
+    get hasAnySelection() { return !!this.primaryObject; }
     get parentModeClass() { return `mode-btn${this._addMode === 'PARENT' ? ' active-parent' : ''}`; }
     get childModeClass()  { return `mode-btn${this._addMode === 'CHILD'  ? ' active-child'  : ''}`; }
     get searchPlaceholder() {
-        if (!this.primaryObject) return 'Type 2+ characters to search primary object...';
+        if (!this.primaryObject) return 'Type object name then click Search...';
         return this._addMode === 'PARENT'
             ? 'Search to add a parent object (lookup from primary)...'
             : 'Search to add a child object (has repeating rows in template)...';
@@ -52,16 +52,28 @@ export default class DocGenObjectSelector extends LightningElement {
     }
 
     handleSearchInput(evt) {
-        const term = evt.target.value || '';
-        clearTimeout(this._debounceTimer);
-        if (term.trim().length < 2) {
+        if (evt.target.value.trim().length < 2) {
             this.suggestions     = [];
             this.showSuggestions = false;
+        }
+    }
+
+    handleSearchKeyUp(evt) {
+        if (evt.key === 'Enter') this._triggerSearch();
+    }
+
+    handleSearch() {
+        this._triggerSearch();
+    }
+
+    _triggerSearch() {
+        const input = this.template.querySelector('.search-input');
+        const term  = (input ? input.value : '').trim();
+        if (term.length < 2) {
+            this.error = [{ message: 'Please enter at least 2 characters.' }];
             return;
         }
-        this._debounceTimer = setTimeout(() => {
-            this._search(term.trim());
-        }, 300);
+        this._search(term);
     }
 
     async _search(term) {
@@ -103,6 +115,20 @@ export default class DocGenObjectSelector extends LightningElement {
         this.template.querySelector('.search-input').value = '';
     }
 
+    handleClearAll() {
+        this.primaryObject   = null;
+        this.primaryLabel    = '';
+        this.parentObjects   = [];
+        this.childObjects    = [];
+        this.childWarning    = null;
+        this.suggestions     = [];
+        this.showSuggestions = false;
+        this.error           = null;
+        this._addMode        = 'PARENT';
+        const input = this.template.querySelector('.search-input');
+        if (input) input.value = '';
+    }
+
     handleRemovePrimary() {
         this.primaryObject = null;
         this.primaryLabel  = '';
@@ -133,7 +159,7 @@ export default class DocGenObjectSelector extends LightningElement {
     _validateChildObjects() {
         if (this.childObjects.length === 0) { this.childWarning = null; return; }
         const sectionNames = (this.templateTokens || [])
-            .filter(t => t.startsWith('{{#'))
+            .filter(t => t.startsWith('{{#') && !t.startsWith('{{#if ') && !t.startsWith('{{#if\t'))
             .map(t => t.replace('{{#', '').replace('}}', '').trim().toLowerCase());
         const unmatched = this.childObjects.filter(c =>
             !sectionNames.some(s => s === c.apiName.toLowerCase())

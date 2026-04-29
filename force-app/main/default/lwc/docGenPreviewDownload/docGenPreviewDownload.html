@@ -1,18 +1,20 @@
 <template>
-    <lightning-card title="Step 6: Preview &amp; Download" icon-name="utility:preview">
+    <lightning-card title="Step 5: Preview &amp; Download" icon-name="utility:preview">
         <div class="slds-p-around_medium">
             <c-doc-gen-error-panel errors={error}></c-doc-gen-error-panel>
 
+            <!-- Record ID input -->
             <div class="slds-m-bottom_medium">
                 <lightning-input
-                    label="Source Record ID (optional)"
+                    label="Source Record ID"
                     placeholder="e.g. 0013000000AbcDe"
                     value={recordId}
                     onchange={handleRecordIdChange}>
                 </lightning-input>
-                <p class="slds-form-element__help">Leave blank to preview with placeholder data.</p>
+                <p class="slds-form-element__help">Enter the Record ID of the Salesforce record to merge data from.</p>
             </div>
 
+            <!-- Generate button -->
             <div class="slds-m-bottom_medium">
                 <lightning-button
                     label="Generate Preview"
@@ -30,19 +32,24 @@
                 </div>
             </template>
 
+            <!-- Inline preview iframe -->
             <template if:true={hasPreview}>
                 <div class="preview-container slds-m-bottom_medium">
                     <h3 class="slds-text-heading_small slds-m-bottom_x-small">Document Preview</h3>
                     <div class="preview-frame-wrapper">
-                        <div class="preview-html-container" lwc:dom="manual"></div>
+                        <iframe
+                            class="preview-iframe"
+                            title="Document Preview"
+                            src={previewSrc}>
+                        </iframe>
                     </div>
                 </div>
 
                 <div class="slds-button-group slds-m-bottom_medium">
                     <lightning-button
-                        label="Download as PDF"
+                        label="Open as PDF (New Tab)"
                         variant="brand"
-                        icon-name="utility:download"
+                        icon-name="utility:new_window"
                         onclick={handleDownloadPdf}
                         disabled={isGenerating}>
                     </lightning-button>
@@ -75,26 +82,44 @@
                 </template>
             </template>
 
-            <!-- Save Template Config + View link -->
-            <template if:true={hasSavedTemplate}>
-                <div class="slds-notify slds-notify_alert slds-theme_success slds-m-bottom_small" role="status">
-                    <lightning-icon icon-name="utility:success" size="x-small" class="slds-m-right_x-small"></lightning-icon>
-                    Template <strong>{savedTemplateName}</strong> created successfully.
-                    <lightning-button
-                        label="View Template"
-                        variant="base"
-                        icon-name="utility:new_window"
-                        icon-position="right"
-                        class="slds-m-left_small"
-                        onclick={handleViewTemplate}>
-                    </lightning-button>
-                </div>
-            </template>
+            <!-- Template name + save section -->
+            <div class="save-section slds-m-top_large">
+                <template if:true={hasSavedTemplate}>
+                    <div class="slds-notify slds-notify_alert slds-theme_success slds-m-bottom_small" role="status">
+                        <lightning-icon icon-name="utility:success" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                        Template <strong>{savedTemplateName}</strong>
+                        <template if:true={isEditMode}> updated</template>
+                        <template if:false={isEditMode}> created</template>
+                        successfully.
+                        <lightning-button
+                            label="View Template"
+                            variant="base"
+                            icon-name="utility:new_window"
+                            icon-position="right"
+                            class="slds-m-left_small"
+                            onclick={handleViewTemplate}>
+                        </lightning-button>
+                    </div>
+                </template>
 
+                <template if:false={hasSavedTemplate}>
+                    <div class="slds-m-bottom_small">
+                        <lightning-input
+                            label="Template Name"
+                            placeholder="e.g. Donation Acknowledgment Letter"
+                            value={templateName}
+                            onchange={handleTemplateNameChange}>
+                        </lightning-input>
+                        <p class="slds-form-element__help">Give this template a recognisable name before saving.</p>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Navigation footer -->
             <div class="slds-grid slds-grid_align-spread slds-m-top_medium">
                 <lightning-button label="Back" onclick={handleBack}></lightning-button>
                 <lightning-button
-                    label="Save Template Config"
+                    label={saveButtonLabel}
                     variant="success"
                     icon-name="utility:save"
                     onclick={handleSaveConfig}

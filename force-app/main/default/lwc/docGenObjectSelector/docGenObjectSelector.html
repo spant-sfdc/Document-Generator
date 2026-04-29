@@ -25,9 +25,17 @@
                             class="slds-input search-input"
                             placeholder={searchPlaceholder}
                             oninput={handleSearchInput}
+                            onkeyup={handleSearchKeyUp}
                             onblur={handleSearchBlur}
                             autocomplete="off" />
                     </div>
+                    <lightning-button
+                        label="Search"
+                        variant="neutral"
+                        icon-name="utility:search"
+                        onclick={handleSearch}
+                        class="search-btn">
+                    </lightning-button>
 
                     <!-- Suggestions dropdown -->
                     <template if:true={showSuggestions}>
@@ -47,6 +55,13 @@
                     </template>
                 </div>
             </div>
+
+            <!-- Clear All — visible when any selection exists -->
+            <template if:true={hasAnySelection}>
+                <div class="slds-m-bottom_small" style="text-align:right;">
+                    <button class="clear-all-btn" onclick={handleClearAll}>Clear All Selections</button>
+                </div>
+            </template>
 
             <!-- Mode Toggle — visible after primary is set -->
             <template if:true={showModeToggle}>
