@@ -1,0 +1,336 @@
+<apex:page controller="ESignDocumentController"
+           showHeader="false"
+           sidebar="false"
+           docType="html-5.0"
+           standardStylesheets="false"
+           applyBodyTag="false"
+           cache="false"
+           title="Sign Document – SF-eSign">
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="robots" content="noindex, nofollow"/>
+    <title>Sign Document – SF-eSign</title>
+    <apex:stylesheet value="{!URLFOR($Resource.ESign_Assets, 'css/esign.css')}"/>
+</head>
+<body class="esign-body">
+
+<!-- ═══════════════════════════════════════════════
+     ERROR: TOKEN INVALID
+═══════════════════════════════════════════════ -->
+<apex:outputPanel rendered="{!isTokenInvalid}" layout="block">
+    <div class="esign-page esign-page--error">
+        <div class="esign-card">
+            <div class="esign-icon esign-icon--error">✗</div>
+            <h1>Invalid Link</h1>
+            <p>This signing link is invalid or does not exist. Please check the link in your email and try again.</p>
+            <p class="esign-support">Need help? <a href="mailto:{!$Label.ESign_Support_Email}">{!$Label.ESign_Support_Email}</a></p>
+        </div>
+    </div>
+</apex:outputPanel>
+
+<!-- ═══════════════════════════════════════════════
+     ERROR: TOKEN EXPIRED
+═══════════════════════════════════════════════ -->
+<apex:outputPanel rendered="{!isTokenExpired}" layout="block">
+    <div class="esign-page esign-page--error">
+        <div class="esign-card">
+            <div class="esign-icon esign-icon--warning">⏰</div>
+            <h1>Link Expired</h1>
+            <p>This signing link has expired. Please contact the sender to request a new link.</p>
+            <p class="esign-support">Need help? <a href="mailto:{!$Label.ESign_Support_Email}">{!$Label.ESign_Support_Email}</a></p>
+        </div>
+    </div>
+</apex:outputPanel>
+
+<!-- ═══════════════════════════════════════════════
+     ERROR: ALREADY SIGNED
+═══════════════════════════════════════════════ -->
+<apex:outputPanel rendered="{!isAlreadySigned}" layout="block">
+    <div class="esign-page esign-page--success">
+        <div class="esign-card">
+            <div class="esign-icon esign-icon--success">✓</div>
+            <h1>Already Signed</h1>
+            <p>This document has already been signed. No further action is required.</p>
+        </div>
+    </div>
+</apex:outputPanel>
+
+<!-- ═══════════════════════════════════════════════
+     ERROR: CANCELLED / DECLINED
+═══════════════════════════════════════════════ -->
+<apex:outputPanel rendered="{!OR(isCancelled, isDeclined)}" layout="block">
+    <div class="esign-page esign-page--error">
+        <div class="esign-card">
+            <div class="esign-icon esign-icon--error">✗</div>
+            <h1>Request Unavailable</h1>
+            <p>This signing request has been {!IF(isCancelled, 'cancelled', 'declined')}. Please contact the sender if you believe this is an error.</p>
+            <p class="esign-support">Need help? <a href="mailto:{!$Label.ESign_Support_Email}">{!$Label.ESign_Support_Email}</a></p>
+        </div>
+    </div>
+</apex:outputPanel>
+
+<!-- ═══════════════════════════════════════════════
+     ERROR: RATE LIMITED
+═══════════════════════════════════════════════ -->
+<apex:outputPanel rendered="{!isRateLimited}" layout="block">
+    <div class="esign-page esign-page--error">
+        <div class="esign-card">
+            <div class="esign-icon esign-icon--warning">⚠</div>
+            <h1>Too Many Requests</h1>
+            <p>You have accessed this link too many times. Please wait an hour and try again, or contact support.</p>
+            <p class="esign-support">Need help? <a href="mailto:{!$Label.ESign_Support_Email}">{!$Label.ESign_Support_Email}</a></p>
+        </div>
+    </div>
+</apex:outputPanel>
+
+<!-- ═══════════════════════════════════════════════
+     ERROR: UNEXPECTED
+═══════════════════════════════════════════════ -->
+<apex:outputPanel rendered="{!isUnexpected}" layout="block">
+    <div class="esign-page esign-page--error">
+        <div class="esign-card">
+            <div class="esign-icon esign-icon--error">!</div>
+            <h1>Something Went Wrong</h1>
+            <p>An unexpected error occurred. Please try again or contact support.</p>
+            <p class="esign-support">Need help? <a href="mailto:{!$Label.ESign_Support_Email}">{!$Label.ESign_Support_Email}</a></p>
+        </div>
+    </div>
+</apex:outputPanel>
+
+<!-- ═══════════════════════════════════════════════
+     COMPLETE: SIGNED
+═══════════════════════════════════════════════ -->
+<apex:outputPanel rendered="{!isSignedComplete}" layout="block">
+    <div class="esign-page esign-page--success">
+        <div class="esign-card">
+            <div class="esign-icon esign-icon--success esign-icon--large">✓</div>
+            <h1>Document Signed Successfully</h1>
+            <p>Your signature has been captured and the document has been updated. A record of this signing has been saved.</p>
+            <p class="esign-timestamp">Signed at: <apex:outputText value="{0,date,yyyy-MM-dd HH:mm z}"><apex:param value="{!signRequest.Signed_DateTime__c}"/></apex:outputText></p>
+            <p class="esign-ref">Reference: {!signRequest.Name}</p>
+        </div>
+    </div>
+</apex:outputPanel>
+
+<!-- ═══════════════════════════════════════════════
+     COMPLETE: DECLINED
+═══════════════════════════════════════════════ -->
+<apex:outputPanel rendered="{!isDeclinedComplete}" layout="block">
+    <div class="esign-page esign-page--info">
+        <div class="esign-card">
+            <div class="esign-icon esign-icon--info">i</div>
+            <h1>You Have Declined</h1>
+            <p>You have declined to sign this document. The sender has been notified. Please contact them if you wish to reconsider.</p>
+        </div>
+    </div>
+</apex:outputPanel>
+
+<!-- ═══════════════════════════════════════════════
+     MAIN SIGNING FLOW
+═══════════════════════════════════════════════ -->
+<apex:outputPanel rendered="{!isSigningState}" layout="block">
+
+    <!-- Header -->
+    <header class="esign-header">
+        <div class="esign-header__brand">{!$Label.ESign_Org_Display_Name}</div>
+        <div class="esign-header__meta">
+            <span class="esign-badge esign-badge--pending">Awaiting Signature</span>
+            <span class="esign-header__ref">{!signRequest.Name}</span>
+        </div>
+    </header>
+
+    <div class="esign-main">
+
+        <!-- Personal message panel -->
+        <apex:outputPanel rendered="{!NOT(ISBLANK(signRequest.Message_to_Signer__c))}" layout="block">
+            <div class="esign-message-panel">
+                <div class="esign-message-panel__label">Message from sender</div>
+                <p class="esign-message-panel__body">{!signRequest.Message_to_Signer__c}</p>
+            </div>
+        </apex:outputPanel>
+
+        <!-- Document Preview -->
+        <div class="esign-section">
+            <h2 class="esign-section__title">Document to Sign</h2>
+            <apex:outputPanel rendered="{!NOT(ISBLANK(documentBase64))}" layout="block">
+                <div class="esign-doc-wrapper">
+                    <iframe id="esignDocFrame"
+                            class="esign-doc-frame"
+                            src="data:application/pdf;base64,{!documentBase64}"
+                            title="Document requiring your signature">
+                    </iframe>
+                </div>
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!ISBLANK(documentBase64)}" layout="block">
+                <div class="esign-doc-wrapper" style="display:flex;align-items:center;justify-content:center;min-height:180px;background:#f8f9fb;border:1px solid #e0e0e0;border-radius:6px">
+                    <p style="color:#666;font-size:14px">Document preview unavailable. Please proceed to sign below.</p>
+                </div>
+            </apex:outputPanel>
+        </div>
+
+        <!-- Signing Form -->
+        <apex:form id="signingForm">
+            <div class="esign-section">
+                <h2 class="esign-section__title">Your Signature</h2>
+
+                <!-- Tab Bar -->
+                <div class="esign-tabs" role="tablist">
+                    <button type="button" class="esign-tab esign-tab--active"
+                            role="tab" id="tab-draw-btn"
+                            onclick="ESign.switchTab('draw')">
+                        ✏ Draw
+                    </button>
+                    <button type="button" class="esign-tab"
+                            role="tab" id="tab-type-btn"
+                            onclick="ESign.switchTab('type')">
+                        T Type
+                    </button>
+                    <button type="button" class="esign-tab"
+                            role="tab" id="tab-upload-btn"
+                            onclick="ESign.switchTab('upload')">
+                        ↑ Upload
+                    </button>
+                </div>
+
+                <!-- DRAW Tab -->
+                <div id="esign-tab-draw" class="esign-tab-content" role="tabpanel">
+                    <div class="esign-canvas-wrapper">
+                        <canvas id="esignCanvas"
+                                class="esign-canvas"
+                                width="600" height="160"
+                                aria-label="Signature drawing area">
+                        </canvas>
+                    </div>
+                    <button type="button" class="esign-btn esign-btn--ghost esign-btn--sm"
+                            onclick="ESign.clearCanvas()">
+                        Clear
+                    </button>
+                </div>
+
+                <!-- TYPE Tab -->
+                <div id="esign-tab-type" class="esign-tab-content esign-tab-content--hidden"
+                     role="tabpanel">
+                    <input type="text"
+                           id="esignTypedInput"
+                           class="esign-type-input"
+                           maxlength="80"
+                           placeholder="Type your full name"
+                           oninput="ESign.renderTypedSignature(this.value)"
+                           autocomplete="name"/>
+                    <canvas id="esignTypedCanvas"
+                            class="esign-canvas"
+                            width="600" height="120">
+                    </canvas>
+                </div>
+
+                <!-- UPLOAD Tab -->
+                <div id="esign-tab-upload" class="esign-tab-content esign-tab-content--hidden"
+                     role="tabpanel">
+                    <label class="esign-upload-label" for="esignUploadInput">
+                        <span>Click or drag an image here</span>
+                        <span class="esign-upload-hint">PNG or JPEG, max 2 MB</span>
+                    </label>
+                    <input type="file"
+                           id="esignUploadInput"
+                           class="esign-upload-input"
+                           accept="image/png,image/jpeg"
+                           onchange="ESign.previewUpload(this)"/>
+                    <img id="esignUploadPreview" class="esign-upload-preview" alt="Signature preview"/>
+                </div>
+
+                <!-- Hidden fields passed back to controller -->
+                <apex:inputHidden value="{!signatureData}"      id="hidSigData"/>
+                <apex:inputHidden value="{!signatureType}"      id="hidSigType"/>
+                <apex:inputHidden value="{!declineReason}"      id="hidDeclineReason"/>
+                <apex:inputHidden value="{!declineDescription}" id="hidDeclineDesc"/>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="esign-actions">
+                <apex:commandButton
+                    value="I Agree &amp; Sign Document"
+                    action="{!submitSignature}"
+                    onclick="return ESign.prepareAndValidate(
+                        '{!$Component.hidSigData}',
+                        '{!$Component.hidSigType}'
+                    );"
+                    styleClass="esign-btn esign-btn--primary esign-btn--lg"
+                    id="btnSign"/>
+
+                <button type="button"
+                        class="esign-btn esign-btn--danger"
+                        onclick="ESign.showDeclineForm(
+                            '{!$Component.hidDeclineReason}',
+                            '{!$Component.hidDeclineDesc}',
+                            '{!$Component.btnDeclineSubmit}'
+                        )">
+                    Decline to Sign
+                </button>
+
+                <!-- Hidden: actual server submit for decline -->
+                <apex:commandButton
+                    value="__decline__"
+                    action="{!declineSignature}"
+                    styleClass="esign-hidden-btn"
+                    id="btnDeclineSubmit"/>
+            </div>
+
+            <!-- Decline Modal -->
+            <div id="esign-decline-modal" class="esign-modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="esign-decline-heading">
+                <div class="esign-modal">
+                    <h2 id="esign-decline-heading" class="esign-modal__title">Decline to Sign</h2>
+                    <p class="esign-modal__body">Please let us know why you are declining. This action cannot be undone.</p>
+                    <div class="esign-modal__field">
+                        <label for="esignDeclineReasonSel" class="esign-modal__label">Reason <span aria-hidden="true">*</span></label>
+                        <select id="esignDeclineReasonSel" class="esign-modal__select">
+                            <option value="">Select a reason...</option>
+                            <option value="Not Interested">Not Interested</option>
+                            <option value="Wrong Document">Wrong Document</option>
+                            <option value="Technical Issue">Technical Issue</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="esign-modal__field">
+                        <label for="esignDeclineDescTa" class="esign-modal__label">Additional Details (optional)</label>
+                        <textarea id="esignDeclineDescTa" class="esign-modal__textarea" maxlength="500" rows="3" placeholder="Optional context..."></textarea>
+                    </div>
+                    <div class="esign-modal__actions">
+                        <button type="button" class="esign-btn esign-btn--danger" onclick="ESign.confirmDecline()">Confirm Decline</button>
+                        <button type="button" class="esign-btn esign-btn--ghost esign-btn--sm" onclick="ESign.cancelDecline()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legal Notice -->
+            <div class="esign-legal">
+                <p>By clicking <strong>"I Agree &amp; Sign Document"</strong>, you consent to signing this document electronically. This electronic signature is legally binding and equivalent to a handwritten signature.</p>
+                <p>Reference: {!signRequest.Name} | Expires: <apex:outputText value="{0,date,dd MMM yyyy HH:mm z}"><apex:param value="{!signRequest.Token_Expiry__c}"/></apex:outputText></p>
+            </div>
+        </apex:form>
+    </div>
+
+    <!-- Footer -->
+    <footer class="esign-footer">
+        <p>Secured by SF-eSign &bull; {!$Label.ESign_Org_Display_Name}</p>
+        <p>Questions? <a href="mailto:{!$Label.ESign_Support_Email}">{!$Label.ESign_Support_Email}</a></p>
+    </footer>
+
+</apex:outputPanel>
+
+<apex:includeScript value="{!URLFOR($Resource.ESign_Assets, 'js/esign.js')}"/>
+<script>
+    /* Prevent browser back navigation from returning to the signing form */
+    (function () {
+        if (window.history && window.history.pushState) {
+            window.history.pushState(null, '', window.location.href);
+            window.addEventListener('popstate', function () {
+                window.history.pushState(null, '', window.location.href);
+            });
+        }
+    }());
+</script>
+</body>
+</html>
+</apex:page>
