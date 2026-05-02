@@ -20,18 +20,24 @@ public with sharing class DocGen_DocumentGeneratorService {
     }
 
     public static Blob generatePdf(String mergedHtml) {
-        System.debug(LoggingLevel.INFO, 'DocGen_DocumentGeneratorService.generatePdf: mergedHtml length=' + (mergedHtml != null ? mergedHtml.length() : 0));
         if (String.isBlank(mergedHtml)) {
-            System.debug(LoggingLevel.WARN, 'DocGen_DocumentGeneratorService.generatePdf: mergedHtml is blank — PDF will be empty');
+            throw new DocGen_Exception('generatePdf: mergedHtml is blank — cannot produce PDF');
         }
         String styledHtml = injectPrintStyles(mergedHtml);
+        System.debug(LoggingLevel.INFO,
+            'DocGen_DocumentGeneratorService.generatePdf: styledHtml length=' + styledHtml.length()
+            + ' preview=' + styledHtml.abbreviate(200));
+
         ContentVersion cv = new ContentVersion(
-            Title        = 'DocGen_Temp_' + String.valueOf(System.now().getTime()),
-            PathOnClient = 'temp.html',
-            VersionData  = Blob.valueOf(styledHtml),
+            Title          = 'DocGen_Temp_' + String.valueOf(System.now().getTime()),
+            PathOnClient   = 'temp.html',
+            VersionData    = Blob.valueOf(styledHtml),
             IsMajorVersion = false
         );
         insert cv;
+        System.debug(LoggingLevel.INFO,
+            'DocGen_DocumentGeneratorService.generatePdf: inserted cvId=' + cv.Id);
+
         PageReference pr = new PageReference('/apex/DocGen_PdfRenderer');
         pr.getParameters().put('cvId', cv.Id);
         Blob pdfBlob;
@@ -40,6 +46,9 @@ public with sharing class DocGen_DocumentGeneratorService {
         } else {
             pdfBlob = pr.getContentAsPDF();
         }
+        System.debug(LoggingLevel.INFO,
+            'DocGen_DocumentGeneratorService.generatePdf: pdfBlob size='
+            + (pdfBlob != null ? pdfBlob.size() : -1));
         return pdfBlob;
     }
 

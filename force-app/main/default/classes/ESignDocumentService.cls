@@ -98,16 +98,19 @@ public without sharing class ESignDocumentService {
 
         String auditManifest = buildAuditManifest(req);
 
+        // Do NOT set ContentDocumentId — the original is in the requester's private
+        // library; adding a version to it from guest/system context throws
+        // INVALID_STATUS: Documents in a user's private library must always be owned by that user.
+        // The signed copy is a standalone document linked via ContentDocumentLink instead.
         ContentVersion signedCv = new ContentVersion(
-            ContentDocumentId = originalCv.ContentDocumentId,
-            Title             = originalCv.Title + ' [SIGNED - '
-                                    + Datetime.now().format('yyyy-MM-dd HH:mm') + ']',
-            PathOnClient      = originalCv.Title + '_signed.'
-                                    + originalCv.FileExtension,
-            VersionData       = signedDocBlob,
-            Description       = auditManifest,
-            // ReasonForChange used as a searchable tag in Files
-            ReasonForChange   = 'Signed via SF-eSign | Request: ' + req.Name
+            Title           = originalCv.Title + ' [SIGNED - '
+                                  + Datetime.now().format('yyyy-MM-dd HH:mm') + ']',
+            PathOnClient    = originalCv.Title + '_signed.'
+                                  + originalCv.FileExtension,
+            VersionData     = signedDocBlob,
+            IsMajorVersion  = true,
+            Description     = auditManifest,
+            ReasonForChange = 'Signed via SF-eSign | Request: ' + req.Name
         );
         Database.insert(signedCv, AccessLevel.SYSTEM_MODE);
 

@@ -1,0 +1,150 @@
+<template>
+    <lightning-card title="Document &amp; Signature" icon-name="doctype:pdf">
+
+        <template if:true={isLoading}>
+            <div class="slds-p-around_large slds-text-align_center">
+                <lightning-spinner alternative-text="Loading viewer" size="small"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:true={hasError}>
+            <div class="slds-p-around_medium viewer-error">
+                Failed to load document viewer. Verify the record has an attached document.
+            </div>
+        </template>
+
+        <template if:true={isReady}>
+            <div class="viewer-split slds-p-around_small">
+
+                <!-- ── LEFT: Document Preview (70%) ── -->
+                <div class="viewer-left">
+
+                    <div class="viewer-toolbar">
+                        <template if:true={hasVersions}>
+                            <div class="viewer-version-picker">
+                                <lightning-combobox
+                                    label="Version"
+                                    variant="label-hidden"
+                                    value={selectedVersionId}
+                                    options={versionOptions}
+                                    onchange={handleVersionChange}>
+                                </lightning-combobox>
+                            </div>
+                        </template>
+                        <lightning-button-icon
+                            icon-name="utility:new_window"
+                            title="Open in Files preview"
+                            onclick={handleOpenInTab}
+                            variant="border-filled"
+                            size="small">
+                        </lightning-button-icon>
+                    </div>
+
+                    <template if:true={previewLoading}>
+                        <div class="viewer-frame-placeholder">
+                            <lightning-spinner alternative-text="Loading document" size="small"></lightning-spinner>
+                        </div>
+                    </template>
+                    <template if:false={previewLoading}>
+                        <template if:true={previewSrc}>
+                            <div class="viewer-frame-wrapper">
+                                <iframe
+                                    class="viewer-frame"
+                                    src={previewSrc}
+                                    title="Document Preview"
+                                    frameborder="0">
+                                </iframe>
+                            </div>
+                        </template>
+                        <template if:false={previewSrc}>
+                            <div class="viewer-frame-placeholder">
+                                <lightning-icon icon-name="doctype:unknown" size="large"
+                                    class="slds-var-m-bottom_small"></lightning-icon>
+                                <p>No document attached to this request.</p>
+                            </div>
+                        </template>
+                    </template>
+
+                </div>
+
+                <!-- ── RIGHT: Signature Panel (30%) ── -->
+                <div class="viewer-right">
+
+                    <!-- Status -->
+                    <div class="viewer-section">
+                        <div class="viewer-section__label">Status</div>
+                        <span class={statusBadgeClass}>{data.status}</span>
+                    </div>
+
+                    <!-- Signed details -->
+                    <template if:true={isSigned}>
+                        <div class="viewer-section">
+                            <div class="viewer-section__label">Signed By</div>
+                            <div class="viewer-section__value">{signerEmail}</div>
+                        </div>
+                        <div class="viewer-section">
+                            <div class="viewer-section__label">Signed On</div>
+                            <div class="viewer-section__value">{data.signedDatetime}</div>
+                        </div>
+                        <div class="viewer-section">
+                            <div class="viewer-section__label">Signature Method</div>
+                            <div class="viewer-section__value">{data.signatureType}</div>
+                        </div>
+                    </template>
+
+                    <!-- Pending: show recipient -->
+                    <template if:false={isSigned}>
+                        <div class="viewer-section">
+                            <div class="viewer-section__label">Recipient</div>
+                            <div class="viewer-section__value">{data.recipientEmail}</div>
+                        </div>
+                        <div class="viewer-section viewer-pending-note">
+                            Signature not yet captured.
+                        </div>
+                    </template>
+
+                    <!-- Signature image thumbnail -->
+                    <template if:true={sigImageUrl}>
+                        <div class="viewer-section">
+                            <div class="viewer-section__label">Captured Signature</div>
+                            <div class="viewer-sig-wrapper">
+                                <img
+                                    src={sigImageUrl}
+                                    alt="Captured signature"
+                                    class="viewer-sig-img"
+                                    onerror={handleSigImgError}>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Version list -->
+                    <template if:true={hasVersions}>
+                        <div class="viewer-section">
+                            <div class="viewer-section__label">Versions (latest first)</div>
+                            <ul class="viewer-version-list">
+                                <template for:each={decoratedVersions} for:item="v">
+                                    <li key={v.id}
+                                        class={v.rowClass}
+                                        onclick={handleVersionClick}
+                                        data-id={v.id}
+                                        title={v.title}>
+                                        <div class="viewer-version-top">
+                                            <span class="viewer-version-num">v{v.versionNumber}</span>
+                                            <template if:true={v.isSigned}>
+                                                <span class="viewer-badge viewer-badge--signed">Signed</span>
+                                            </template>
+                                        </div>
+                                        <div class="viewer-version-title">{v.title}</div>
+                                        <div class="viewer-version-date">{v.modifiedDate}</div>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+                    </template>
+
+                </div>
+            </div>
+        </template>
+
+    </lightning-card>
+</template>
