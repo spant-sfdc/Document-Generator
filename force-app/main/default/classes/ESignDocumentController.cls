@@ -38,6 +38,7 @@ public without sharing class ESignDocumentController {
         token        = ApexPages.currentPage().getParameters().get('token');
         isSubmitting = false;
         pageState    = 'LOADING';
+        System.debug(LoggingLevel.ERROR, '[CP-1] Controller constructed. token blank=' + String.isBlank(token));
         initialise();
     }
 
@@ -47,71 +48,60 @@ public without sharing class ESignDocumentController {
 
     private void initialise() {
         try {
-            System.debug(LoggingLevel.DEBUG,
-                'ESignDocumentController.initialise token=' + ESignTokenService.maskToken(token));
-
-            // Null/blank token — show "Invalid Link" without throwing
             if (String.isBlank(token)) {
+                System.debug(LoggingLevel.ERROR, '[CP-2] FAIL: token is blank');
                 errorCode = 'TOKEN_INVALID';
                 pageState = 'ERROR';
                 return;
             }
+            System.debug(LoggingLevel.ERROR, '[CP-2] Token received: ' + ESignTokenService.maskToken(token));
 
             checkRateLimit();
+            System.debug(LoggingLevel.ERROR, '[CP-3] Rate limit passed');
 
             signRequest = ESignTokenService.validateAndFetch(token);
-            System.debug(LoggingLevel.DEBUG,
-                'signRequest.Id=' + signRequest?.Id
-                + ' Status=' + signRequest?.Status__c
-                + ' ContentVersionId=' + signRequest?.Content_Version_Id__c);
+            System.debug(LoggingLevel.ERROR,
+                '[CP-4] Request fetched. Id=' + signRequest.Id
+                + ' Status=' + signRequest.Status__c
+                + ' ContentVersionId=' + signRequest.Content_Version_Id__c);
 
-            // Fetch document for preview — isolated so a content access failure
-            // does NOT prevent the signing form from loading
             try {
                 if (String.isNotBlank(signRequest.Content_Version_Id__c)) {
                     documentBase64 = ESignDocumentService.getVersionBase64(
                         signRequest.Content_Version_Id__c);
                 }
-                System.debug(LoggingLevel.DEBUG,
-                    'documentBase64 length=' + (documentBase64 != null ? documentBase64.length() : 0));
+                System.debug(LoggingLevel.ERROR,
+                    '[CP-5] documentBase64 length=' + (documentBase64 != null ? documentBase64.length() : 0));
             } catch (Exception docEx) {
-                System.debug(LoggingLevel.WARN,
-                    'Document preview unavailable: ' + docEx.getMessage()
-                    + ' | ' + docEx.getStackTraceString());
-                // documentBase64 stays null — VF page shows placeholder
+                System.debug(LoggingLevel.ERROR,
+                    '[CP-5] FAIL document preview: ' + docEx.getMessage());
             }
 
-            // Mark Viewed / update last-accessed via Queueable (no guest DML)
             try {
                 if (signRequest.Status__c == 'Pending' || signRequest.Status__c == 'Viewed') {
                     System.enqueueJob(new ESignSigningQueueable(
                         ESignSigningQueueable.ACTION_VIEWED,
                         token, getClientIP(), getUserAgent()
                     ));
+                    System.debug(LoggingLevel.ERROR, '[CP-6] Viewed queueable enqueued');
                 }
             } catch (Exception qEx) {
-                System.debug(LoggingLevel.WARN, 'Viewed enqueue failed (non-critical): ' + qEx.getMessage());
+                System.debug(LoggingLevel.ERROR, '[CP-6] FAIL Viewed enqueue: ' + qEx.getMessage());
             }
 
             pageState = 'SIGNING';
+            System.debug(LoggingLevel.ERROR, '[CP-7] pageState=SIGNING');
 
         } catch (ESignException e) {
-            System.debug(LoggingLevel.ERROR,
-                'ESignDocumentController ESignException: ' + e.getMessage());
-            // Normalise: TOKEN_MISSING and unknown DOCUMENT_ERROR codes map to a
-            // known VF-renderable error code so a panel always shows.
+            System.debug(LoggingLevel.ERROR, '[CP-ERR] ESignException: ' + e.getMessage());
             String code = e.getMessage();
-            if (code == 'TOKEN_MISSING' || String.isBlank(code)) {
-                code = 'TOKEN_INVALID';
-            } else if (code.startsWith('DOCUMENT_ERROR')) {
-                code = 'UNEXPECTED_ERROR';
-            }
+            if (code == 'TOKEN_MISSING' || String.isBlank(code)) { code = 'TOKEN_INVALID'; }
+            else if (code.startsWith('DOCUMENT_ERROR')) { code = 'UNEXPECTED_ERROR'; }
             errorCode = code;
             pageState = 'ERROR';
         } catch (Exception e) {
             System.debug(LoggingLevel.ERROR,
-                'ESignDocumentController unexpected: ' + e.getMessage()
-                + ' | ' + e.getStackTraceString());
+                '[CP-ERR] Unexpected: ' + e.getMessage() + ' | ' + e.getStackTraceString());
             errorCode = 'UNEXPECTED_ERROR';
             pageState = 'ERROR';
         }
@@ -122,12 +112,16 @@ public without sharing class ESignDocumentController {
     // ─────────────────────────────────────────────────────────────────────────
 
     public PageReference submitSignature() {
+        System.debug(LoggingLevel.ERROR, '[CP-8] submitSignature called. isSubmitting=' + isSubmitting);
         if (isSubmitting) return null;
         isSubmitting = true;
 
         try {
-            // Re-validate token (read-only) — prevents replay attacks
             signRequest = ESignTokenService.validateAndFetch(token);
+            System.debug(LoggingLevel.ERROR,
+                '[CP-9] Re-validated. sigDataBlank=' + String.isBlank(signatureData)
+                + ' sigType=' + signatureType
+                + ' sigDataLen=' + (signatureData != null ? signatureData.length() : 0));
 
             if (String.isBlank(signatureData) || String.isBlank(signatureType)) {
                 ApexPages.addMessage(new ApexPages.Message(
@@ -137,21 +131,24 @@ public without sharing class ESignDocumentController {
                 return null;
             }
 
-            // Delegate all DML + file creation to Queueable
             System.enqueueJob(new ESignSigningQueueable(
                 token, signatureData, signatureType,
                 getClientIP(), getUserAgent()
             ));
+            System.debug(LoggingLevel.ERROR, '[CP-10] Sign queueable enqueued');
 
-            // Optimistically update in-memory state for VF rendered="" bindings
             signRequest.Status__c = 'Signed';
             pageState = 'COMPLETE';
+            System.debug(LoggingLevel.ERROR, '[CP-11] submitSignature complete. pageState=COMPLETE');
 
         } catch (ESignException e) {
+            System.debug(LoggingLevel.ERROR, '[CP-ERR] submitSignature ESignException: ' + e.getMessage());
             errorCode    = e.getMessage();
             pageState    = 'ERROR';
             isSubmitting = false;
         } catch (Exception e) {
+            System.debug(LoggingLevel.ERROR,
+                '[CP-ERR] submitSignature Exception: ' + e.getMessage() + ' | ' + e.getStackTraceString());
             errorCode    = 'UNEXPECTED_ERROR';
             pageState    = 'ERROR';
             isSubmitting = false;
@@ -164,23 +161,32 @@ public without sharing class ESignDocumentController {
     // ─────────────────────────────────────────────────────────────────────────
 
     public PageReference declineSignature() {
+        System.debug(LoggingLevel.ERROR,
+            '[CP-8D] declineSignature called. reason=' + declineReason
+            + ' descBlank=' + String.isBlank(declineDescription));
         try {
-            System.debug(LoggingLevel.DEBUG,
-                'ESignDocumentController.declineSignature: reason=' + declineReason
-                + ' desc=' + declineDescription);
             signRequest = ESignTokenService.validateAndFetch(token);
+            System.debug(LoggingLevel.ERROR, '[CP-9D] Re-validated for decline');
 
             System.enqueueJob(new ESignSigningQueueable(
                 ESignSigningQueueable.ACTION_DECLINE,
                 token, declineReason, declineDescription,
                 getClientIP(), getUserAgent()
             ));
+            System.debug(LoggingLevel.ERROR, '[CP-10D] Decline queueable enqueued');
 
             signRequest.Status__c = 'Declined';
             pageState = 'COMPLETE';
+            System.debug(LoggingLevel.ERROR, '[CP-11D] declineSignature complete');
 
         } catch (ESignException e) {
+            System.debug(LoggingLevel.ERROR, '[CP-ERR] declineSignature ESignException: ' + e.getMessage());
             errorCode = e.getMessage();
+            pageState = 'ERROR';
+        } catch (Exception e) {
+            System.debug(LoggingLevel.ERROR,
+                '[CP-ERR] declineSignature Exception: ' + e.getMessage() + ' | ' + e.getStackTraceString());
+            errorCode = 'UNEXPECTED_ERROR';
             pageState = 'ERROR';
         }
         return null;

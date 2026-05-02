@@ -75,8 +75,8 @@ public without sharing class ESignSigningQueueable
     // ── execute ─────────────────────────────────────────────────────────────
 
     public void execute(QueueableContext ctx) {
-        System.debug(LoggingLevel.DEBUG,
-            'ESignSigningQueueable.execute action=' + action
+        System.debug(LoggingLevel.ERROR,
+            '[CP-Q1] Queueable execute START. action=' + action
             + ' token=' + ESignTokenService.maskToken(token));
         try {
             if (action == ACTION_VIEWED) {
@@ -86,13 +86,15 @@ public without sharing class ESignSigningQueueable
             } else {
                 processSign();
             }
+            System.debug(LoggingLevel.ERROR, '[CP-Q2] Queueable execute COMPLETE. action=' + action);
         } catch (ESignException e) {
             System.debug(LoggingLevel.ERROR,
-                'ESignSigningQueueable ESignException action=' + action + ': ' + e.getMessage());
+                '[CP-QERR] ESignException action=' + action + ': ' + e.getMessage()
+                + ' | ' + e.getStackTraceString());
             tryLogError(e.getMessage());
         } catch (Exception e) {
             System.debug(LoggingLevel.ERROR,
-                'ESignSigningQueueable Exception action=' + action + ': ' + e.getMessage()
+                '[CP-QERR] Exception action=' + action + ': ' + e.getMessage()
                 + ' | ' + e.getStackTraceString());
             tryLogError('Queueable failed: ' + e.getMessage());
         }
@@ -117,20 +119,26 @@ public without sharing class ESignSigningQueueable
     // ── Sign ────────────────────────────────────────────────────────────────
 
     private void processSign() {
+        System.debug(LoggingLevel.ERROR, '[CP-S1] processSign START');
         Signature_Request__c req = ESignTokenService.validateAndFetch(token);
+        System.debug(LoggingLevel.ERROR,
+            '[CP-S2] Request fetched. Id=' + req.Id + ' Status=' + req.Status__c
+            + ' ContentVersionId=' + req.Content_Version_Id__c);
 
-        // Duplicate-sign guard — token validation ensures Pending/Viewed only
-        // but a race between two simultaneous submits needs a hard check here
-        if (req.Status__c != 'Pending' && req.Status__c != 'Viewed') return;
+        if (req.Status__c != 'Pending' && req.Status__c != 'Viewed') {
+            System.debug(LoggingLevel.ERROR, '[CP-S3] ABORT: status=' + req.Status__c + ' not signable');
+            return;
+        }
 
         Blob sigBlob = decodeBlob(signatureData);
+        System.debug(LoggingLevel.ERROR, '[CP-S4] sigBlob size=' + sigBlob.size());
 
-        // Save signature image and link it to the request record
-        String sigImageDocId = ESignDocumentService.saveSignatureImage(
-            req.Name, sigBlob);
+        String sigImageDocId = ESignDocumentService.saveSignatureImage(req.Name, sigBlob);
+        System.debug(LoggingLevel.ERROR, '[CP-S5] sigImageDocId=' + sigImageDocId);
+
         ESignDocumentService.linkDocumentToRecord(sigImageDocId, req.Id);
+        System.debug(LoggingLevel.ERROR, '[CP-S6] sig image linked to request');
 
-        // Update request → Signed (first write)
         req.Status__c             = 'Signed';
         req.Signed_DateTime__c    = DateTime.now();
         req.Signer_Email__c       = req.Recipient_Email__c;
@@ -139,37 +147,43 @@ public without sharing class ESignSigningQueueable
         req.Signer_User_Agent__c  = userAgent;
         req.Signature_Image_Id__c = sigImageDocId;
         Database.update(req, AccessLevel.SYSTEM_MODE);
+        System.debug(LoggingLevel.ERROR, '[CP-S7] Status updated to Signed');
 
-        // Create signed document version (Tier 1 always; Tier 2 callout if configured)
         String signedDocId = ESignDocumentService.createSignedVersion(req, sigBlob);
+        System.debug(LoggingLevel.ERROR, '[CP-S8] signedDocId=' + signedDocId);
 
-        // Store signed document id on request (second write)
         req.Signed_Document_Id__c = signedDocId;
         Database.update(req, AccessLevel.SYSTEM_MODE);
+        System.debug(LoggingLevel.ERROR, '[CP-S9] Signed_Document_Id__c written');
 
-        ESignAuditService.log(
-            req.Id, 'Signed',
-            req.Signer_Email__c, token,
-            clientIP, userAgent, 'SiteAsync'
-        );
+        ESignAuditService.log(req.Id, 'Signed', req.Signer_Email__c, token, clientIP, userAgent, 'SiteAsync');
+        System.debug(LoggingLevel.ERROR, '[CP-S10] Audit log written. processSign DONE');
     }
 
     // ── Decline ─────────────────────────────────────────────────────────────
 
     private void processDecline() {
+        System.debug(LoggingLevel.ERROR,
+            '[CP-D1] processDecline START. reason=' + declineReason
+            + ' descBlank=' + String.isBlank(declineDescription));
         Signature_Request__c req = ESignTokenService.validateAndFetch(token);
-        if (req.Status__c != 'Pending' && req.Status__c != 'Viewed') return;
+        System.debug(LoggingLevel.ERROR,
+            '[CP-D2] Request fetched. Id=' + req.Id + ' Status=' + req.Status__c);
+
+        if (req.Status__c != 'Pending' && req.Status__c != 'Viewed') {
+            System.debug(LoggingLevel.ERROR, '[CP-D3] ABORT: status=' + req.Status__c);
+            return;
+        }
 
         req.Status__c = 'Declined';
         if (String.isNotBlank(declineReason))      req.Decline_Reason__c      = declineReason;
         if (String.isNotBlank(declineDescription)) req.Decline_Description__c = declineDescription;
         Database.update(req, AccessLevel.SYSTEM_MODE);
+        System.debug(LoggingLevel.ERROR,
+            '[CP-D4] DML done. Status=Declined Reason=' + req.Decline_Reason__c);
 
-        ESignAuditService.log(
-            req.Id, 'Declined',
-            req.Recipient_Email__c, token,
-            clientIP, userAgent, 'SiteAsync'
-        );
+        ESignAuditService.log(req.Id, 'Declined', req.Recipient_Email__c, token, clientIP, userAgent, 'SiteAsync');
+        System.debug(LoggingLevel.ERROR, '[CP-D5] processDecline DONE');
     }
 
     // ── Viewed ───────────────────────────────────────────────────────────────

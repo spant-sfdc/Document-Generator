@@ -98,10 +98,11 @@ public without sharing class ESignDocumentService {
 
         String auditManifest = buildAuditManifest(req);
 
-        // Do NOT set ContentDocumentId — the original is in the requester's private
-        // library; adding a version to it from guest/system context throws
-        // INVALID_STATUS: Documents in a user's private library must always be owned by that user.
-        // The signed copy is a standalone document linked via ContentDocumentLink instead.
+        System.debug(LoggingLevel.ERROR,
+            '[CP-CSV1] createSignedVersion. originalCvId=' + req.Content_Version_Id__c
+            + ' originalCdId=' + originalCv.ContentDocumentId
+            + ' signedBlobSize=' + signedDocBlob.size());
+
         ContentVersion signedCv = new ContentVersion(
             Title           = originalCv.Title + ' [SIGNED - '
                                   + Datetime.now().format('yyyy-MM-dd HH:mm') + ']',
@@ -113,14 +114,15 @@ public without sharing class ESignDocumentService {
             ReasonForChange = 'Signed via SF-eSign | Request: ' + req.Name
         );
         Database.insert(signedCv, AccessLevel.SYSTEM_MODE);
+        System.debug(LoggingLevel.ERROR, '[CP-CSV2] signed ContentVersion inserted. Id=' + signedCv.Id);
 
-        // Fetch auto-resolved ContentDocumentId (SYSTEM_MODE for guest context)
         List<ContentVersion> signedCvResult = Database.queryWithBinds(
             'SELECT ContentDocumentId FROM ContentVersion WHERE Id = :cvId',
             new Map<String, Object>{ 'cvId' => signedCv.Id },
             AccessLevel.SYSTEM_MODE
         );
         String signedDocId = signedCvResult[0].ContentDocumentId;
+        System.debug(LoggingLevel.ERROR, '[CP-CSV3] signedDocId=' + signedDocId);
 
         // Link signed document to the Signature_Request__c record (duplicate-safe)
         linkDocumentToRecord(signedDocId, req.Id);
@@ -143,6 +145,8 @@ public without sharing class ESignDocumentService {
      * @return ContentDocumentId of the signature image
      */
     public static String saveSignatureImage(String requestName, Blob signatureBlob) {
+        System.debug(LoggingLevel.ERROR,
+            '[CP-SIG1] saveSignatureImage START. blobSize=' + signatureBlob.size());
         ContentVersion sigCv = new ContentVersion(
             Title        = 'Signature - ' + requestName,
             PathOnClient = 'signature_' + requestName + '.png',
@@ -150,14 +154,16 @@ public without sharing class ESignDocumentService {
             Description  = 'Signature image captured via SF-eSign for request ' + requestName
         );
         Database.insert(sigCv, AccessLevel.SYSTEM_MODE);
+        System.debug(LoggingLevel.ERROR, '[CP-SIG2] ContentVersion inserted. Id=' + sigCv.Id);
 
-        // SYSTEM_MODE required for guest user to resolve ContentDocumentId post-insert
         List<ContentVersion> sigCvResult = Database.queryWithBinds(
             'SELECT ContentDocumentId FROM ContentVersion WHERE Id = :cvId',
             new Map<String, Object>{ 'cvId' => sigCv.Id },
             AccessLevel.SYSTEM_MODE
         );
-        return sigCvResult[0].ContentDocumentId;
+        String docId = sigCvResult[0].ContentDocumentId;
+        System.debug(LoggingLevel.ERROR, '[CP-SIG3] ContentDocumentId=' + docId);
+        return docId;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -165,14 +171,17 @@ public without sharing class ESignDocumentService {
     // ─────────────────────────────────────────────────────────────────────────
 
     public static void linkDocumentToRecord(String contentDocId, String recordId) {
-        // SYSTEM_MODE required for guest user to query ContentDocumentLink
+        System.debug(LoggingLevel.ERROR,
+            '[CP-CDL1] linkDocumentToRecord. docId=' + contentDocId + ' recId=' + recordId);
         List<ContentDocumentLink> existing = Database.queryWithBinds(
             'SELECT Id FROM ContentDocumentLink WHERE ContentDocumentId = :cdId AND LinkedEntityId = :recId LIMIT 1',
             new Map<String, Object>{ 'cdId' => contentDocId, 'recId' => recordId },
             AccessLevel.SYSTEM_MODE
         );
-        if (!existing.isEmpty()) return;
-
+        if (!existing.isEmpty()) {
+            System.debug(LoggingLevel.ERROR, '[CP-CDL2] CDL already exists — skipping');
+            return;
+        }
         Database.insert(
             new ContentDocumentLink(
                 ContentDocumentId = contentDocId,
@@ -182,6 +191,7 @@ public without sharing class ESignDocumentService {
             ),
             AccessLevel.SYSTEM_MODE
         );
+        System.debug(LoggingLevel.ERROR, '[CP-CDL3] CDL inserted');
     }
 
     // ─────────────────────────────────────────────────────────────────────────
