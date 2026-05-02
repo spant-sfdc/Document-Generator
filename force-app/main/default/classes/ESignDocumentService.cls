@@ -110,6 +110,7 @@ public without sharing class ESignDocumentService {
                                   + originalCv.FileExtension,
             VersionData     = signedDocBlob,
             IsMajorVersion  = true,
+            OwnerId         = getInternalUserId(),
             Description     = auditManifest,
             ReasonForChange = 'Signed via SF-eSign | Request: ' + req.Name
         );
@@ -151,6 +152,7 @@ public without sharing class ESignDocumentService {
             Title        = 'Signature - ' + requestName,
             PathOnClient = 'signature_' + requestName + '.png',
             VersionData  = signatureBlob,
+            OwnerId      = getInternalUserId(),
             Description  = 'Signature image captured via SF-eSign for request ' + requestName
         );
         Database.insert(sigCv, AccessLevel.SYSTEM_MODE);
@@ -192,6 +194,24 @@ public without sharing class ESignDocumentService {
             AccessLevel.SYSTEM_MODE
         );
         System.debug(LoggingLevel.ERROR, '[CP-CDL3] CDL inserted');
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // INTERNAL USER RESOLVER
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Returns the Id of any active Standard (internal) user.
+     * Required so ContentVersions inserted in a guest-user Queueable context
+     * are owned by an internal user — guest users cannot own ContentDocuments.
+     */
+    private static Id getInternalUserId() {
+        List<User> users = Database.queryWithBinds(
+            'SELECT Id FROM User WHERE IsActive = true AND UserType = :ut ORDER BY CreatedDate ASC LIMIT 1',
+            new Map<String, Object>{ 'ut' => 'Standard' },
+            AccessLevel.SYSTEM_MODE
+        );
+        return users.isEmpty() ? null : users[0].Id;
     }
 
     // ─────────────────────────────────────────────────────────────────────────

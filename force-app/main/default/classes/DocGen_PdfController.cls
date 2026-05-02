@@ -3,22 +3,17 @@ public without sharing class DocGen_PdfController {
     public String content { get; private set; }
 
     public DocGen_PdfController() {
-        String cvId = ApexPages.currentPage().getParameters().get('cvId');
-        System.debug(LoggingLevel.INFO, 'DocGen_PdfController: cvId=' + cvId);
-        if (String.isNotBlank(cvId)) {
-            List<ContentVersion> cvList = Database.queryWithBinds(
-                'SELECT VersionData, ContentSize FROM ContentVersion WHERE Id = :cvId LIMIT 1',
-                new Map<String, Object>{ 'cvId' => cvId },
-                AccessLevel.SYSTEM_MODE
-            );
-            System.debug(LoggingLevel.INFO,
-                'DocGen_PdfController: found=' + !cvList.isEmpty()
-                + ' vdNull=' + (cvList.isEmpty() ? 'n/a' : String.valueOf(cvList[0].VersionData == null))
-                + ' size=' + (cvList.isEmpty() ? 'n/a' : String.valueOf(cvList[0].ContentSize)));
-            if (!cvList.isEmpty() && cvList[0].VersionData != null) {
-                content = cvList[0].VersionData.toString();
+        String encodedHtml = ApexPages.currentPage().getParameters().get('html');
+        System.debug(LoggingLevel.INFO,
+            'DocGen_PdfController: html param length=' + (encodedHtml != null ? encodedHtml.length() : 0));
+        if (String.isNotBlank(encodedHtml)) {
+            try {
+                content = EncodingUtil.base64Decode(encodedHtml).toString();
                 System.debug(LoggingLevel.INFO,
-                    'DocGen_PdfController: content length=' + content.length());
+                    'DocGen_PdfController: decoded content length=' + content.length());
+            } catch (Exception e) {
+                System.debug(LoggingLevel.ERROR,
+                    'DocGen_PdfController: base64 decode failed: ' + e.getMessage());
             }
         }
         if (content == null) {

@@ -25,21 +25,16 @@ public with sharing class DocGen_DocumentGeneratorService {
         }
         String styledHtml = injectPrintStyles(mergedHtml);
         System.debug(LoggingLevel.INFO,
-            'DocGen_DocumentGeneratorService.generatePdf: styledHtml length=' + styledHtml.length()
-            + ' preview=' + styledHtml.abbreviate(200));
+            'DocGen_DocumentGeneratorService.generatePdf: styledHtml length=' + styledHtml.length());
 
-        ContentVersion cv = new ContentVersion(
-            Title          = 'DocGen_Temp_' + String.valueOf(System.now().getTime()),
-            PathOnClient   = 'temp.html',
-            VersionData    = Blob.valueOf(styledHtml),
-            IsMajorVersion = false
-        );
-        insert cv;
-        System.debug(LoggingLevel.INFO,
-            'DocGen_DocumentGeneratorService.generatePdf: inserted cvId=' + cv.Id);
-
+        // Pass HTML directly to the VF page via base64 URL parameter.
+        // This avoids the cross-transaction visibility problem where a temp
+        // ContentVersion inserted here would not be visible inside the
+        // separate execution context that getContentAsPDF() creates.
+        String encodedHtml = EncodingUtil.base64Encode(Blob.valueOf(styledHtml));
         PageReference pr = new PageReference('/apex/DocGen_PdfRenderer');
-        pr.getParameters().put('cvId', cv.Id);
+        pr.getParameters().put('html', encodedHtml);
+
         Blob pdfBlob;
         if (Test.isRunningTest()) {
             pdfBlob = Blob.valueOf('PDF_PLACEHOLDER');
