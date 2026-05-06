@@ -10,6 +10,7 @@ const EMPTY_STATE = {
     templateId:               null,
     templateTokens:           [],
     sysTokens:                [],
+    variableTokens:           [],
     primaryObject:            null,
     primaryObjectLabel:       '',
     parentObjects:            [],

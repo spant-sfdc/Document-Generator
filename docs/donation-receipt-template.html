@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Donation Receipt</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Georgia, serif; background: #f0f2f5; padding: 24px; }
+.page { max-width: 780px; margin: 0 auto; background: #ffffff; border: 1px solid #c8d0da; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
+
+/* ── Header ── */
+.hdr { background: #1a3c5e; color: #ffffff; padding: 38px 44px 30px; text-align: center; }
+.hdr-org { font-size: 26px; font-weight: bold; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; }
+.hdr-campaign { font-size: 12px; color: #9fc8e8; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 18px; }
+.hdr-badge { display: inline-block; background: #c0392b; color: #ffffff; font-size: 10px; font-weight: bold; letter-spacing: 2px; padding: 5px 20px; border-radius: 20px; text-transform: uppercase; }
+
+/* ── Meta bar ── */
+.meta-bar { background: #eaf0f7; padding: 10px 44px; font-size: 12px; color: #5a6478; border-bottom: 1px solid #d0d8e4; overflow: hidden; }
+.meta-bar .ml { float: left; }
+.meta-bar .mr { float: right; }
+
+/* ── Body ── */
+.bdy { padding: 34px 44px; }
+.sec-title { font-size: 10px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; color: #8892a0; border-bottom: 2px solid #e8ecf0; padding-bottom: 7px; margin: 30px 0 14px 0; }
+.sec-title.first { margin-top: 0; }
+
+/* Info table */
+.info-tbl { width: 100%; border-collapse: collapse; }
+.info-tbl td { padding: 8px 0; vertical-align: top; font-size: 14px; }
+.info-tbl td.lbl { width: 36%; color: #8892a0; font-size: 12px; padding-right: 12px; }
+.info-tbl td.val { font-weight: 600; color: #1a2535; }
+
+/* Amount highlight */
+.amt-box { background: #edf7f2; border-left: 4px solid #27ae60; border-radius: 4px; padding: 14px 20px; margin: 4px 0 16px 0; }
+.amt-box-lbl { font-size: 10px; color: #1a8f4a; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+.amt-box-val { font-size: 30px; font-weight: bold; color: #145a30; margin-top: 5px; }
+
+/* Major donor banner */
+.major-banner { background: #fef9e7; border: 2px solid #f1c40f; border-radius: 7px; padding: 18px 24px; margin: 22px 0; }
+.major-banner-title { font-size: 15px; font-weight: bold; color: #7d6008; margin-bottom: 8px; }
+.major-banner-body { font-size: 13px; color: #5a4608; line-height: 1.65; }
+
+/* Line items table */
+.items-tbl { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+.items-tbl thead tr { background: #1a3c5e; color: #ffffff; }
+.items-tbl thead th { padding: 11px 14px; text-align: left; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
+.items-tbl thead th.num { text-align: right; }
+.items-tbl tbody tr { border-bottom: 1px solid #eaeef2; }
+.items-tbl tbody tr:nth-child(even) { background: #f7f9fb; }
+.items-tbl tbody td { padding: 11px 14px; color: #2e3b4e; }
+.items-tbl tbody td.num { text-align: right; }
+
+/* Tax notice */
+.tax-notice { background: #eef4ff; border: 1px solid #bfd4ff; border-radius: 5px; padding: 13px 17px; margin-top: 22px; font-size: 11px; color: #1a3c8a; line-height: 1.75; }
+
+/* ── Footer ── */
+.ftr { background: #1a3c5e; color: #8ab0cc; text-align: center; padding: 22px 44px; font-size: 11px; line-height: 2.0; }
+.ftr-ty { font-size: 14px; color: #ddeef8; font-weight: bold; margin-bottom: 8px; }
+.ftr-div { border-top: 1px solid #2e5c82; margin: 10px 0; }
+.ftr-note { font-size: 10px; color: #5a88aa; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-org">{{sys.orgName}}</div>
+    <div class="hdr-campaign">{{campaign_name}}</div>
+    <div class="hdr-badge">&#9679; Official Donation Receipt &#9679;</div>
+  </div>
+
+  <!-- META BAR -->
+  <div class="meta-bar">
+    <span class="ml">Date Issued: <strong>{{sys.today}}</strong></span>
+    <span class="mr">Prepared by: <strong>{{sys.currentUser}}</strong></span>
+  </div>
+
+  <!-- BODY -->
+  <div class="bdy">
+
+    <!-- DONOR INFORMATION -->
+    <div class="sec-title first">Donor Information</div>
+    <table class="info-tbl">
+      <tr>
+        <td class="lbl">Full Name</td>
+        <td class="val">{{donor_name}}</td>
+      </tr>
+      <tr>
+        <td class="lbl">Donor ID</td>
+        <td class="val">{{donor_id}}</td>
+      </tr>
+      <tr>
+        <td class="lbl">Donor Category</td>
+        <td class="val">{{donor_type}}</td>
+      </tr>
+    </table>
+
+    <!-- DONATION DETAILS -->
+    <div class="sec-title">Donation Details</div>
+    <div class="amt-box">
+      <div class="amt-box-lbl">Total Donation Amount</div>
+      <div class="amt-box-val">{{total_donation}}</div>
+    </div>
+    <table class="info-tbl">
+      <tr>
+        <td class="lbl">Reference Name</td>
+        <td class="val">{{donation_name}}</td>
+      </tr>
+      <tr>
+        <td class="lbl">Donation Type</td>
+        <td class="val">{{donation_type}}</td>
+      </tr>
+      <tr>
+        <td class="lbl">Donation Date</td>
+        <td class="val">{{close_date}}</td>
+      </tr>
+    </table>
+
+    <!-- MAJOR DONOR RECOGNITION (CONDITIONAL) -->
+    {{#if isMajorDonor}}
+    <div class="major-banner">
+      <div class="major-banner-title">&#11088; Major Donor Recognition</div>
+      <div class="major-banner-body">
+        We are deeply grateful for your generous contribution of {{total_donation}}.
+        Your exceptional support places you among our most valued partners and will
+        directly fund life-changing educational opportunities across our community.
+        We look forward to celebrating your impact at the Annual Recognition Gala.
+      </div>
+    </div>
+    {{/if}}
+
+    <!-- CONTRIBUTION BREAKDOWN -->
+    <div class="sec-title">Contribution Breakdown</div>
+    <table class="items-tbl">
+      <thead>
+        <tr>
+          <th>Contribution Type</th>
+          <th class="num">Qty</th>
+          <th class="num">Unit Price</th>
+          <th class="num">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#OpportunityLineItem}}
+        <tr>
+          <td>{{contribution_type}}</td>
+          <td class="num">{{quantity}}</td>
+          <td class="num">{{unit_price}}</td>
+          <td class="num">{{line_amount}}</td>
+        </tr>
+        {{/OpportunityLineItem}}
+      </tbody>
+    </table>
+
+    <!-- TAX NOTICE -->
+    <div class="tax-notice">
+      <strong>Tax Deductibility Statement:</strong> No goods or services were provided
+      in consideration for this donation. This receipt serves as official confirmation
+      for tax and audit purposes. Please retain this document for your records.
+      Your contribution may be tax-deductible to the full extent permitted by law.
+      EIN: {{sys.orgEIN}}
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="ftr">
+    <div class="ftr-ty">Thank you for your generous support of {{sys.orgName}}</div>
+    <div class="ftr-div"></div>
+    <div>{{sys.orgAddress}}</div>
+    <div>{{sys.orgPhone}} &nbsp;&nbsp;|&nbsp;&nbsp; {{sys.orgWebsite}}</div>
+    <div class="ftr-note">This is an electronically generated receipt. No physical signature required.</div>
+  </div>
+
+</div>
+</body>
+</html>

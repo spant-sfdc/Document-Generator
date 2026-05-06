@@ -211,6 +211,10 @@ public with sharing class DocGen_TemplateService {
             dv.variableType   = v.Variable_Type__c;
             dv.staticValue    = v.Static_Value__c;
             dv.imageVersionId = v.Image_Content_Version_Id__c;
+            // EXPRESSION and BOOLEAN types store the expression string in Static_Value__c
+            if (v.Variable_Type__c == 'EXPRESSION' || v.Variable_Type__c == 'BOOLEAN') {
+                dv.expression = v.Static_Value__c;
+            }
             result.variables.add(dv);
         }
         return result;
@@ -291,6 +295,25 @@ public with sharing class DocGen_TemplateService {
 
     public static List<String> extractSysTokens(String contentVersionId) {
         return parseSysTokens(getTemplateText(contentVersionId));
+    }
+
+    // Returns unique variable names referenced in {{#if varName}} and {{/if}} blocks.
+    // These are the user-defined boolean variables that conditionals depend on.
+    public static List<String> extractVariableTokens(String contentVersionId) {
+        return parseVariableTokens(getTemplateText(contentVersionId));
+    }
+
+    public static List<String> parseVariableTokens(String text) {
+        if (String.isBlank(text)) return new List<String>();
+        Set<String>  seen   = new Set<String>();
+        List<String> result = new List<String>();
+        Matcher m = Pattern.compile('\\{\\{#if ([a-zA-Z0-9_]+)\\}\\}').matcher(text);
+        while (m.find()) {
+            String varName = m.group(1).trim();
+            if (!seen.contains(varName)) { seen.add(varName); result.add(varName); }
+        }
+        result.sort();
+        return result;
     }
 
     public static List<String> parseSysTokens(String text) {

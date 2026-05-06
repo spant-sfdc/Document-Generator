@@ -3,7 +3,7 @@
         <div class="slds-p-around_medium">
             <c-doc-gen-error-panel errors={error}></c-doc-gen-error-panel>
 
-            <div class="slds-form-element slds-m-bottom_medium">
+            <div class="slds-form-element slds-var-m-bottom_medium">
                 <label class="slds-form-element__label">Select Template File (.html or .txt)</label>
                 <div class="slds-form-element__control">
                     <input
@@ -22,15 +22,15 @@
             </template>
 
             <template if:true={uploadedFileName}>
-                <div class="slds-box slds-theme_success slds-m-bottom_medium">
-                    <lightning-icon icon-name="utility:success" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                <div class="slds-box slds-theme_success slds-var-m-bottom_medium">
+                    <lightning-icon icon-name="utility:success" size="x-small" class="slds-var-m-right_x-small"></lightning-icon>
                     <strong>{uploadedFileName}</strong> uploaded successfully.
                 </div>
             </template>
 
             <template if:true={tokens.length}>
-                <div class="slds-m-bottom_medium">
-                    <h3 class="slds-text-heading_small slds-m-bottom_x-small">
+                <div class="slds-var-m-bottom_medium">
+                    <h3 class="slds-text-heading_small slds-var-m-bottom_x-small">
                         Detected Tokens ({tokenCount})
                     </h3>
                     <div class="token-cloud">
@@ -41,10 +41,28 @@
                 </div>
             </template>
 
+            <template if:true={hasVariableTokens}>
+                <div class="slds-var-m-bottom_medium">
+                    <h3 class="slds-text-heading_small slds-var-m-bottom_x-small">
+                        <lightning-icon icon-name="utility:formula" size="x-small" class="slds-var-m-right_x-small"></lightning-icon>
+                        Conditional Variables ({variableCount}) — configure in Step 4
+                    </h3>
+                    <div class="token-cloud">
+                        <template for:each={variableTokens} for:item="v">
+                            <c-doc-gen-token-badge key={v} token={v}></c-doc-gen-token-badge>
+                        </template>
+                    </div>
+                    <p class="slds-form-element__help slds-var-m-top_x-small">
+                        These variable names appear in <strong>&#123;&#123;#if …&#125;&#125;</strong> blocks.
+                        You will set their type and expression in the Variables step.
+                    </p>
+                </div>
+            </template>
+
             <template if:true={hasSysTokens}>
-                <div class="slds-m-bottom_medium">
-                    <h3 class="slds-text-heading_small slds-m-bottom_x-small">
-                        <lightning-icon icon-name="utility:lock" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                <div class="slds-var-m-bottom_medium">
+                    <h3 class="slds-text-heading_small slds-var-m-bottom_x-small">
+                        <lightning-icon icon-name="utility:lock" size="x-small" class="slds-var-m-right_x-small"></lightning-icon>
                         System Variable Tokens ({sysTokenCount}) — auto-resolved, no mapping required
                     </h3>
                     <div class="token-cloud">
@@ -52,14 +70,14 @@
                             <c-doc-gen-token-badge key={token} token={token}></c-doc-gen-token-badge>
                         </template>
                     </div>
-                    <p class="slds-form-element__help slds-m-top_x-small">
+                    <p class="slds-form-element__help slds-var-m-top_x-small">
                         These tokens are resolved automatically from org configuration and user info.
                         Configure their values in Setup &rarr; Custom Metadata &rarr; DocGen Config.
                     </p>
                 </div>
             </template>
 
-            <div class="slds-m-top_medium">
+            <div class="slds-var-m-top_medium">
                 <lightning-button
                     label="Next: Select Object"
                     variant="brand"

@@ -60,6 +60,9 @@ public with sharing class DocGen_DataResolverService {
                              + ' LIMIT '  + maxRows;
             List<SObject> childList = Database.query(childSoql);
             System.debug(LoggingLevel.INFO, 'DocGen_DataResolverService: sectionKey=' + sectionKey + ', rows=' + childList.size());
+            if (!childList.isEmpty()) {
+                System.debug(LoggingLevel.INFO, 'DocGen_DataResolverService: firstChildRecord=' + flattenRecord(childList[0]));
+            }
             result.childRecords.put(sectionKey, flattenRecords(childList));
         }
         return result;
@@ -86,19 +89,30 @@ public with sharing class DocGen_DataResolverService {
         String[] parts = path.split('\\.');
         Schema.DescribeSObjectResult current =
             Schema.getGlobalDescribe().get(rootObject)?.getDescribe();
+        // Intermediate segments are relationship names (e.g. 'Account', 'Primary_Account__r'),
+        // not field API names ('AccountId', 'Primary_Account__c'). Loop through fields
+        // to find the one whose getRelationshipName() matches the segment.
         for (Integer i = 0; i < parts.size() - 1; i++) {
             if (current == null) return false;
-            Schema.DescribeFieldResult dfr =
-                current.fields.getMap().get(parts[i].toLowerCase())?.getDescribe();
-            if (dfr == null || dfr.getType() != Schema.DisplayType.REFERENCE) return false;
-            if (!dfr.isAccessible()) return false;
-            List<Schema.SObjectType> refs = dfr.getReferenceTo();
-            if (refs.isEmpty()) return false;
-            current = refs[0].getDescribe();
+            String segLower = parts[i].toLowerCase();
+            Boolean found = false;
+            for (Schema.SObjectField fld : current.fields.getMap().values()) {
+                Schema.DescribeFieldResult dfr = fld.getDescribe();
+                if (dfr.getType() != Schema.DisplayType.REFERENCE || !dfr.isAccessible()) continue;
+                String rn = dfr.getRelationshipName();
+                if (String.isNotBlank(rn) && rn.toLowerCase() == segLower) {
+                    List<Schema.SObjectType> refs = dfr.getReferenceTo();
+                    if (refs.isEmpty()) break;
+                    current = refs[0].getDescribe();
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) return false;
         }
         if (current == null) return false;
         Schema.DescribeFieldResult finalDfr =
-            current.fields.getMap().get(parts[parts.size()-1].toLowerCase())?.getDescribe();
+            current.fields.getMap().get(parts[parts.size() - 1].toLowerCase())?.getDescribe();
         return finalDfr != null && finalDfr.isAccessible();
     }
 
@@ -127,8 +141,11 @@ public with sharing class DocGen_DataResolverService {
 
     private static Map<String, Object> flattenRecord(SObject rec) {
         Map<String, Object> flat = new Map<String, Object>();
-        for (String field : rec.getPopulatedFieldsAsMap().keySet()) {
-            Object val = rec.get(field);
+        // Use the populated map directly — rec.get() rejects relationship-name keys
+        // (e.g. 'Account') and throws "Invalid field"; map.get() works for all keys.
+        Map<String, Object> populated = rec.getPopulatedFieldsAsMap();
+        for (String field : populated.keySet()) {
+            Object val = populated.get(field);
             if (val instanceof SObject) {
                 Map<String, Object> nested = flattenRecord((SObject)val);
                 for (String nk : nested.keySet()) {

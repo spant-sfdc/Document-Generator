@@ -93,6 +93,36 @@ public with sharing class DocGen_SchemaService {
         return result;
     }
 
+    /**
+     * Returns all lookup fields on primaryObject that reference parentObject.
+     * Each entry: {label (field label), relationshipName (e.g. Account or Primary_Account__r)}.
+     * Callers use relationshipName to build SOQL traversal paths.
+     */
+    public static List<Map<String, String>> getParentRelationships(
+        String primaryObject, String parentObject
+    ) {
+        List<Map<String, String>> result = new List<Map<String, String>>();
+        Schema.DescribeSObjectResult dr =
+            Schema.getGlobalDescribe().get(primaryObject)?.getDescribe();
+        if (dr == null) return result;
+        for (Schema.SObjectField f : dr.fields.getMap().values()) {
+            Schema.DescribeFieldResult dfr = f.getDescribe();
+            if (dfr.getType() != Schema.DisplayType.REFERENCE || !dfr.isAccessible()) continue;
+            String relName = dfr.getRelationshipName();
+            if (String.isBlank(relName)) continue;
+            for (Schema.SObjectType ref : dfr.getReferenceTo()) {
+                if (ref.getDescribe().getName() == parentObject) {
+                    result.add(new Map<String, String>{
+                        'label'            => dfr.getLabel(),
+                        'relationshipName' => relName
+                    });
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
     public static void validateObjectName(String name) {
         if (String.isBlank(name) || !Pattern.matches('[a-zA-Z0-9_]+', name)) {
             throw new DocGen_Exception('Invalid object/field name: ' + name);

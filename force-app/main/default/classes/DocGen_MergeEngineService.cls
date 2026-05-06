@@ -23,7 +23,14 @@ public class DocGen_MergeEngineService {
         }
 
         result = processRepeatingSections(result, childData, mappings);
-        result = processConditionals(result, primaryData, mappings);
+
+        // Merge resolved variables into the data map so {{#if variableName}} conditionals
+        // can evaluate user-defined boolean variables (e.g. isMajorDonor → 'true').
+        // Without this, processConditionals only sees raw field values, not named variables.
+        Map<String, Object> conditionalData = new Map<String, Object>();
+        if (primaryData != null) conditionalData.putAll(primaryData);
+        if (resolvedVariables != null) conditionalData.putAll(resolvedVariables);
+        result = processConditionals(result, conditionalData, mappings);
 
         if (mappings != null) {
             for (DocGen_Wrappers.TokenMappingWrapper m : mappings) {
@@ -59,16 +66,26 @@ public class DocGen_MergeEngineService {
             String expanded    = '';
 
             System.debug(LoggingLevel.INFO, 'DocGen_MergeEngineService.processRepeatingSections: sectionName=' + sectionName + ', childData.keys=' + (childData != null ? childData.keySet() : null));
+
             if (childData != null && childData.containsKey(sectionName)) {
                 List<Map<String, Object>> rows = childData.get(sectionName);
                 List<DocGen_Wrappers.TokenMappingWrapper> sectionMappings =
                     getSectionMappings(mappings, sectionName);
+
+                System.debug(LoggingLevel.INFO, 'DocGen_MergeEngineService.processRepeatingSections[' + sectionName + ']: childRows=' + rows.size() + ', sectionMappings=' + sectionMappings.size());
+                if (!rows.isEmpty()) {
+                    System.debug(LoggingLevel.INFO, 'DocGen_MergeEngineService.processRepeatingSections[' + sectionName + ']: firstRowKeys=' + rows[0].keySet());
+                }
+
                 for (Map<String, Object> row : rows) {
                     String rowHtml = rowTemplate;
                     for (DocGen_Wrappers.TokenMappingWrapper sm : sectionMappings) {
                         if (String.isBlank(sm.token)) continue;
-                        Object rawObj = row.get(sm.sourceField);
+                        // Resolve field value from child record context, NOT from primary record.
+                        // sm.sourceField is the child SObject field API name (e.g. Contribution_Type__c).
+                        Object rawObj = String.isNotBlank(sm.sourceField) ? row.get(sm.sourceField) : null;
                         String val = rawObj != null ? String.valueOf(rawObj) : '';
+                        System.debug(LoggingLevel.INFO, 'DocGen_MergeEngineService.processRepeatingSections: token=' + sm.token + ' field=' + sm.sourceField + ' val=' + (rawObj != null ? String.valueOf(rawObj) : '(null — field missing from child row)'));
                         rowHtml = rowHtml.replace(sm.token, applyFormat(val, sm.formatOverride));
                     }
                     expanded += rowHtml;
@@ -163,11 +180,40 @@ public class DocGen_MergeEngineService {
     private static List<DocGen_Wrappers.TokenMappingWrapper> getSectionMappings(
         List<DocGen_Wrappers.TokenMappingWrapper> all, String sectionName
     ) {
-        List<DocGen_Wrappers.TokenMappingWrapper> result = new List<DocGen_Wrappers.TokenMappingWrapper>();
-        if (all == null) return result;
+        if (all == null) return new List<DocGen_Wrappers.TokenMappingWrapper>();
+
+        // The section marker's repeatObject holds the child SObject API name, which may
+        // differ from the relationship name used in the template token (e.g. the template
+        // uses {{#OpportunityLineItems}} but the child SObject is OpportunityLineItem).
+        // Locate the marker (no sourceField = structural marker, not a field mapping)
+        // so we can match child field mappings by the actual SObject API name.
+        String effectiveObj = sectionName;
         for (DocGen_Wrappers.TokenMappingWrapper m : all) {
-            if (m.isRepeating == true && m.repeatObject == sectionName) result.add(m);
+            if (m.isRepeating != true || String.isBlank(m.token) || String.isNotBlank(m.sourceField)) continue;
+            String tokenSection = m.token.replace('{{#', '').replace('}}', '').trim();
+            if (tokenSection == sectionName && String.isNotBlank(m.repeatObject)) {
+                effectiveObj = m.repeatObject;
+                break;
+            }
         }
+
+        // Collect child field mappings using two match strategies:
+        // (a) isRepeating=true with matching repeatObject — the canonical path
+        // (b) sourceObject == effectiveObj — fallback that handles mappings saved with
+        //     isRepeating=false or blank repeatObject (e.g. from autofill JSON mismatch)
+        Set<String> seen = new Set<String>();
+        List<DocGen_Wrappers.TokenMappingWrapper> result = new List<DocGen_Wrappers.TokenMappingWrapper>();
+        for (DocGen_Wrappers.TokenMappingWrapper m : all) {
+            if (String.isBlank(m.sourceField) || String.isBlank(m.token)) continue;
+            Boolean byRepeating = m.isRepeating == true
+                && (m.repeatObject == sectionName || m.repeatObject == effectiveObj);
+            Boolean bySourceObj = (m.sourceObject == effectiveObj);
+            if ((byRepeating || bySourceObj) && !seen.contains(m.token)) {
+                seen.add(m.token);
+                result.add(m);
+            }
+        }
+        System.debug(LoggingLevel.INFO, 'DocGen_MergeEngineService.getSectionMappings[' + sectionName + ']: effectiveObj=' + effectiveObj + ', matched=' + result.size());
         return result;
     }
 }

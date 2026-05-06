@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DocGen – Developer Guide</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 14px; color: #172B4D; margin: 0; padding: 24px; }
+  h1   { font-size: 28px; border-bottom: 3px solid #0052CC; padding-bottom: 8px; margin-top: 0; }
+  h2   { font-size: 20px; color: #0052CC; border-bottom: 1px solid #DFE1E6; padding-bottom: 4px; margin-top: 36px; }
+  h3   { font-size: 16px; color: #253858; margin-top: 24px; }
+  h4   { font-size: 14px; color: #42526E; margin-top: 18px; }
+  p    { line-height: 1.7; margin: 8px 0; }
+  ul, ol { margin: 8px 0 8px 20px; line-height: 1.8; }
+  code { background: #F4F5F7; border: 1px solid #DFE1E6; border-radius: 3px; padding: 1px 5px; font-family: monospace; font-size: 13px; }
+  pre  { background: #F4F5F7; border: 1px solid #DFE1E6; border-radius: 3px; padding: 12px; font-family: monospace; font-size: 12px; overflow-x: auto; margin: 10px 0; }
+  .callout      { background: #DEEBFF; border-left: 4px solid #0052CC; padding: 10px 14px; border-radius: 3px; margin: 12px 0; }
+  .callout-warn { background: #FFFAE6; border-left: 4px solid #FF991F; padding: 10px 14px; border-radius: 3px; margin: 12px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th    { background: #F4F5F7; color: #253858; font-weight: bold; text-align: left; padding: 8px 12px; border: 1px solid #DFE1E6; }
+  td    { padding: 7px 12px; border: 1px solid #DFE1E6; vertical-align: top; }
+  tr:nth-child(even) td { background: #FAFBFC; }
+  .flow-box { display: inline-block; background: #0052CC; color: #fff; padding: 6px 14px; border-radius: 4px; font-size: 13px; font-weight: bold; }
+  .flow-arrow { display: inline-block; color: #0052CC; font-size: 18px; font-weight: bold; padding: 0 8px; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+<h1>DocGen – Document Generation Module: Developer Guide</h1>
+<p><strong>Version:</strong> 1.0 &nbsp;|&nbsp; <strong>Last Updated:</strong> May 2026 &nbsp;|&nbsp; <strong>Audience:</strong> Salesforce Developers</p>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>Architecture Overview</h2>
+
+<p>DocGen is a layered service architecture. Each layer has a single responsibility and communicates through typed Apex wrapper classes.</p>
+
+<p style="margin:16px 0;">
+  <span class="flow-box">Template</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-box">Token Extraction</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-box">Mapping &amp; Variables</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-box">SOQL / Data Resolver</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-box">Merge Engine</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-box">Rendered Output</span>
+</p>
+
+<h3>Layer Responsibilities</h3>
+
+<table>
+  <tr><th>Layer</th><th>Class</th><th>Responsibility</th></tr>
+  <tr><td>Token Extraction</td><td><code>DocGen_TemplateService</code></td><td>Reads ContentVersion HTML; extracts <code>&#123;&#123;tokens&#125;&#125;</code>, system tokens, and variable tokens using regex passes</td></tr>
+  <tr><td>Auto-Resolver</td><td><code>DocGen_SmartTokenResolver</code></td><td>Automatically resolves tokens not covered by explicit mappings; builds schema context for primary, parent, and child objects</td></tr>
+  <tr><td>Data Resolver</td><td><code>DocGen_DataResolverService</code></td><td>Builds and executes dynamic SOQL for primary and child records; flattens SObject hierarchies into <code>Map&lt;String, Object&gt;</code></td></tr>
+  <tr><td>Variable Engine</td><td><code>DocGen_VariableResolverService</code></td><td>Resolves system variables, static variables, and Boolean expression variables against live record data</td></tr>
+  <tr><td>Merge Engine</td><td><code>DocGen_MergeEngineService</code></td><td>Replaces all tokens in the template HTML: variables first, then repeating sections (child context), then conditionals, then primary fields</td></tr>
+  <tr><td>Document Generator</td><td><code>DocGen_DocumentGeneratorService</code></td><td>Orchestrates the full pipeline; builds token-alias data map; calls PDF/Word rendering</td></tr>
+  <tr><td>Schema Service</td><td><code>DocGen_SchemaService</code></td><td>Cached object/field describe operations with FLS validation and object name injection-prevention</td></tr>
+  <tr><td>File Service</td><td><code>DocGen_FileService</code></td><td>Saves generated Blob as ContentVersion and links it to the triggering record</td></tr>
+  <tr><td>Controller</td><td><code>DocGen_Controller</code></td><td>All <code>@AuraEnabled</code> entrypoints for LWC components; thin delegation layer</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>Complete Generation Flow</h2>
+
+<ol>
+  <li><strong>LWC calls <code>generatePreview(configJson)</code></strong> — serialised <code>TemplateConfigWrapper</code> containing templateId, primaryObject, recordId, tokenMappings[], variables[].</li>
+  <li><strong><code>DocGen_DocumentGeneratorService.generateHtml(config)</code></strong>:
+    <ol type="a">
+      <li>Loads template HTML from ContentVersion.</li>
+      <li>Calls <code>DocGen_SmartTokenResolver.mergeWithAutoResolved()</code> to supplement explicit mappings with auto-resolved ones for any unmatched token.</li>
+      <li>Calls <code>DocGen_DataResolverService.resolveData()</code> to execute SOQL and return primary + child record maps.</li>
+      <li>Builds a <strong>token-alias data map</strong> from primary record — adds token names (e.g. <code>total_donation</code>) as aliases for the underlying field values so Boolean variable expressions can reference them.</li>
+      <li>Calls <code>DocGen_VariableResolverService.resolveWithData()</code> to evaluate all variables.</li>
+      <li>Calls <code>DocGen_MergeEngineService.mergeTemplate()</code>.</li>
+    </ol>
+  </li>
+  <li><strong><code>DocGen_MergeEngineService.mergeTemplate()</code></strong> in order:
+    <ol type="a">
+      <li>Replaces variable tokens (<code>&#123;&#123;isMajorDonor&#125;&#125;</code>, <code>&#123;&#123;sys.today&#125;&#125;</code>, etc.).</li>
+      <li>Calls <code>processRepeatingSections()</code> — expands each <code>&#123;&#123;#section&#125;&#125;...&#123;&#123;/section&#125;&#125;</code> block using child record rows.</li>
+      <li>Calls <code>processConditionals()</code> — evaluates <code>&#123;&#123;#if var&#125;&#125;</code> blocks using merged primary + variable data.</li>
+      <li>Replaces all remaining primary/parent field tokens.</li>
+    </ol>
+  </li>
+</ol>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>Key Technical Details</h2>
+
+<h3>Parent Relationship Resolution</h3>
+<p>Parent field mappings use a <em>relationship traversal path</em> (e.g. <code>Account.Name</code>) which is added to the primary object's SOQL field list. <code>DocGen_DataResolverService.flattenRecord()</code> uses <code>SObject.getPopulatedFieldsAsMap()</code> — not <code>SObject.get()</code> — to safely traverse relationship keys without runtime exceptions. Nested SObjects are recursively flattened with dot-separated keys (<code>Account.Name</code>).</p>
+
+<pre>// Example: SOQL built for Opportunity with Account parent
+SELECT Id, Name, Amount, Account.Name, Account.Donor_ID__c
+FROM Opportunity
+WHERE Id = :recordId
+WITH SECURITY_ENFORCED
+LIMIT 1</pre>
+
+<h3>Child Loop Context</h3>
+<p>Repeating sections are processed by <code>processRepeatingSections()</code>. The method:</p>
+<ol>
+  <li>Matches the section name against <code>childData</code> (keyed by the token's section name, e.g. <code>line_items</code>).</li>
+  <li>Calls <code>getSectionMappings()</code> to collect all field mappings for the child SObject. This uses <strong>two match strategies</strong>:
+    <ul>
+      <li><strong>Primary:</strong> <code>m.isRepeating == true &amp;&amp; m.repeatObject == effectiveObj</code></li>
+      <li><strong>Fallback:</strong> <code>m.sourceObject == effectiveObj</code> — handles mappings where <code>isRepeating</code> was saved incorrectly</li>
+    </ul>
+  </li>
+  <li>For each child record row, resolves each token via <code>row.get(sm.sourceField)</code> — the child record map, <strong>never</strong> the primary record map.</li>
+</ol>
+
+<div class="callout-warn">
+  <strong>Critical:</strong> Child field mappings must have <code>isRepeating = true</code> and <code>repeatObject = [child SObject API name]</code>. If <code>isRepeating = false</code>, the mapping falls through to the primary-field replacement loop which looks up the field on the primary record (null) and replaces with an empty string. The fallback <code>bySourceObj</code> match in <code>getSectionMappings</code> prevents this for correctly structured mappings.
+</div>
+
+<h3>Token Alias Mapping</h3>
+<p>Boolean variable expressions reference <em>token names</em> (e.g. <code>total_donation &gt; 10000</code>), not raw field API names (e.g. <code>Amount</code>). <code>DocGen_DocumentGeneratorService.generateHtml()</code> builds a <code>tokenData</code> map that aliases each token name to its mapped field value:</p>
+
+<pre>// For mapping: total_donation → Opportunity.Amount
+tokenData.put('total_donation', data.primaryRecord.get('Amount')); // e.g. 15000.0
+
+// Variable expression evaluation:
+evaluateExpression('total_donation > 10000', tokenData); // → true</pre>
+
+<h3>Variable Evaluation Flow</h3>
+<ol>
+  <li><code>DocGen_VariableResolverService.resolve(variables)</code> — handles static types (CONSTANT, TEXT, NUMBER, DATE) and system variables.</li>
+  <li><code>resolveWithData(variables, tokenData)</code> — overrides BOOLEAN/EXPRESSION variables by evaluating the expression string against <code>tokenData</code> using <code>evaluateExpression()</code>.</li>
+  <li>Supported operators: <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code>, <code>==</code>, <code>!=</code>, <code>null</code>. Numeric comparison is attempted first; string comparison is the fallback.</li>
+  <li>Result is a <code>Map&lt;String, String&gt;</code> (variable name → resolved string value).</li>
+</ol>
+
+<h3>SOQL Builder &amp; FLS</h3>
+<p><code>DocGen_DataResolverService.buildFieldList()</code> validates each requested field against the org schema before adding it to the SELECT list:</p>
+<ul>
+  <li>Dot-separated paths (parent traversal) are validated by <code>validateTraversalPath()</code> which walks relationship names, not field API names.</li>
+  <li>Simple fields are validated via <code>Schema.DescribeFieldResult.isAccessible()</code>. Fields without FLS read access are silently excluded — no exception is thrown, but the field will be absent from SOQL results.</li>
+  <li>All queries use <code>WITH SECURITY_ENFORCED</code>.</li>
+</ul>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>Apex Classes Reference</h2>
+
+<table>
+  <tr><th>Class</th><th>Access</th><th>Key Methods</th></tr>
+  <tr><td><code>DocGen_Controller</code></td><td>with sharing</td><td><code>generatePreview</code>, <code>storeMergedHtml</code>, <code>generateDocument</code>, <code>saveTemplateConfig</code>, <code>getTemplateConfig</code>, <code>getDemoModeConfig</code></td></tr>
+  <tr><td><code>DocGen_DocumentGeneratorService</code></td><td>with sharing</td><td><code>generateHtml</code>, <code>getStyledHtml</code>, <code>generatePdfFromCv</code></td></tr>
+  <tr><td><code>DocGen_DataResolverService</code></td><td>with sharing</td><td><code>resolveData</code>, <code>flattenRecord</code>, <code>buildFieldList</code>, <code>validateTraversalPath</code></td></tr>
+  <tr><td><code>DocGen_MergeEngineService</code></td><td>(no sharing keyword)</td><td><code>mergeTemplate</code>, <code>processRepeatingSections</code>, <code>getSectionMappings</code>, <code>applyFormat</code></td></tr>
+  <tr><td><code>DocGen_VariableResolverService</code></td><td>with sharing</td><td><code>resolve</code>, <code>resolveWithData</code>, <code>evaluateExpression</code></td></tr>
+  <tr><td><code>DocGen_SmartTokenResolver</code></td><td>with sharing</td><td><code>mergeWithAutoResolved</code>, <code>resolve</code>, <code>resolveChildField</code>, <code>resolveParentTraversal</code></td></tr>
+  <tr><td><code>DocGen_TemplateService</code></td><td>with sharing</td><td><code>getTemplateText</code>, <code>parseTokens</code>, <code>saveTemplateConfig</code>, <code>loadTemplateConfig</code>, <code>updateTemplateConfig</code></td></tr>
+  <tr><td><code>DocGen_SchemaService</code></td><td>with sharing</td><td><code>getFields</code>, <code>searchObjects</code>, <code>getRelatedObjects</code>, <code>getParentRelationships</code>, <code>validateObjectName</code></td></tr>
+  <tr><td><code>DocGen_FileService</code></td><td>with sharing</td><td><code>saveDocument</code></td></tr>
+  <tr><td><code>DocGen_Wrappers</code></td><td>global</td><td>Data transfer objects: <code>TokenMappingWrapper</code>, <code>TemplateConfigWrapper</code>, <code>DocumentVariableWrapper</code>, <code>ResolvedDataWrapper</code></td></tr>
+  <tr><td><code>DocGen_Exception</code></td><td>global</td><td>Custom exception type</td></tr>
+  <tr><td><code>DocGen_HtmlViewerController</code></td><td>with sharing</td><td>Visualforce controller for in-browser HTML preview</td></tr>
+  <tr><td><code>DocGen_PdfController</code></td><td>with sharing</td><td>Visualforce controller for PDF rendering via <code>getContentAsPDF()</code></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>LWC Components Reference</h2>
+
+<table>
+  <tr><th>Component</th><th>Role</th><th>Key Inputs / Events</th></tr>
+  <tr><td><code>docGenWizard</code></td><td>Top-level step orchestrator</td><td>Receives <code>recordId</code>; manages wizard state and step navigation</td></tr>
+  <tr><td><code>docGenTemplateUpload</code></td><td>Step 1 – file upload</td><td>Uploads HTML; calls <code>extractTokens</code>, <code>extractSysTokens</code>, <code>extractVariableTokens</code></td></tr>
+  <tr><td><code>docGenObjectSelector</code></td><td>Step 2 – object selection</td><td>Calls <code>searchObjects</code>, <code>getRelatedObjects</code>; emits selected primary/parent/child objects</td></tr>
+  <tr><td><code>docGenMappingBuilder</code></td><td>Step 3 – token mapping</td><td>Calls <code>getFields</code>, <code>getParentRelationships</code>, <code>getDemoModeConfig</code>; emits <code>stepcomplete</code> with <code>tokenMappings[]</code></td></tr>
+  <tr><td><code>docGenVariablesPanel</code></td><td>Step 4 – variables</td><td>Calls <code>getDemoModeConfig</code>; emits <code>stepcomplete</code> with <code>variables[]</code></td></tr>
+  <tr><td><code>docGenPreviewDownload</code></td><td>Step 5 – preview &amp; download</td><td>Calls <code>generatePreview</code>, <code>storeMergedHtml</code>, <code>generateDocument</code></td></tr>
+  <tr><td><code>docGenFieldSelector</code></td><td>Reusable field picker</td><td>Wraps field combobox with object-aware loading</td></tr>
+  <tr><td><code>docGenTokenBadge</code></td><td>Styled token display chip</td><td>Renders a single <code>&#123;&#123;token&#125;&#125;</code> as a badge</td></tr>
+  <tr><td><code>docGenProgressBar</code></td><td>Step progress indicator</td><td>Receives current step index</td></tr>
+  <tr><td><code>docGenErrorPanel</code></td><td>Error display</td><td>Receives <code>errors</code> array; renders inline</td></tr>
+  <tr><td><code>docGenRecordAction</code></td><td>Record-page action button</td><td>Entry point on a record page; launches the wizard</td></tr>
+  <tr><td><code>docGenEditButton</code></td><td>Edit existing template</td><td>Loads saved config via <code>getTemplateConfig</code></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>Metadata &amp; Configuration</h2>
+
+<h3>Custom Objects</h3>
+<table>
+  <tr><th>Object</th><th>Purpose</th></tr>
+  <tr><td><code>Document_Template__c</code></td><td>Stores template name, primary object, ContentVersion pointer, active status</td></tr>
+  <tr><td><code>Document_Field_Mapping__c</code></td><td>One row per token; stores token name, source object/field, relationship path, format, repeating flags</td></tr>
+  <tr><td><code>Document_Variable__c</code></td><td>One row per variable; stores variable name, type, expression/static value</td></tr>
+  <tr><td><code>Document_Generation_Log__c</code></td><td>Audit log of each generation; records template, record, output ContentDocument ID, status, timestamp</td></tr>
+</table>
+
+<h3>Custom Metadata Types</h3>
+<table>
+  <tr><th>Type</th><th>Record</th><th>Purpose</th></tr>
+  <tr><td><code>DocGen_Config__mdt</code></td><td>Default</td><td>Org-level config: display name, EIN, address, phone, website, PDF page size, date format, max rows</td></tr>
+  <tr><td><code>Demo_Mode__mdt</code></td><td>Donation_Demo</td><td>Demo autofill: enables auto-fill button; stores mapping JSON and variable JSON for the donation receipt scenario</td></tr>
+</table>
+
+<h3>Permission Sets</h3>
+<table>
+  <tr><th>Permission Set</th><th>Grants</th></tr>
+  <tr><td><code>DocGen_Full_Access</code></td><td>Full CRUD on all DocGen custom objects; access to all LWC components</td></tr>
+  <tr><td><code>DocGen_Demo_Fields</code></td><td>FLS read/edit on demo-specific custom fields: <code>Account.Donor_ID__c</code>, <code>Account.Donor_Type__c</code>, <code>Opportunity.Donation_Type__c</code>, <code>Opportunity.Campaign_Name__c</code>, <code>Opportunity.Total_Donation__c</code>, <code>Opportunity.Is_Major_Donor__c</code>, <code>OpportunityLineItem.Contribution_Type__c</code></td></tr>
+</table>
+
+<h3>Visualforce Pages</h3>
+<table>
+  <tr><th>Page</th><th>Controller</th><th>Purpose</th></tr>
+  <tr><td><code>DocGen_HtmlViewer</code></td><td><code>DocGen_HtmlViewerController</code></td><td>Renders stored HTML ContentVersion in an iFrame for browser preview</td></tr>
+  <tr><td><code>DocGen_PdfRenderer</code></td><td><code>DocGen_PdfController</code></td><td>Renders stored HTML ContentVersion and captures it as PDF via <code>getContentAsPDF()</code></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>Two-Step PDF Generation</h2>
+
+<p>PDF generation is split into two separate <code>@AuraEnabled</code> transactions to avoid a Salesforce platform constraint: <code>PageReference.getContentAsPDF()</code> fires an internal HTTP request which cannot see uncommitted DML in the same transaction.</p>
+
+<ol>
+  <li><strong>Step 1 — <code>storeMergedHtml(configJson)</code></strong>: Generates the merged HTML, inserts it as a ContentVersion, and commits. Returns the ContentVersion Id.</li>
+  <li><strong>Step 2 — <code>generateDocument(configJson, 'PDF', linkedRecordId, tempCvId)</code></strong>: Reads the committed ContentVersion, passes it to the <code>DocGen_PdfRenderer</code> Visualforce page via URL parameter, captures the PDF, saves it as a file linked to the record, then deletes the temp ContentVersion.</li>
+</ol>
+
+</body>
+</html>

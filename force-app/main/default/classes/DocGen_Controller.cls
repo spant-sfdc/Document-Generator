@@ -29,6 +29,50 @@ public with sharing class DocGen_Controller {
         }
     }
 
+    /**
+     * Returns all lookup fields on primaryObject that point to parentObject.
+     * Result: [{label, relationshipName}] — one entry per qualifying lookup field.
+     * Used by the mapping builder to let users choose the correct relationship
+     * when a primary object has multiple lookups to the same parent (e.g. two
+     * Account lookups on Opportunity).
+     */
+    @AuraEnabled(cacheable=true)
+    public static List<Map<String, String>> getParentRelationships(
+        String primaryObject, String parentObject
+    ) {
+        try {
+            DocGen_SchemaService.validateObjectName(primaryObject);
+            DocGen_SchemaService.validateObjectName(parentObject);
+            return DocGen_SchemaService.getParentRelationships(primaryObject, parentObject);
+        } catch (Exception e) {
+            throw new AuraHandledException(e.getMessage());
+        }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static Map<String, Object> getDemoModeConfig() {
+        try {
+            List<Demo_Mode__mdt> rows = [
+                SELECT Is_Enabled__c, Scenario_Name__c, Auto_Mapping_JSON__c, Auto_Variables_JSON__c
+                FROM   Demo_Mode__mdt
+                WHERE  Is_Enabled__c = true
+                LIMIT  1
+            ];
+            if (rows.isEmpty()) {
+                return new Map<String, Object>{ 'isEnabled' => false };
+            }
+            Demo_Mode__mdt cfg = rows[0];
+            return new Map<String, Object>{
+                'isEnabled'         => cfg.Is_Enabled__c,
+                'scenarioName'      => cfg.Scenario_Name__c,
+                'autoMappingJson'   => cfg.Auto_Mapping_JSON__c,
+                'autoVariablesJson' => cfg.Auto_Variables_JSON__c
+            };
+        } catch (Exception e) {
+            return new Map<String, Object>{ 'isEnabled' => false };
+        }
+    }
+
     @AuraEnabled
     public static List<String> extractTokens(String contentVersionId) {
         try {
@@ -86,24 +130,68 @@ public with sharing class DocGen_Controller {
         }
     }
 
+    /**
+     * Step 1 of two-step PDF generation.
+     *
+     * Generates merged HTML (with print styles) and stores it as a temp
+     * ContentVersion so it is committed before generateDocument() fires
+     * getContentAsPDF(). getContentAsPDF() runs in a separate execution
+     * context and cannot see same-transaction DML — splitting into two
+     * @AuraEnabled calls ensures the ContentVersion is already committed
+     * when the VF controller queries it.
+     *
+     * @return ContentVersion Id of the temp HTML record
+     */
+    @AuraEnabled
+    public static String storeMergedHtml(String configJson) {
+        try {
+            DocGen_Wrappers.TemplateConfigWrapper config =
+                (DocGen_Wrappers.TemplateConfigWrapper)
+                    JSON.deserialize(configJson, DocGen_Wrappers.TemplateConfigWrapper.class);
+            String styledHtml = DocGen_DocumentGeneratorService.getStyledHtml(config);
+            ContentVersion cv = new ContentVersion(
+                Title          = 'DocGen_TempPdf_' + Datetime.now().format('yyyyMMddHHmmss'),
+                PathOnClient   = 'docgen_temp.html',
+                VersionData    = Blob.valueOf(styledHtml),
+                IsMajorVersion = false
+            );
+            insert cv;
+            System.debug(LoggingLevel.INFO, 'DocGen_Controller.storeMergedHtml: cvId=' + cv.Id);
+            return cv.Id;
+        } catch (Exception e) {
+            throw new AuraHandledException(e.getMessage());
+        }
+    }
+
+    /**
+     * Step 2 of two-step PDF generation.
+     *
+     * For PDF format: accepts the ContentVersion Id returned by storeMergedHtml()
+     * (committed in the prior transaction), generates the PDF, then deletes the
+     * temp ContentVersion. For other formats: generates HTML inline as before.
+     */
     @AuraEnabled
     public static DocGen_Wrappers.DocumentResponseWrapper generateDocument(
         String configJson,
         String format,
-        String linkedRecordId
+        String linkedRecordId,
+        String tempCvId
     ) {
         try {
             DocGen_Wrappers.TemplateConfigWrapper config =
                 (DocGen_Wrappers.TemplateConfigWrapper)
                     JSON.deserialize(configJson, DocGen_Wrappers.TemplateConfigWrapper.class);
-            String mergedHtml = DocGen_DocumentGeneratorService.generateHtml(config);
             Blob content;
             String fileName;
 
             if (format == 'PDF') {
-                content  = DocGen_DocumentGeneratorService.generatePdf(mergedHtml);
+                if (String.isBlank(tempCvId)) {
+                    throw new DocGen_Exception('tempCvId is required for PDF generation');
+                }
+                content  = DocGen_DocumentGeneratorService.generatePdfFromCv(tempCvId);
                 fileName = 'Document_' + Datetime.now().format('yyyyMMdd_HHmmss') + '.pdf';
             } else {
+                String mergedHtml = DocGen_DocumentGeneratorService.generateHtml(config);
                 content  = Blob.valueOf(mergedHtml);
                 fileName = 'Document_' + Datetime.now().format('yyyyMMdd_HHmmss') + '.doc';
             }
@@ -120,7 +208,25 @@ public with sharing class DocGen_Controller {
                 if (!tmplList.isEmpty()) tmplRecordId = tmplList[0].Id;
             }
 
-            return DocGen_FileService.saveDocument(content, fileName, linkedRecordId, tmplRecordId);
+            DocGen_Wrappers.DocumentResponseWrapper result =
+                DocGen_FileService.saveDocument(content, fileName, linkedRecordId, tmplRecordId);
+
+            // Clean up the temp ContentVersion created by storeMergedHtml()
+            if (format == 'PDF' && String.isNotBlank(tempCvId)) {
+                try {
+                    List<ContentVersion> cvs = [
+                        SELECT ContentDocumentId FROM ContentVersion WHERE Id = :tempCvId LIMIT 1
+                    ];
+                    if (!cvs.isEmpty()) {
+                        delete new ContentDocument(Id = cvs[0].ContentDocumentId);
+                    }
+                } catch (Exception cleanupEx) {
+                    System.debug(LoggingLevel.WARN,
+                        'DocGen_Controller: temp CV cleanup failed: ' + cleanupEx.getMessage());
+                }
+            }
+
+            return result;
         } catch (Exception e) {
             throw new AuraHandledException(e.getMessage());
         }
@@ -227,5 +333,50 @@ public with sharing class DocGen_Controller {
         } catch (Exception e) {
             throw new AuraHandledException(e.getMessage());
         }
+    }
+
+    @AuraEnabled
+    public static List<String> extractVariableTokens(String contentVersionId) {
+        try {
+            return DocGen_TemplateService.extractVariableTokens(contentVersionId);
+        } catch (Exception e) {
+            throw new AuraHandledException(e.getMessage());
+        }
+    }
+
+    /**
+     * Returns up to 10 most-recent successfully generated documents linked to a record,
+     * ordered newest-first. Used by the eSignButton component to pre-populate the document
+     * picker without requiring the user to browse Salesforce Files manually.
+     */
+    @AuraEnabled
+    public static List<Map<String, String>> getGeneratedDocumentsForRecord(String recordId) {
+        if (String.isBlank(recordId)) return new List<Map<String, String>>();
+        List<Map<String, String>> results = new List<Map<String, String>>();
+        try {
+            for (Document_Generation_Log__c log : [
+                SELECT Output_Content_Document_Id__c,
+                       Generated_At__c,
+                       Template__r.Name
+                FROM   Document_Generation_Log__c
+                WHERE  Record_Id__c                  = :recordId
+                AND    Output_Content_Document_Id__c != null
+                AND    Status__c                     = 'Success'
+                WITH   SECURITY_ENFORCED
+                ORDER  BY Generated_At__c DESC
+                LIMIT  10
+            ]) {
+                results.add(new Map<String, String>{
+                    'contentDocumentId' => log.Output_Content_Document_Id__c,
+                    'generatedAt'       => log.Generated_At__c != null
+                                            ? String.valueOf(log.Generated_At__c) : '',
+                    'templateName'      => log.Template__r != null && log.Template__r.Name != null
+                                            ? log.Template__r.Name : 'Document'
+                });
+            }
+        } catch (Exception e) {
+            throw new AuraHandledException(e.getMessage());
+        }
+        return results;
     }
 }

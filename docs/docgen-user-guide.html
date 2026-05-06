@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DocGen – User Guide</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 14px; color: #172B4D; margin: 0; padding: 24px; }
+  h1   { font-size: 28px; border-bottom: 3px solid #0052CC; padding-bottom: 8px; margin-top: 0; }
+  h2   { font-size: 20px; color: #0052CC; border-bottom: 1px solid #DFE1E6; padding-bottom: 4px; margin-top: 36px; }
+  h3   { font-size: 16px; color: #253858; margin-top: 24px; }
+  p    { line-height: 1.7; margin: 8px 0; }
+  ul   { margin: 8px 0 8px 20px; line-height: 1.8; }
+  code { background: #F4F5F7; border: 1px solid #DFE1E6; border-radius: 3px; padding: 1px 5px; font-family: monospace; font-size: 13px; }
+  .callout        { background: #DEEBFF; border-left: 4px solid #0052CC; padding: 10px 14px; border-radius: 3px; margin: 12px 0; }
+  .callout-warn   { background: #FFFAE6; border-left: 4px solid #FF991F; padding: 10px 14px; border-radius: 3px; margin: 12px 0; }
+  .callout-error  { background: #FFEBE6; border-left: 4px solid #DE350B; padding: 10px 14px; border-radius: 3px; margin: 12px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th    { background: #F4F5F7; color: #253858; font-weight: bold; text-align: left; padding: 8px 12px; border: 1px solid #DFE1E6; }
+  td    { padding: 7px 12px; border: 1px solid #DFE1E6; vertical-align: top; }
+  tr:nth-child(even) td { background: #FAFBFC; }
+  .step-num { display: inline-block; background: #0052CC; color: #fff; border-radius: 50%; width: 24px; height: 24px; text-align: center; line-height: 24px; font-weight: bold; font-size: 13px; margin-right: 8px; }
+</style>
+</head>
+<body>
+
+<h1>DocGen – Document Generation Module: User Guide</h1>
+<p><strong>Version:</strong> 1.0 &nbsp;|&nbsp; <strong>Last Updated:</strong> May 2026 &nbsp;|&nbsp; <strong>Audience:</strong> End Users &amp; Salesforce Admins</p>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>Overview</h2>
+
+<p>DocGen is a native Salesforce document generation tool that merges live record data into HTML or PDF documents from reusable templates. It supports dynamic field mapping, conditional sections, repeating child-record tables, and custom variables — all configured through a guided wizard without writing code.</p>
+
+<p>Typical use cases include donation receipts, grant agreements, client summary letters, and any document that combines data from multiple related Salesforce objects.</p>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>Key Features</h2>
+
+<ul>
+  <li>Upload HTML templates with <code>&#123;&#123;token&#125;&#125;</code> placeholders</li>
+  <li>Map tokens to any field on the primary, parent, or child object</li>
+  <li>Conditional sections using <code>&#123;&#123;#if variableName&#125;&#125;</code> blocks</li>
+  <li>Repeating child-record tables using <code>&#123;&#123;#sectionName&#125;&#125;</code> blocks</li>
+  <li>System variables (today's date, org name, EIN) resolved automatically</li>
+  <li>Format overrides for dates, currencies, and numbers</li>
+  <li>Preview in-browser before generating the final PDF or Word document</li>
+  <li>Demo Mode autofill for quick setup in sandbox/demo environments</li>
+</ul>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>Step-by-Step Usage</h2>
+
+<h3><span class="step-num">1</span> Upload Template</h3>
+<p>Navigate to a record page that has the <strong>DocGen Wizard</strong> component. Click <strong>New Document Template</strong> and upload your HTML file.</p>
+<ul>
+  <li>The template must be a valid <code>.html</code> file.</li>
+  <li>Tokens must use double-curly-brace syntax: <code>&#123;&#123;field_name&#125;&#125;</code></li>
+  <li>After upload, the wizard extracts all tokens automatically and advances to the next step.</li>
+</ul>
+<div class="callout">
+  <strong>Tip:</strong> Use the provided <code>donation-receipt-template.html</code> as a starting reference. It includes all supported token types.
+</div>
+
+<h3><span class="step-num">2</span> Select Objects</h3>
+<p>Choose the <strong>Primary Object</strong> (the record type you are generating the document from), any <strong>Parent Objects</strong> (lookup targets), and any <strong>Child Objects</strong> (related lists).</p>
+<ul>
+  <li><strong>Primary Object</strong> – e.g. <em>Opportunity</em></li>
+  <li><strong>Parent Objects</strong> – e.g. <em>Account</em> (the donor)</li>
+  <li><strong>Child Objects</strong> – e.g. <em>OpportunityLineItem</em> (donation line items)</li>
+</ul>
+
+<h3><span class="step-num">3</span> Map Tokens</h3>
+<p>Every <code>&#123;&#123;token&#125;&#125;</code> found in the template appears as a row in the mapping table. For each token, configure:</p>
+
+<table>
+  <tr><th>Column</th><th>Description</th></tr>
+  <tr><td>Token</td><td>The placeholder exactly as it appears in the template, e.g. <code>&#123;&#123;donation_name&#125;&#125;</code></td></tr>
+  <tr><td>Type</td><td><strong>Field</strong> (from a record), <strong>Constant</strong> (static text), or <strong>Variable</strong> (computed)</td></tr>
+  <tr><td>Source Object</td><td>Which object the field lives on (Primary, Parent, or Child)</td></tr>
+  <tr><td>Source Field</td><td>The API field name, e.g. <code>Amount</code>, <code>Donor_ID__c</code></td></tr>
+  <tr><td>Format</td><td>Optional override: <code>currency</code>, <code>date:MMMM d, yyyy</code>, <code>upper</code>, etc.</td></tr>
+</table>
+
+<p>If Demo Mode is enabled, click <strong>Auto Fill Mapping</strong> to populate all rows from the pre-configured scenario instantly.</p>
+
+<h3><span class="step-num">4</span> Variables (IF Conditions)</h3>
+<p>Variables are used in <code>&#123;&#123;#if variableName&#125;&#125;</code> conditional blocks. Auto-detected variable names (from your template) appear pre-filled.</p>
+
+<table>
+  <tr><th>Type</th><th>Behaviour</th><th>Example Expression</th></tr>
+  <tr><td>Boolean</td><td>Evaluates a comparison against a record field; shows the conditional block when true</td><td><code>total_donation &gt; 10000</code></td></tr>
+  <tr><td>Text</td><td>Injects a static string value</td><td><code>Major Donor</code></td></tr>
+  <tr><td>Number</td><td>Injects a static numeric value</td><td><code>5000</code></td></tr>
+  <tr><td>Date</td><td>Injects a static date string</td><td><code>2026-12-31</code></td></tr>
+</table>
+
+<div class="callout">
+  <strong>Boolean expressions</strong> support the operators <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code>, <code>==</code>, <code>!=</code>, and <code>null</code>. The left-hand side is a token name (e.g. <code>total_donation</code>) which resolves to the mapped field value.
+</div>
+
+<h3><span class="step-num">5</span> Preview &amp; Download</h3>
+<p>Click <strong>Next: Preview</strong> to generate a live HTML preview populated with actual record data. Review the output, then click <strong>Download PDF</strong> or <strong>Download Word</strong> to produce the final file. The generated document is automatically attached to the record as a Salesforce File.</p>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>Token Reference</h2>
+
+<h3>Field Tokens</h3>
+<p>Any field on the primary or related objects can be referenced by its token name:</p>
+<ul>
+  <li><code>&#123;&#123;donation_name&#125;&#125;</code> – mapped to <code>Opportunity.Name</code></li>
+  <li><code>&#123;&#123;total_donation&#125;&#125;</code> – mapped to <code>Opportunity.Amount</code></li>
+  <li><code>&#123;&#123;donor_name&#125;&#125;</code> – mapped to <code>Account.Name</code> via parent relationship</li>
+</ul>
+
+<h3>System Tokens (auto-resolved, no mapping required)</h3>
+<table>
+  <tr><th>Token</th><th>Resolves To</th></tr>
+  <tr><td><code>&#123;&#123;sys.today&#125;&#125;</code></td><td>Today's date</td></tr>
+  <tr><td><code>&#123;&#123;sys.currentUser&#125;&#125;</code></td><td>Running user's full name</td></tr>
+  <tr><td><code>&#123;&#123;sys.orgName&#125;&#125;</code></td><td>Organisation display name (from DocGen Config)</td></tr>
+  <tr><td><code>&#123;&#123;sys.orgEIN&#125;&#125;</code></td><td>Federal EIN (from DocGen Config)</td></tr>
+  <tr><td><code>&#123;&#123;sys.orgAddress&#125;&#125;</code></td><td>Organisation address (from DocGen Config)</td></tr>
+  <tr><td><code>&#123;&#123;sys.orgPhone&#125;&#125;</code></td><td>Organisation phone (from DocGen Config)</td></tr>
+  <tr><td><code>&#123;&#123;sys.orgWebsite&#125;&#125;</code></td><td>Organisation website (from DocGen Config)</td></tr>
+</table>
+
+<h3>Conditional Blocks</h3>
+<p>Wrap any HTML in a conditional block. The block renders only when the named variable evaluates to true.</p>
+<pre style="background:#F4F5F7;padding:10px;border-radius:3px;font-size:13px;">
+&#123;&#123;#if isMajorDonor&#125;&#125;
+  &lt;div class="banner"&gt;Thank you for your major gift!&lt;/div&gt;
+&#123;&#123;/if&#125;&#125;
+</pre>
+
+<h3>Repeating Child-Record Tables</h3>
+<p>Use a section block to repeat a row template for every child record. The section name must match the child object relationship token configured in the mapping step.</p>
+<pre style="background:#F4F5F7;padding:10px;border-radius:3px;font-size:13px;">
+&#123;&#123;#line_items&#125;&#125;
+&lt;tr&gt;
+  &lt;td&gt;&#123;&#123;contribution_type&#125;&#125;&lt;/td&gt;
+  &lt;td&gt;&#123;&#123;quantity&#125;&#125;&lt;/td&gt;
+  &lt;td&gt;&#123;&#123;unit_price&#125;&#125;&lt;/td&gt;
+  &lt;td&gt;&#123;&#123;line_amount&#125;&#125;&lt;/td&gt;
+&lt;/tr&gt;
+&#123;&#123;/line_items&#125;&#125;
+</pre>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>Common Errors &amp; Fixes</h2>
+
+<table>
+  <tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
+  <tr>
+    <td>Token appears literally in output (e.g. <code>&#123;&#123;donor_name&#125;&#125;</code>)</td>
+    <td>Token has no mapping or mapping type is set to Variable without a defined variable</td>
+    <td>Open the Mapping step and confirm the token has a Source Object and Source Field selected</td>
+  </tr>
+  <tr>
+    <td>Child table rows are empty</td>
+    <td>Child field mappings do not have the correct Source Object or the Repeat Object is blank</td>
+    <td>Ensure each field token inside a section block maps to the child object, not the primary object</td>
+  </tr>
+  <tr>
+    <td>Conditional block never shows</td>
+    <td>Variable expression references a token name that is not mapped, so the value is always null</td>
+    <td>Confirm the left-hand side of the Boolean expression matches the token name used in a field mapping (e.g. <code>total_donation</code>, not <code>Amount</code>)</td>
+  </tr>
+  <tr>
+    <td>Parent field (e.g. donor name) is blank</td>
+    <td>Relationship path is not set; the system tried to query the field directly on the primary object</td>
+    <td>Ensure the mapping for a parent field has a Relationship Path set (e.g. <code>Account.Name</code>)</td>
+  </tr>
+  <tr>
+    <td>Date shows raw ISO format instead of formatted text</td>
+    <td>No Format Override set for a date field</td>
+    <td>Set Format Override to <code>date:MMMM d, yyyy</code> (or any Java SimpleDateFormat pattern)</td>
+  </tr>
+  <tr>
+    <td>Currency shows without dollar sign or decimal</td>
+    <td>No Format Override set for a currency field</td>
+    <td>Set Format Override to <code>currency</code></td>
+  </tr>
+  <tr>
+    <td>"Invalid field" error during generation</td>
+    <td>FLS — the running user does not have read access to the mapped field</td>
+    <td>Assign the <strong>DocGen Full Access</strong> or <strong>DocGen Demo Fields</strong> permission set to the user</td>
+  </tr>
+</table>
+
+</body>
+</html>

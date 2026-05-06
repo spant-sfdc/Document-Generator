@@ -1,41 +1,132 @@
-.modal-container {
-    min-width: 720px;
-    max-width: 900px;
-}
-.modal-content {
-    min-height: 300px;
-    max-height: 70vh;
+/* ── Modal ─────────────────────────────────────────────────────────────── */
+.dg-modal-container { width: 700px; max-width: 96vw; }
+
+.dg-modal-body {
+    min-height: 220px;
+    max-height: 62vh;
     overflow-y: auto;
 }
-.preview-frame-wrapper {
-    border: 1px solid #d0d0d0;
-    border-radius: 4px;
-    overflow: hidden;
-}
-.preview-iframe {
-    display: block;
-    width: 100%;
-    height: 480px;
-    border: none;
+
+/* ── Section cards ─────────────────────────────────────────────────────── */
+.dg-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 12px;
     background: #fff;
+    overflow: visible;
 }
-.template-btn {
-    width: 100%;
-    text-align: left;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background 0.15s;
+
+.dg-card__header {
+    background: #f4f6f9;
+    border-bottom: 1px solid #e0e0e0;
+    border-radius: 8px 8px 0 0;
+    padding: 7px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #5a5a72;
 }
-.template-btn:hover {
-    background: #f0f4ff;
+
+.dg-card__body { padding: 14px 16px; }
+
+/* ── Record info ───────────────────────────────────────────────────────── */
+/* .dg-record-row spacing handled via slds-var-m-bottom_x-small in HTML   */
+
+.dg-info-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
 }
-.template-btn-name {
+
+.dg-info-value {
+    font-size: 13px;
     font-weight: 600;
-    font-size: 14px;
 }
-.template-btn-obj {
-    font-size: 12px;
+
+.dg-muted { font-size: 11px; font-family: monospace; }
+
+/* ── Template search ───────────────────────────────────────────────────── */
+.dg-dropdown {
+    top: calc(100% + 2px);
+    left: 0;
+    right: 0;
+    z-index: 9001;
+    background: #fff;
+    border: 1px solid #c9c7c5;
+    border-radius: 4px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.13);
+    max-height: 210px;
+    overflow-y: auto;
 }
-.empty-state {
-    text-align: center;
+
+.dg-dropdown-item {
+    padding: 9px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background 0.1s;
 }
+
+.dg-dropdown-item:hover { background: #f0f4ff; }
+
+.dg-tmpl-name { font-weight: 500; }
+.dg-tmpl-obj  { font-size: 11px; }
+
+.dg-dropdown-empty {
+    padding: 10px 14px;
+    font-size: 13px;
+    font-style: italic;
+}
+
+.dg-hint { font-size: 12px; margin-top: 6px; }
+
+/* ── Selected template badge ───────────────────────────────────────────── */
+.dg-selected-tmpl {
+    background: #eaf3fb;
+    border: 1px solid #a8d1f0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: #0176d3;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.dg-clear-btn {
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 3px;
+}
+
+.dg-clear-btn:hover { background: rgba(0, 0, 0, 0.06); }
+
+/* ── eSign fields ──────────────────────────────────────────────────────── */
+.dg-esign-fields {
+    background: #f8fcff;
+    border: 1px solid #c8e3f5;
+    border-radius: 6px;
+    padding: 14px;
+    margin-top: 10px;
+}
+
+/* ── Banners ───────────────────────────────────────────────────────────── */
+.dg-banner {
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-top: 10px;
+}
+
+.dg-banner--error  { background: #fef0f0; border: 1px solid #f0abab; color: #ba0517; }
+.dg-banner--success{ background: #edfaee; border: 1px solid #8dcf8d; color: #1b5c1b; }
+
+/* ── Generating overlay ────────────────────────────────────────────────── */
+.dg-overlay {
+    inset: 0;
+    background: rgba(255, 255, 255, 0.88);
+    z-index: 9010;
+    border-radius: 4px;
+}
+
+.dg-overlay__text { font-size: 13px; }

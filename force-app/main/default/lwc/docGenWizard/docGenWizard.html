@@ -67,6 +67,8 @@
 
             <template if:true={isStep3}>
                 <c-doc-gen-variables-panel
+                    variable-tokens={wizardState.variableTokens}
+                    saved-variables={wizardState.variables}
                     onstepcomplete={handleStepComplete}
                     onstepback={handleBack}>
                 </c-doc-gen-variables-panel>

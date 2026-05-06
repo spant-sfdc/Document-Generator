@@ -1,5 +1,73 @@
 public with sharing class DocGen_VariableResolverService {
 
+    /**
+     * Resolves variables with live record data context.
+     * Supports EXPRESSION type: evaluates simple comparisons against primaryData fields.
+     * Supported operators: >, <, >=, <=, ==, !=  and right-hand-side "null".
+     * Falls back to resolve() for all non-EXPRESSION variable types.
+     */
+    public static Map<String, String> resolveWithData(
+        List<DocGen_Wrappers.DocumentVariableWrapper> variables,
+        Map<String, Object> primaryData
+    ) {
+        Map<String, String> resolved = resolve(variables);
+        if (variables == null || primaryData == null) return resolved;
+
+        for (DocGen_Wrappers.DocumentVariableWrapper v : variables) {
+            if (String.isBlank(v.variableName)
+                    || (v.variableType != 'EXPRESSION' && v.variableType != 'BOOLEAN')) continue;
+            // expression field is preferred; Static_Value__c is used as fallback storage
+            String expr = String.isNotBlank(v.expression) ? v.expression : v.staticValue;
+            if (String.isBlank(expr)) continue;
+            try {
+                Boolean result = evaluateExpression(expr.trim(), primaryData);
+                resolved.put(v.variableName, result ? 'true' : 'false');
+            } catch (Exception e) {
+                resolved.put(v.variableName, 'false');
+            }
+        }
+        return resolved;
+    }
+
+    // Evaluates "FieldApiName operator value" against primaryData.
+    // Numeric and string comparisons are both supported.
+    // Right-hand side "null" is valid with == and !=.
+    private static Boolean evaluateExpression(String expr, Map<String, Object> data) {
+        String[] ops = new String[]{ '>=', '<=', '!=', '==', '>', '<' };
+        for (String op : ops) {
+            Integer idx = expr.indexOf(op);
+            if (idx < 0) continue;
+            String lhs    = expr.substring(0, idx).trim();
+            String rhs    = expr.substring(idx + op.length()).trim().replace('\'', '').trim();
+            Object leftVal = data.get(lhs);
+
+            if (rhs.equalsIgnoreCase('null')) {
+                if (op == '==') return leftVal == null;
+                if (op == '!=') return leftVal != null;
+                return false;
+            }
+
+            if (leftVal == null) return false;
+
+            try {
+                Decimal leftNum  = Decimal.valueOf(String.valueOf(leftVal));
+                Decimal rightNum = Decimal.valueOf(rhs);
+                if (op == '>')  return leftNum > rightNum;
+                if (op == '<')  return leftNum < rightNum;
+                if (op == '>=') return leftNum >= rightNum;
+                if (op == '<=') return leftNum <= rightNum;
+                if (op == '==') return leftNum == rightNum;
+                if (op == '!=') return leftNum != rightNum;
+            } catch (Exception e) { /* fall through to string comparison */ }
+
+            String leftStr = String.valueOf(leftVal).trim();
+            if (op == '==') return leftStr == rhs;
+            if (op == '!=') return leftStr != rhs;
+            return false;
+        }
+        throw new DocGen_Exception('Invalid expression: ' + expr);
+    }
+
     public static Map<String, String> resolve(
         List<DocGen_Wrappers.DocumentVariableWrapper> variables
     ) {
@@ -26,11 +94,16 @@ public with sharing class DocGen_VariableResolverService {
         for (DocGen_Wrappers.DocumentVariableWrapper v : variables) {
             if (String.isBlank(v.variableName)) continue;
             switch on v.variableType {
-                when 'CONSTANT'     { resolved.put(v.variableName, v.staticValue != null ? v.staticValue : ''); }
+                // Static value types — TEXT/NUMBER/DATE are UI aliases for CONSTANT
+                when 'CONSTANT', 'TEXT', 'NUMBER', 'DATE' {
+                    resolved.put(v.variableName, v.staticValue != null ? v.staticValue : '');
+                }
                 when 'SYSTEM_DATE'  { resolved.put(v.variableName, Date.today().format()); }
                 when 'CURRENT_USER' { resolved.put(v.variableName, UserInfo.getName()); }
                 when 'ORG_NAME'     { resolved.put(v.variableName, UserInfo.getOrganizationName()); }
                 when 'IMAGE'        { resolved.put(v.variableName, resolveImageToken(v.imageVersionId)); }
+                // EXPRESSION and BOOLEAN are handled in resolveWithData; default here covers
+                // EXPRESSION-type variables whose expression is a static string fallback
                 when else           { resolved.put(v.variableName, v.staticValue != null ? v.staticValue : ''); }
             }
         }

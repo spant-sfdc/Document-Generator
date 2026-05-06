@@ -1,30 +1,173 @@
 <template>
-    <lightning-card title="Step 4: System Variables" icon-name="utility:formula">
+    <lightning-card title="Step 4: Variables" icon-name="utility:formula">
         <div class="slds-p-around_medium">
 
-            <p class="slds-m-bottom_medium slds-text-color_weak">
-                These tokens are automatically resolved at generation time — no mapping required.
-                Update values in <strong>Setup → Custom Metadata Types → DocGen Config → Default</strong>.
-            </p>
+            <!-- Demo mode autofill bar -->
+            <template if:true={isDemoEnabled}>
+                <div class="slds-box slds-theme_shade slds-grid slds-grid_vertical-align-center slds-var-m-bottom_medium"
+                     style="padding:8px 12px;border-left:4px solid #0070d2;">
+                    <lightning-icon icon-name="utility:einstein" size="x-small"
+                                    class="slds-var-m-right_x-small" variant="brand"></lightning-icon>
+                    <span class="slds-text-color_weak slds-var-m-right_medium" style="font-size:12px;">
+                        Demo: {demoScenario}
+                    </span>
+                    <lightning-button
+                        label="Auto Fill Variables"
+                        icon-name="utility:auto_tab_complete"
+                        variant="brand-outline"
+                        onclick={handleDemoFillVariables}>
+                    </lightning-button>
+                </div>
+            </template>
 
-            <table class="slds-table slds-table_bordered slds-table_cell-buffer">
-                <thead>
-                    <tr>
-                        <th>Token</th>
-                        <th>Resolves To</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <template for:each={systemVariables} for:item="sv">
-                        <tr key={sv.token}>
-                            <td><c-doc-gen-token-badge token={sv.token}></c-doc-gen-token-badge></td>
-                            <td class="slds-text-color_weak">{sv.description}</td>
-                        </tr>
+            <!-- ── Custom Variables ──────────────────────────────────────────── -->
+            <div class="slds-section slds-is-open slds-var-m-bottom_medium">
+                <h3 class="slds-section__title">
+                    <lightning-icon icon-name="utility:formula" size="x-small"
+                                    class="slds-var-m-right_x-small"></lightning-icon>
+                    Custom Variables
+                    <template if:true={hasRows}>
+                        <span class="slds-badge slds-var-m-left_x-small">{rowCount}</span>
                     </template>
-                </tbody>
-            </table>
+                </h3>
 
-            <div class="slds-grid slds-grid_align-spread slds-m-top_medium">
+                <p class="slds-text-color_weak slds-var-m-top_x-small slds-var-m-bottom_small">
+                    Variables are used in <strong>&#123;&#123;#if variableName&#125;&#125;</strong>
+                    conditional blocks. Auto-detected names are pre-filled from your template.
+                    <strong>Boolean</strong> variables evaluate an expression against the record;
+                    <strong>Text / Number / Date</strong> variables inject a static value.
+                </p>
+
+                <template if:true={hasRows}>
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                        <thead>
+                            <tr>
+                                <th style="width:22%">Variable Name</th>
+                                <th style="width:18%">Type</th>
+                                <th>
+                                    Expression / Value
+                                    <span class="slds-text-color_weak"
+                                          style="font-weight:normal;font-size:11px;">
+                                        &nbsp;Boolean: e.g. Amount &gt; 10000
+                                    </span>
+                                </th>
+                                <th style="width:5%"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={rows} for:item="row">
+                                <tr key={row._id} class={row.rowClass}>
+                                    <td>
+                                        <template if:true={row.autoDetected}>
+                                            <c-doc-gen-token-badge
+                                                token={row.variableName}>
+                                            </c-doc-gen-token-badge>
+                                        </template>
+                                        <template if:false={row.autoDetected}>
+                                            <lightning-input
+                                                label=""
+                                                placeholder="variable_name"
+                                                value={row.variableName}
+                                                data-id={row._id}
+                                                onchange={handleNameChange}>
+                                            </lightning-input>
+                                        </template>
+                                        <template if:true={row.hasError}>
+                                            <div class="var-error-msg">{row.errorMessage}</div>
+                                        </template>
+                                    </td>
+                                    <td>
+                                        <lightning-combobox
+                                            label=""
+                                            options={typeOptions}
+                                            value={row.variableType}
+                                            data-id={row._id}
+                                            onchange={handleTypeChange}>
+                                        </lightning-combobox>
+                                    </td>
+                                    <td>
+                                        <lightning-input
+                                            label=""
+                                            placeholder={row.expressionPlaceholder}
+                                            value={row.expression}
+                                            data-id={row._id}
+                                            class={row.inputClass}
+                                            onchange={handleExpressionChange}>
+                                        </lightning-input>
+                                        <!-- Hint for Boolean type -->
+                                        <template if:true={row.isBoolean}>
+                                            <div class="slds-text-color_weak"
+                                                 style="font-size:11px;margin-top:2px;">
+                                                Supports: &gt; &lt; &gt;= &lt;= == != null
+                                            </div>
+                                        </template>
+                                    </td>
+                                    <td>
+                                        <lightning-button-icon
+                                            icon-name="utility:delete"
+                                            alternative-text="Remove variable"
+                                            title="Remove variable"
+                                            variant="border-filled"
+                                            size="small"
+                                            data-id={row._id}
+                                            onclick={handleRemoveRow}>
+                                        </lightning-button-icon>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </template>
+
+                <template if:false={hasRows}>
+                    <div class="slds-box slds-theme_shade slds-var-m-vertical_small"
+                         style="text-align:center;color:#888;">
+                        No variables detected. Add one below or use
+                        <strong>&#123;&#123;#if variableName&#125;&#125;</strong> in your template.
+                    </div>
+                </template>
+
+                <lightning-button
+                    label="+ Add Variable"
+                    icon-name="utility:add"
+                    class="slds-var-m-top_small"
+                    onclick={handleAddRow}>
+                </lightning-button>
+            </div>
+
+            <!-- ── System Variables (read-only reference) ─────────────────── -->
+            <div class="slds-section slds-is-open slds-var-m-top_medium">
+                <h3 class="slds-section__title">
+                    <lightning-icon icon-name="utility:lock" size="x-small"
+                                    class="slds-var-m-right_x-small"></lightning-icon>
+                    System Variables — auto-resolved, no configuration required
+                </h3>
+                <p class="slds-text-color_weak slds-var-m-top_x-small slds-var-m-bottom_small">
+                    Configure values in
+                    <strong>Setup → Custom Metadata Types → DocGen Config → Default</strong>.
+                </p>
+                <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                    <thead>
+                        <tr>
+                            <th>Token</th>
+                            <th>Resolves To</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={systemVariables} for:item="sv">
+                            <tr key={sv.token}>
+                                <td>
+                                    <c-doc-gen-token-badge token={sv.token}></c-doc-gen-token-badge>
+                                </td>
+                                <td class="slds-text-color_weak">{sv.description}</td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ── Navigation ─────────────────────────────────────────────── -->
+            <div class="slds-grid slds-grid_align-spread slds-var-m-top_medium">
                 <lightning-button label="Back" onclick={handleBack}></lightning-button>
                 <lightning-button
                     label="Next: Preview"
@@ -32,6 +175,7 @@
                     onclick={handleNext}>
                 </lightning-button>
             </div>
+
         </div>
     </lightning-card>
 </template>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Donation Demo</label>
+    <protected>false</protected>
+    <values>
+        <field>Is_Enabled__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>Scenario_Name__c</field>
+        <value xsi:type="xsd:string">Donation Receipt — Education Support Fund</value>
+    </values>
+    <values>
+        <field>Auto_Mapping_JSON__c</field>
+        <value xsi:type="xsd:string">[{"token":"{{donation_name}}","sourceObject":"Opportunity","sourceField":"Name","mappingType":"FIELD","formatOverride":"","relationshipPath":"","isRepeating":false,"repeatObject":""},{"token":"{{total_donation}}","sourceObject":"Opportunity","sourceField":"Amount","mappingType":"FIELD","formatOverride":"currency","relationshipPath":"","isRepeating":false,"repeatObject":""},{"token":"{{donation_type}}","sourceObject":"Opportunity","sourceField":"Donation_Type__c","mappingType":"FIELD","formatOverride":"","relationshipPath":"","isRepeating":false,"repeatObject":""},{"token":"{{campaign_name}}","sourceObject":"Opportunity","sourceField":"Campaign_Name__c","mappingType":"FIELD","formatOverride":"","relationshipPath":"","isRepeating":false,"repeatObject":""},{"token":"{{close_date}}","sourceObject":"Opportunity","sourceField":"CloseDate","mappingType":"FIELD","formatOverride":"date:MMMM d, yyyy","relationshipPath":"","isRepeating":false,"repeatObject":""},{"token":"{{donor_name}}","sourceObject":"Account","sourceField":"Name","mappingType":"FIELD","formatOverride":"","relationshipPath":"Account.Name","isRepeating":false,"repeatObject":""},{"token":"{{donor_id}}","sourceObject":"Account","sourceField":"Donor_ID__c","mappingType":"FIELD","formatOverride":"","relationshipPath":"Account.Donor_ID__c","isRepeating":false,"repeatObject":""},{"token":"{{donor_type}}","sourceObject":"Account","sourceField":"Donor_Type__c","mappingType":"FIELD","formatOverride":"","relationshipPath":"Account.Donor_Type__c","isRepeating":false,"repeatObject":""},{"token":"{{#line_items}}","sourceObject":"OpportunityLineItem","sourceField":"","mappingType":"FIELD","formatOverride":"","relationshipPath":"","isRepeating":true,"repeatObject":"OpportunityLineItem"},{"token":"{{contribution_type}}","sourceObject":"OpportunityLineItem","sourceField":"Contribution_Type__c","mappingType":"FIELD","formatOverride":"","relationshipPath":"","isRepeating":true,"repeatObject":"OpportunityLineItem"},{"token":"{{quantity}}","sourceObject":"OpportunityLineItem","sourceField":"Quantity","mappingType":"FIELD","formatOverride":"","relationshipPath":"","isRepeating":true,"repeatObject":"OpportunityLineItem"},{"token":"{{unit_price}}","sourceObject":"OpportunityLineItem","sourceField":"UnitPrice","mappingType":"FIELD","formatOverride":"currency","relationshipPath":"","isRepeating":true,"repeatObject":"OpportunityLineItem"},{"token":"{{line_amount}}","sourceObject":"OpportunityLineItem","sourceField":"TotalPrice","mappingType":"FIELD","formatOverride":"currency","relationshipPath":"","isRepeating":true,"repeatObject":"OpportunityLineItem"}]</value>
+    </values>
+    <values>
+        <field>Auto_Variables_JSON__c</field>
+        <value xsi:type="xsd:string">[{"variableName":"isMajorDonor","variableType":"BOOLEAN","expression":"total_donation > 10000"}]</value>
+    </values>
+</CustomMetadata>
