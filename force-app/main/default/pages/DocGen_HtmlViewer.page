@@ -1,0 +1,7 @@
+<apex:page
+    controller="DocGen_HtmlViewerController"
+    sidebar="false"
+    showHeader="false"
+    standardStylesheets="false">
+    <apex:outputText value="{!htmlContent}" escape="false"/>
+</apex:page>

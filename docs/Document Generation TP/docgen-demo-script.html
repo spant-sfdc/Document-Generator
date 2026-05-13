@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DocGen – Demo Script</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 14px; color: #172B4D; margin: 0; padding: 24px; }
+  h1   { font-size: 28px; border-bottom: 3px solid #0052CC; padding-bottom: 8px; margin-top: 0; }
+  h2   { font-size: 20px; color: #0052CC; border-bottom: 1px solid #DFE1E6; padding-bottom: 4px; margin-top: 36px; }
+  h3   { font-size: 16px; color: #253858; margin-top: 24px; }
+  p    { line-height: 1.7; margin: 8px 0; }
+  ul   { margin: 8px 0 8px 20px; line-height: 1.8; }
+  ol   { margin: 8px 0 8px 20px; line-height: 2.0; }
+  code { background: #F4F5F7; border: 1px solid #DFE1E6; border-radius: 3px; padding: 1px 5px; font-family: monospace; font-size: 13px; }
+  .callout       { background: #DEEBFF; border-left: 4px solid #0052CC; padding: 10px 14px; border-radius: 3px; margin: 12px 0; }
+  .callout-warn  { background: #FFFAE6; border-left: 4px solid #FF991F; padding: 10px 14px; border-radius: 3px; margin: 12px 0; }
+  .callout-talk  { background: #EAE6FF; border-left: 4px solid #6554C0; padding: 10px 14px; border-radius: 3px; margin: 12px 0; }
+  .callout-show  { background: #E3FCEF; border-left: 4px solid #00875A; padding: 10px 14px; border-radius: 3px; margin: 12px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th    { background: #F4F5F7; color: #253858; font-weight: bold; text-align: left; padding: 8px 12px; border: 1px solid #DFE1E6; }
+  td    { padding: 7px 12px; border: 1px solid #DFE1E6; vertical-align: top; }
+  tr:nth-child(even) td { background: #FAFBFC; }
+  .step-num { display: inline-block; background: #0052CC; color: #fff; border-radius: 50%; width: 28px; height: 28px; text-align: center; line-height: 28px; font-weight: bold; font-size: 14px; margin-right: 8px; }
+  .badge { display: inline-block; border-radius: 3px; padding: 1px 8px; font-size: 11px; font-weight: bold; vertical-align: middle; }
+  .badge-talk  { background: #EAE6FF; color: #403294; }
+  .badge-click { background: #E3FCEF; color: #006644; }
+  .badge-point { background: #FFFAE6; color: #974F0C; }
+  .timing      { float: right; font-size: 12px; color: #6B778C; font-style: italic; }
+  .prereq-table td:first-child { font-weight: bold; width: 160px; }
+</style>
+</head>
+<body>
+
+<h1>DocGen – Demo Script</h1>
+<p><strong>Scenario:</strong> Donation Campaign &nbsp;|&nbsp; <strong>Version:</strong> 1.0 &nbsp;|&nbsp; <strong>Last Updated:</strong> May 2026 &nbsp;|&nbsp; <strong>Audience:</strong> Salesforce AEs &amp; SEs</p>
+<p><strong>Total run time:</strong> ~12–15 minutes &nbsp;|&nbsp; <strong>Persona:</strong> Nonprofit Development Director</p>
+
+<div class="callout">
+  <strong>Legend:</strong>
+  &nbsp;<span class="badge badge-talk">TALK</span> Say this out loud &nbsp;
+  &nbsp;<span class="badge badge-click">CLICK</span> Perform this UI action &nbsp;
+  &nbsp;<span class="badge badge-point">POINT</span> Draw attention to this element on screen
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>Pre-Demo Checklist</h2>
+
+<table class="prereq-table">
+  <tr><td>Org / Alias</td><td><code>rupali-np-org</code></td></tr>
+  <tr><td>Record</td><td>Open an <strong>Opportunity</strong> named <em>Education Support Fund – FY26</em> with Amount ≥ $15,000 and at least 2 OpportunityLineItem rows</td></tr>
+  <tr><td>Template file</td><td><code>scripts/donation-receipt-template.html</code> — downloaded locally and ready to upload</td></tr>
+  <tr><td>Demo Mode CMT</td><td>Confirm <code>Demo_Mode__mdt.Donation_Demo</code> has <code>Is_Enabled__c = true</code></td></tr>
+  <tr><td>Permission set</td><td>Demo user has <strong>DocGen Full Access</strong> or <strong>DocGen Demo Fields</strong></td></tr>
+  <tr><td>Browser</td><td>Chrome, zoom at 90 %, DocGen Wizard component visible on the Opportunity record page</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2><span class="step-num">0</span> Introduction <span class="timing">~2 min</span></h2>
+
+<div class="callout-talk">
+  <span class="badge badge-talk">TALK</span>
+  <p>"Every nonprofit has the same challenge: your donors give generously, and you need to acknowledge that in a timely, professional, and personalised way — while your team is already stretched thin. Today I'm going to show you how DocGen, built natively in Salesforce, lets you go from a live donation record to a fully-merged, branded PDF receipt in under two minutes — without any code, any middleware, or any third-party licence."</p>
+</div>
+
+<div class="callout-talk">
+  <span class="badge badge-talk">TALK</span>
+  <p>"We're going to follow a real Opportunity — the <em>Education Support Fund</em> campaign — from raw data all the way through to a printed acknowledgement letter. Along the way I'll show you three things that usually require custom development: pulling in parent account data, repeating line items from child records, and conditional messaging for major donors."</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2><span class="step-num">1</span> Upload the HTML Template <span class="timing">~2 min</span></h2>
+
+<h3>What to do</h3>
+<ol>
+  <li><span class="badge badge-click">CLICK</span> Navigate to the <strong>Education Support Fund – FY26</strong> Opportunity record.</li>
+  <li><span class="badge badge-point">POINT</span> The <strong>DocGen Wizard</strong> component in the right-hand sidebar (or embedded tab).</li>
+  <li><span class="badge badge-click">CLICK</span> <strong>New Document Template</strong>.</li>
+  <li><span class="badge badge-click">CLICK</span> <strong>Upload HTML Template</strong> and select <code>donation-receipt-template.html</code> from your desktop.</li>
+  <li><span class="badge badge-point">POINT</span> The token extraction progress bar — the wizard scans the file and extracts every <code>&#123;&#123;token&#125;&#125;</code> automatically.</li>
+</ol>
+
+<div class="callout-talk">
+  <span class="badge badge-talk">TALK</span>
+  <p>"The template is just a plain HTML file your team designs in any editor. It uses double-curly-brace placeholders — like a mail-merge field. The wizard reads the file and lists every placeholder it finds. No schema mapping required yet — that comes in the next step."</p>
+</div>
+
+<div class="callout-show">
+  <span class="badge badge-point">POINT</span> Highlight these tokens when the extraction list appears:
+  <ul>
+    <li><code>&#123;&#123;donor_name&#125;&#125;</code> — parent Account field (cross-object)</li>
+    <li><code>&#123;&#123;#line_items&#125;&#125;</code> — repeating child-record section opener</li>
+    <li><code>&#123;&#123;#if isMajorDonor&#125;&#125;</code> — conditional block for major donors</li>
+    <li><code>&#123;&#123;sys.today&#125;&#125;</code> — system variable (no mapping needed)</li>
+  </ul>
+</div>
+
+<div class="callout-talk">
+  <span class="badge badge-talk">TALK</span>
+  <p>"Notice the system tokens like <code>sys.today</code> and <code>sys.orgName</code> — those resolve automatically from org configuration. The team never has to hard-code a date or update org details in the template."</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2><span class="step-num">2</span> Select Objects <span class="timing">~1 min</span></h2>
+
+<h3>What to do</h3>
+<ol>
+  <li><span class="badge badge-click">CLICK</span> <strong>Next: Select Objects</strong>.</li>
+  <li><span class="badge badge-point">POINT</span> <strong>Primary Object</strong> = <em>Opportunity</em> (auto-selected from the record context).</li>
+  <li><span class="badge badge-click">CLICK</span> Add <strong>Parent Object</strong>: <em>Account</em>.</li>
+  <li><span class="badge badge-click">CLICK</span> Add <strong>Child Object</strong>: <em>OpportunityLineItem</em>.</li>
+</ol>
+
+<div class="callout-talk">
+  <span class="badge badge-talk">TALK</span>
+  <p>"We're telling the wizard which objects contain our data. The primary is the Opportunity we're generating from. The parent — Account — is the donor organisation whose name and ID we want on the receipt. The child — OpportunityLineItem — is the donation line-item breakdown that will populate our repeating table."</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2><span class="step-num">3</span> Map Tokens — Auto Fill Demo <span class="timing">~2 min</span></h2>
+
+<h3>What to do</h3>
+<ol>
+  <li><span class="badge badge-click">CLICK</span> <strong>Next: Map Tokens</strong>.</li>
+  <li><span class="badge badge-point">POINT</span> The blue demo banner at the top of the mapping table: <em>"Demo: Donation Receipt — Education Support Fund"</em>.</li>
+  <li><span class="badge badge-click">CLICK</span> <strong>Auto Fill Mapping</strong>.</li>
+  <li><span class="badge badge-point">POINT</span> Watch all token rows populate instantly.</li>
+</ol>
+
+<div class="callout-talk">
+  <span class="badge badge-talk">TALK</span>
+  <p>"In a live engagement you'd map each field yourself — which takes about a minute. For this demo I'll use the auto-fill, which applies a pre-configured scenario in one click. Notice it handles three different mapping patterns simultaneously."</p>
+</div>
+
+<h3>Highlight these three patterns after auto-fill</h3>
+
+<table>
+  <tr><th>What to point at</th><th>What to say</th></tr>
+  <tr>
+    <td><code>&#123;&#123;total_donation&#125;&#125;</code> row — Format: <code>currency</code></td>
+    <td>"Primary object field, automatically formatted as a dollar amount."</td>
+  </tr>
+  <tr>
+    <td><code>&#123;&#123;donor_name&#125;&#125;</code> row — Source: Account, Relationship Path: <code>Account.Name</code></td>
+    <td>"This is a cross-object lookup. The wizard traverses the standard Account relationship from the Opportunity — no SOQL, no formula fields, no Apex needed."</td>
+  </tr>
+  <tr>
+    <td><code>&#123;&#123;#line_items&#125;&#125;</code> row — Repeating: Yes, Child: OpportunityLineItem</td>
+    <td>"This is the section marker. Everything between the opening and closing tag will repeat once per donation line item. Child fields like quantity, unit price, and line amount are each mapped to their OpportunityLineItem fields."</td>
+  </tr>
+</table>
+
+<div class="callout-warn">
+  <strong>Recovery tip:</strong> If the auto-fill button does not appear, confirm that the <code>Demo_Mode__mdt.Donation_Demo</code> record has <code>Is_Enabled__c = true</code> and re-open the wizard.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2><span class="step-num">4</span> Configure Variables (Conditional Section) <span class="timing">~2 min</span></h2>
+
+<h3>What to do</h3>
+<ol>
+  <li><span class="badge badge-click">CLICK</span> <strong>Next: Variables</strong>.</li>
+  <li><span class="badge badge-point">POINT</span> The pre-detected variable <code>isMajorDonor</code> — extracted automatically from the <code>&#123;&#123;#if isMajorDonor&#125;&#125;</code> block in the template.</li>
+  <li><span class="badge badge-click">CLICK</span> <strong>Auto Fill Variables</strong>.</li>
+  <li><span class="badge badge-point">POINT</span> The expression fills in: <code>total_donation &gt; 10000</code> with type <strong>Boolean</strong>.</li>
+</ol>
+
+<div class="callout-talk">
+  <span class="badge badge-talk">TALK</span>
+  <p>"Variables power the conditional logic. This expression — <em>total_donation greater than 10,000</em> — evaluates at generation time against the live Opportunity Amount. Because this donation is $15,000, the condition will be true, and the major donor banner will appear in the document. Change the threshold, change the message — no code, no Apex trigger, no workflow rule."</p>
+</div>
+
+<div class="callout-show">
+  <span class="badge badge-point">POINT</span> In the template preview pane (if visible), highlight the conditional block:
+  <pre style="background:#F4F5F7;padding:8px;border-radius:3px;font-size:13px;">&#123;&#123;#if isMajorDonor&#125;&#125;
+  &lt;div class="banner"&gt;Thank you for your major gift!&lt;/div&gt;
+&#123;&#123;/if&#125;&#125;</pre>
+  <p>"This entire block is invisible for any donation under $10,000. It appears automatically for major gifts."</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2><span class="step-num">5</span> Preview &amp; Download <span class="timing">~3 min</span></h2>
+
+<h3>What to do</h3>
+<ol>
+  <li><span class="badge badge-click">CLICK</span> <strong>Next: Preview</strong>.</li>
+  <li><span class="badge badge-point">POINT</span> The live HTML preview rendered with actual record data.</li>
+  <li>Walk through each section of the preview (see talking points below).</li>
+  <li><span class="badge badge-click">CLICK</span> <strong>Download PDF</strong>.</li>
+  <li><span class="badge badge-point">POINT</span> The generated file appears in the <strong>Files</strong> related list on the Opportunity record automatically.</li>
+</ol>
+
+<h3>Preview walkthrough talking points</h3>
+
+<table>
+  <tr><th>Section in preview</th><th>What to say</th></tr>
+  <tr>
+    <td>Organisation header (org name, EIN, address)</td>
+    <td>"These come from DocGen Config — a single place to maintain your org's letterhead details across every document type."</td>
+  </tr>
+  <tr>
+    <td>Donor name &amp; ID</td>
+    <td>"<em>&#123;&#123;donor_name&#125;&#125;</em> and <em>&#123;&#123;donor_id&#125;&#125;</em> pulled from the related Account — no relationship fields or formulas on the Opportunity record needed."</td>
+  </tr>
+  <tr>
+    <td>Close date formatted as <em>May 1, 2026</em></td>
+    <td>"Raw Salesforce date fields often come through as ISO strings. A one-field format override — <code>date:MMMM d, yyyy</code> — makes it donor-friendly automatically."</td>
+  </tr>
+  <tr>
+    <td>Donation line items table (repeating rows)</td>
+    <td>"Each row here is a live OpportunityLineItem from the record. Two line items in Salesforce, two rows in the PDF. Add a third line item tomorrow, regenerate, and you'll see three rows — zero template changes."</td>
+  </tr>
+  <tr>
+    <td>Major donor banner (conditional block)</td>
+    <td>"This banner shows because $15,000 satisfies our Boolean expression. It won't appear on the next donation at $5,000 — same template, context-aware output."</td>
+  </tr>
+  <tr>
+    <td>Files related list on the record</td>
+    <td>"The PDF is automatically attached to the Opportunity as a Salesforce File. Your team's donor history is complete without anyone manually uploading anything."</td>
+  </tr>
+</table>
+
+<div class="callout-talk">
+  <span class="badge badge-talk">TALK</span>
+  <p>"What you just saw — cross-object data, repeating child records, and conditional sections — would typically require a custom Apex class, a Visualforce template, and a developer sprint. With DocGen, an admin configured the entire thing in five steps, in under five minutes, without writing a single line of code."</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>Discovery Questions</h2>
+<p>Use these after the demo to move the conversation forward:</p>
+<ul>
+  <li>"What types of documents does your team currently send to donors — receipts, grant agreements, pledge reminders?"</li>
+  <li>"How are those documents generated today — Word mail merge, a third-party tool, manual editing?"</li>
+  <li>"Who on your team owns the templates? Is that a developer task or something an admin or program officer can handle?"</li>
+  <li>"Do you need different document formats for different donor segments — major donors, recurring donors, corporate sponsors?"</li>
+  <li>"How important is automatic file attachment to the donor or grant record for your audit trail?"</li>
+</ul>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>Common Objections &amp; Responses</h2>
+
+<table>
+  <tr><th>Objection</th><th>Response</th></tr>
+  <tr>
+    <td>"We already use [third-party tool]."</td>
+    <td>"DocGen is native — no API calls, no data leaving Salesforce, no per-document licence fee. And because it's inside Salesforce, every generated document is automatically a Salesforce File with the full audit trail. Does your current tool attach the PDF directly to the record?"</td>
+  </tr>
+  <tr>
+    <td>"Our templates are complex — tables within tables, signatures, logos."</td>
+    <td>"The template is plain HTML, so anything you can design in HTML you can include — logos via image tags, nested tables, branded CSS. The token syntax sits on top of whatever HTML you already have."</td>
+  </tr>
+  <tr>
+    <td>"We need Word output, not PDF."</td>
+    <td>"DocGen generates both — the Download Word button is right next to Download PDF on the preview screen."</td>
+  </tr>
+  <tr>
+    <td>"What about bulk generation — we send 500 receipts at year end."</td>
+    <td>"Bulk generation is on the roadmap. Today the wizard is record-by-record, which covers on-demand receipts and letters. For the year-end batch run, we'd discuss the timeline and whether a triggered or scheduled flow approach fits your org's setup."</td>
+  </tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>Demo Reset Instructions</h2>
+<p>To reset the environment for the next audience:</p>
+<ol>
+  <li>Delete the generated PDF from the Opportunity's Files related list.</li>
+  <li>Delete the Document Template record created during the demo (navigate to <strong>Document Templates</strong> tab → delete).</li>
+  <li>The Opportunity record itself does not need to change — the same record can be reused.</li>
+</ol>
+
+<div class="callout-warn">
+  <strong>Note:</strong> Do not disable <code>Demo_Mode__mdt.Donation_Demo</code> between runs — the auto-fill buttons rely on it being enabled.
+</div>
+
+</body>
+</html>

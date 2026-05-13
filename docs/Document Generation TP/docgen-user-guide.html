@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DocGen — User Guide</title>
+<style>
+  :root {
+    --blue:   #0176d3;
+    --navy:   #032d60;
+    --green:  #2e7d32;
+    --amber:  #e65100;
+    --red:    #c62828;
+    --bg:     #f3f2f2;
+    --white:  #ffffff;
+    --border: #dddbda;
+    --text:   #181818;
+    --muted:  #444746;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Salesforce Sans', Arial, sans-serif; font-size: 14px;
+         color: var(--text); background: var(--bg); line-height: 1.6; }
+  a { color: var(--blue); text-decoration: none; }
+  .page { max-width: 960px; margin: 0 auto; padding: 32px 24px 80px; }
+  .hero { background: var(--navy); color: #fff; border-radius: 8px;
+          padding: 36px 40px 32px; margin-bottom: 32px; }
+  .hero h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+  .hero .sub { font-size: 14px; opacity: .8; }
+  .badge-row { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  .badge { background: rgba(255,255,255,.15); border-radius: 4px;
+           padding: 3px 10px; font-size: 12px; font-weight: 600; }
+  .toc { background: var(--white); border: 1px solid var(--border); border-radius: 8px;
+         padding: 20px 24px; margin-bottom: 32px; }
+  .toc h2 { font-size: 13px; font-weight: 700; text-transform: uppercase;
+             letter-spacing: .08em; color: var(--muted); margin-bottom: 12px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 4px; }
+  .toc a { color: var(--blue); font-size: 13px; }
+  .section { background: var(--white); border: 1px solid var(--border); border-radius: 8px;
+             padding: 28px 32px; margin-bottom: 24px; }
+  .section h2 { font-size: 20px; font-weight: 700; color: var(--navy);
+                border-bottom: 2px solid var(--blue); padding-bottom: 8px; margin-bottom: 20px; }
+  .section h3 { font-size: 15px; font-weight: 700; color: var(--navy); margin: 20px 0 8px; }
+  .section h4 { font-size: 13px; font-weight: 700; color: var(--muted);
+                margin: 14px 0 6px; text-transform: uppercase; letter-spacing: .06em; }
+  .section p  { margin-bottom: 12px; color: var(--text); }
+  .section ul, .section ol { padding-left: 20px; margin-bottom: 12px; }
+  .section li { margin-bottom: 5px; }
+  .callout { border-radius: 6px; padding: 14px 16px; margin: 16px 0;
+             border-left: 4px solid; font-size: 13px; }
+  .callout.tip   { background: #e8f4fd; border-color: var(--blue); }
+  .callout.warn  { background: #fff3e0; border-color: var(--amber); }
+  .callout.info  { background: #e8f5e9; border-color: var(--green); }
+  .callout.error { background: #ffebee; border-color: var(--red); }
+  .callout strong { display: block; margin-bottom: 4px; }
+  code { background: #f4f5f7; border: 1px solid #dfe1e6; border-radius: 4px;
+         padding: 2px 6px; font-family: 'SFMono-Regular', Consolas, monospace;
+         font-size: 12px; color: #172b4d; }
+  pre  { background: #f4f5f7; border: 1px solid #dfe1e6; border-radius: 6px;
+         padding: 14px 16px; font-family: 'SFMono-Regular', Consolas, monospace;
+         font-size: 12px; overflow-x: auto; margin: 12px 0; white-space: pre; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 13px; }
+  th { background: var(--navy); color: #fff; padding: 9px 12px; text-align: left; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: #fafafa; }
+  .steps { counter-reset: step; list-style: none; padding: 0; margin: 16px 0; }
+  .steps li { counter-increment: step; display: flex; gap: 14px; margin-bottom: 14px; }
+  .steps li::before {
+    content: counter(step); background: var(--blue); color: #fff;
+    border-radius: 50%; width: 26px; height: 26px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; margin-top: 1px;
+  }
+  .steps li > div { flex: 1; }
+  .steps li strong { display: block; margin-bottom: 2px; }
+  .token-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+  .token-card { background: #f4f5f7; border: 1px solid #dfe1e6; border-radius: 6px; padding: 12px 14px; }
+  .token-card .syntax { font-family: 'SFMono-Regular', Consolas, monospace;
+                         font-size: 12px; color: var(--navy); font-weight: 700; margin-bottom: 4px; }
+  .token-card .desc { font-size: 12px; color: var(--muted); }
+  .footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 40px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero">
+    <h1>Document Generation — User Guide</h1>
+    <div class="sub">Salesforce-native PDF generation · No external services · No code required for end users</div>
+    <div class="badge-row">
+      <span class="badge">Version 2.0</span>
+      <span class="badge">May 2026</span>
+      <span class="badge">Salesforce API v62</span>
+      <span class="badge">LWC + Apex</span>
+    </div>
+  </div>
+
+  <div class="toc">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#overview">Overview &amp; Business Value</a></li>
+      <li><a href="#admin-config">Admin Configuration Workflow</a></li>
+      <li><a href="#end-user">End User Flow — Generate a Document</a></li>
+      <li><a href="#tokens">Template Token Reference</a></li>
+      <li><a href="#variables">Variables &amp; Conditional Rendering</a></li>
+      <li><a href="#parent-child">Parent / Child Mapping</a></li>
+      <li><a href="#format">Format Overrides</a></li>
+      <li><a href="#troubleshoot">Troubleshooting</a></li>
+    </ol>
+  </div>
+
+  <div class="section" id="overview">
+    <h2>1. Overview &amp; Business Value</h2>
+    <p>DocGen is a <strong>100% Salesforce-native document generation platform</strong>. Admins design HTML templates with simple <code>{{token}}</code> placeholders; when a user clicks <em>Generate Document</em>, DocGen pulls live Salesforce data, merges it into the template, and renders a pixel-perfect PDF — entirely inside your org, with no external API calls, no middleware, and no per-document licensing fees.</p>
+
+    <h3>What DocGen does</h3>
+    <ul>
+      <li>Merges <strong>primary record fields</strong> (Opportunity, Account, Contact, custom objects) into an HTML template</li>
+      <li>Traverses <strong>parent relationships</strong> — e.g. pull <code>Account.Name</code> from an Opportunity record</li>
+      <li>Renders <strong>child record tables</strong> — e.g. all Opportunity Line Items as repeating rows</li>
+      <li>Evaluates <strong>conditional blocks</strong> — show/hide template sections based on boolean variables or field-level expressions</li>
+      <li>Injects <strong>system values</strong> — today's date, logged-in user name, org name, EIN, address, phone, and website</li>
+      <li>Embeds <strong>images</strong> (logos, signatures) from Salesforce Files as inline base64</li>
+      <li>Renders the final output as a <strong>downloadable PDF</strong> automatically attached to the originating record</li>
+    </ul>
+
+    <h3>Architecture at a glance</h3>
+    <p>DocGen is fully declarative for end users and administrators. The admin configures a template once through the 5-step visual wizard. End users see a single <em>Generate Document</em> button. They click it and the PDF appears — no code, no configuration, no waiting.</p>
+
+    <div class="callout info">
+      <strong>Salesforce-native security</strong>
+      All data access runs through standard SOQL with <code>WITH SECURITY_ENFORCED</code>. DocGen fully respects field-level security, sharing rules, and permission sets — exactly like any native Salesforce Apex class.
+    </div>
+  </div>
+
+  <div class="section" id="admin-config">
+    <h2>2. Admin Configuration Workflow</h2>
+    <p>The DocGen Template Builder is a 5-step wizard accessible from the <strong>DocGen</strong> app in the App Launcher, or directly via the <strong>Document Generator</strong> tab. Complete all steps in order; the wizard preserves state between steps.</p>
+
+    <h3>Step 1 — Upload Template</h3>
+    <ol class="steps">
+      <li><div><strong>Open the DocGen app → Template Builder</strong><br/>Launch the DocGen app from the App Launcher and click <em>New Template</em>.</div></li>
+      <li><div><strong>Upload your HTML file</strong><br/>Drag-and-drop or browse to select your <code>.html</code> template file. Max size: 5 MB. The file is stored as a Salesforce ContentVersion record — no external storage.</div></li>
+      <li><div><strong>Review extracted tokens</strong><br/>DocGen immediately parses the HTML and lists every <code>{{token}}</code> it finds. Verify the list matches your template design before proceeding.</div></li>
+    </ol>
+    <div class="callout tip">
+      <strong>Template authoring tip</strong>
+      Write templates in any HTML editor. Use <code>{{TokenName}}</code> anywhere in the body. For child tables, wrap a <code>&lt;tr&gt;</code> between <code>{{#RelationshipName}}</code> and <code>{{/RelationshipName}}</code>. For conditional sections use <code>{{#if variableName}}...{{/if}}</code>. Keep all CSS inline or in a <code>&lt;style&gt;</code> block — external stylesheets are not fetched by the PDF renderer.
+    </div>
+
+    <h3>Step 2 — Select Primary Object</h3>
+    <ol class="steps">
+      <li><div><strong>Search for the source object</strong><br/>Type a label or API name. Results include all accessible standard and custom objects. Select the object whose record page will host the <em>Generate Document</em> button.</div></li>
+      <li><div><strong>Confirm selection</strong><br/>The wizard displays the object label and API name. Click <em>Next</em> to proceed to mapping.</div></li>
+    </ol>
+
+    <h3>Step 3 — Map Tokens</h3>
+    <p>For each <code>{{token}}</code> in the template, define where its value comes from.</p>
+    <h4>Auto-fill</h4>
+    <p>Click <strong>Auto-fill Mappings</strong>. DocGen matches every token whose name exactly matches a field API name on the primary object (case-insensitive). Parent traversal tokens such as <code>{{Account.Name}}</code> are also resolved automatically in this step.</p>
+    <h4>Manual mapping types</h4>
+    <table>
+      <tr><th>Type</th><th>When to use</th><th>What to configure</th></tr>
+      <tr><td><strong>Field</strong></td><td>Token maps to a single field on the primary or a parent object</td><td>Select object → select field. Use the relationship picker if the primary object has multiple lookups to the same parent.</td></tr>
+      <tr><td><strong>Constant</strong></td><td>Token always renders the same static text</td><td>Type the static value directly.</td></tr>
+      <tr><td><strong>Repeating</strong></td><td>Token is inside a child section block</td><td>Select the child object and the field within it. Ensure <em>Is Repeating</em> is checked.</td></tr>
+    </table>
+    <div class="callout warn">
+      <strong>Child section tokens must be mapped as Repeating</strong>
+      Tokens inside <code>{{#RelationshipName}}...{{/RelationshipName}}</code> must have their mapping type set to <em>Repeating</em> with the correct child SObject selected. If mapped as a primary field, they will render blank.
+    </div>
+
+    <h3>Step 4 — Configure Variables</h3>
+    <p>Variables are named values resolved independently of token-to-field mappings. They power conditional blocks and expose org-level information without hardcoding it in the template.</p>
+    <table>
+      <tr><th>Type</th><th>Description</th><th>Use case</th></tr>
+      <tr><td>Text / Number / Date</td><td>Static constant at runtime</td><td>Proposal reference numbers, static labels</td></tr>
+      <tr><td>System Date</td><td>Today's date in org default format</td><td>Document generation date</td></tr>
+      <tr><td>Current User</td><td>Full name of the logged-in user</td><td>Prepared by / Account Manager</td></tr>
+      <tr><td>Org Name</td><td>Org display name from DocGen Config CMT or UserInfo</td><td>Letterhead org name</td></tr>
+      <tr><td>Image</td><td>Salesforce File embedded as inline base64 image</td><td>Organisation logo, signature</td></tr>
+      <tr><td>Expression</td><td>Evaluates a field comparison at runtime; resolves to <code>true</code> / <code>false</code></td><td>Conditional sections (e.g. <em>isMajorDonor</em>)</td></tr>
+    </table>
+    <div class="callout tip">
+      <strong>Expression syntax</strong>
+      Supported operators: <code>&gt;</code>&nbsp;<code>&lt;</code>&nbsp;<code>&gt;=</code>&nbsp;<code>&lt;=</code>&nbsp;<code>==</code>&nbsp;<code>!=</code>. Left-hand side must be a field API name on the primary object. Right-hand side is a literal value or <code>null</code>.<br/><br/>
+      Examples: <code>Amount &gt; 10000</code> · <code>StageName == 'Closed Won'</code> · <code>Total_Donation__c != null</code>
+    </div>
+
+    <h3>Step 5 — Preview &amp; Save</h3>
+    <ol class="steps">
+      <li><div><strong>Enter a test Record ID</strong><br/>Paste the 18-character Salesforce ID of a real record. The wizard fetches live data from that record for the preview.</div></li>
+      <li><div><strong>Click Preview</strong><br/>DocGen merges the template with live data and renders an HTML preview in-browser. Verify all tokens resolved, child tables expanded, and conditional blocks toggled correctly.</div></li>
+      <li><div><strong>Click Save Template</strong><br/>The wizard saves the full configuration (mappings + variables) as a JSON blob attached to the ContentVersion. The template is now ready for end-user generation on any record of the configured object.</div></li>
+    </ol>
+  </div>
+
+  <div class="section" id="end-user">
+    <h2>3. End User Flow — Generate a Document</h2>
+    <p>Once an admin has configured a template, generating a document requires no training and takes under 30 seconds.</p>
+    <ol class="steps">
+      <li><div><strong>Open the record</strong><br/>Navigate to any Salesforce record of the object the template is configured for (e.g. an Opportunity record).</div></li>
+      <li><div><strong>Click Generate Document</strong><br/>Find the button in the record's action bar or on the DocGen component on the page layout.</div></li>
+      <li><div><strong>Select the template</strong><br/>A dropdown lists all templates configured for this object. Select the one you want.</div></li>
+      <li><div><strong>Click Generate</strong><br/>A progress bar displays while DocGen fetches data, merges the template, and renders the PDF. Typical time: under 3 seconds.</div></li>
+      <li><div><strong>Preview the PDF</strong><br/>The PDF renders inline in the modal. Scroll through to verify the content before downloading.</div></li>
+      <li><div><strong>Download</strong><br/>Click <em>Download PDF</em>. The file saves to your downloads folder and is simultaneously attached to the record as a Salesforce File.</div></li>
+    </ol>
+    <div class="callout info">
+      <strong>Generated PDFs are automatically attached to the record</strong>
+      Find them in the record's <em>Files</em> related list. File name format: <code>[TemplateName] – [RecordName] – [Date].pdf</code>.
+    </div>
+  </div>
+
+  <div class="section" id="tokens">
+    <h2>4. Template Token Reference</h2>
+    <p>Tokens are placeholders enclosed in double curly braces: <code>{{TokenName}}</code>. DocGen supports four token categories.</p>
+    <div class="token-grid">
+      <div class="token-card">
+        <div class="syntax">{{FieldName}}</div>
+        <div class="desc">Primary object field. Auto-resolved if the token name matches the field API name (case-insensitive).</div>
+      </div>
+      <div class="token-card">
+        <div class="syntax">{{Relationship.FieldName}}</div>
+        <div class="desc">Parent traversal — single hop. Examples: <code>{{Account.Name}}</code>, <code>{{Owner.Email}}</code>.</div>
+      </div>
+      <div class="token-card">
+        <div class="syntax">{{#RelName}} ... {{/RelName}}</div>
+        <div class="desc">Child repeating section. Everything between the tags renders once per child record.</div>
+      </div>
+      <div class="token-card">
+        <div class="syntax">{{sys.variableName}}</div>
+        <div class="desc">System or admin-defined variable resolved by the Variable Engine before field merging.</div>
+      </div>
+    </div>
+
+    <h3>System variables — always available</h3>
+    <table>
+      <tr><th>Token</th><th>Resolved value</th></tr>
+      <tr><td><code>{{sys.today}}</code></td><td>Current date in org default format</td></tr>
+      <tr><td><code>{{sys.currentUser}}</code></td><td>Full name of the logged-in user</td></tr>
+      <tr><td><code>{{sys.userEmail}}</code></td><td>Email address of the logged-in user</td></tr>
+      <tr><td><code>{{sys.orgName}}</code></td><td>Org display name (DocGen Config CMT or UserInfo fallback)</td></tr>
+      <tr><td><code>{{sys.orgEIN}}</code></td><td>Organisation EIN from DocGen Config CMT</td></tr>
+      <tr><td><code>{{sys.orgAddress}}</code></td><td>Organisation address from DocGen Config CMT</td></tr>
+      <tr><td><code>{{sys.orgPhone}}</code></td><td>Organisation phone from DocGen Config CMT</td></tr>
+      <tr><td><code>{{sys.orgWebsite}}</code></td><td>Organisation website from DocGen Config CMT</td></tr>
+    </table>
+
+    <h3>Complete template example — Donation Proposal</h3>
+    <pre>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;style&gt;
+  body { font-family: Arial, sans-serif; padding: 40px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { border: 1px solid #ccc; padding: 8px; }
+  .badge { background: #032d60; color: #fff; padding: 4px 10px; border-radius: 4px; }
+&lt;/style&gt;&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Donation Proposal — {{Name}}&lt;/h1&gt;
+  &lt;p&gt;Prepared for: &lt;strong&gt;{{Account.Name}}&lt;/strong&gt;&lt;/p&gt;
+  &lt;p&gt;Date: {{sys.today}} | Campaign: {{Campaign_Name__c}}&lt;/p&gt;
+  &lt;p&gt;Donation Type: {{Donation_Type__c}}&lt;/p&gt;
+
+  &lt;h2&gt;Contribution Breakdown&lt;/h2&gt;
+  &lt;table&gt;
+    &lt;tr&gt;&lt;th&gt;Programme&lt;/th&gt;&lt;th&gt;Amount&lt;/th&gt;&lt;/tr&gt;
+    {{#OpportunityLineItems}}
+    &lt;tr&gt;
+      &lt;td&gt;{{Contribution_Type__c}}&lt;/td&gt;
+      &lt;td&gt;{{TotalPrice}}&lt;/td&gt;
+    &lt;/tr&gt;
+    {{/OpportunityLineItems}}
+  &lt;/table&gt;
+
+  {{#if isMajorDonor}}
+  &lt;div class="badge"&gt;Major Donor — Recognition Level: Platinum&lt;/div&gt;
+  &lt;p&gt;Thank you for your exceptional generosity.&lt;/p&gt;
+  {{/if}}
+
+  &lt;p&gt;Prepared by: {{sys.currentUser}}&lt;/p&gt;
+  &lt;p&gt;{{sys.orgName}} | {{sys.orgAddress}}&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  </div>
+
+  <div class="section" id="variables">
+    <h2>5. Variables &amp; Conditional Rendering</h2>
+    <h3>How variables work</h3>
+    <p>Variables are resolved by the Variable Engine <em>before</em> the template merges with field data. Each variable has a name and a type. The resolved value is injected wherever <code>{{variableName}}</code> or <code>{{sys.variableName}}</code> appears in the template.</p>
+
+    <h3>Expression variables</h3>
+    <p>An <code>EXPRESSION</code> variable evaluates a field comparison against live record data at generation time. The result is always <code>true</code> or <code>false</code>, making it the primary mechanism for conditional sections.</p>
+    <table>
+      <tr><th>Expression</th><th>Evaluates to true when…</th></tr>
+      <tr><td><code>Amount &gt; 10000</code></td><td>Opportunity Amount exceeds $10,000</td></tr>
+      <tr><td><code>Amount &gt;= 71000</code></td><td>Amount is $71,000 or more</td></tr>
+      <tr><td><code>StageName == 'Closed Won'</code></td><td>Stage is exactly "Closed Won"</td></tr>
+      <tr><td><code>Total_Donation__c != null</code></td><td>Total Donation field has any value</td></tr>
+      <tr><td><code>Donor_Type__c == 'Foundation'</code></td><td>Donor type picklist is "Foundation"</td></tr>
+    </table>
+
+    <h3>Conditional blocks</h3>
+    <p>Use <code>{{#if variableName}}...{{/if}}</code> to show or hide any block of HTML based on a variable's resolved value. The block renders only when the variable is truthy (<code>true</code>, a non-empty string, or a non-zero number).</p>
+    <pre>{{#if isMajorDonor}}
+&lt;div style="background:#e8f4fd; padding:12px; border-left:4px solid #032d60;"&gt;
+  &lt;strong&gt;Major Donor — Recognition Level: Platinum&lt;/strong&gt;
+  &lt;p&gt;This gift qualifies for the Major Donor Recognition Programme.&lt;/p&gt;
+&lt;/div&gt;
+{{/if}}</pre>
+    <div class="callout tip">
+      <strong>Multiple independent conditions are supported</strong>
+      Each <code>{{#if}}</code> block is evaluated independently. A single template can contain multiple conditional sections each driven by a different variable.
+    </div>
+
+    <h3>Image variables</h3>
+    <p>Create an <code>IMAGE</code> variable, paste the ContentVersion ID of the uploaded file, and place <code>{{variableName}}</code> in the template. DocGen base64-encodes the file and renders an inline <code>&lt;img&gt;</code> tag. No external URLs or CDN required.</p>
+  </div>
+
+  <div class="section" id="parent-child">
+    <h2>6. Parent / Child Mapping</h2>
+    <h3>Parent traversal</h3>
+    <p>DocGen supports <strong>single-hop parent traversal</strong>. Token <code>{{Account.Name}}</code> on an Opportunity template will query <code>Account.Name</code> via the <code>AccountId</code> lookup — automatically, with no extra SOQL needed from the admin.</p>
+    <p>If the primary object has <em>multiple lookups to the same parent</em> (e.g. two Account lookups on a custom object), the mapping builder shows a relationship picker so you select the correct relationship.</p>
+
+    <h3>Supported parent traversal examples</h3>
+    <table>
+      <tr><th>Token</th><th>Primary object</th><th>Source</th></tr>
+      <tr><td><code>{{Account.Name}}</code></td><td>Opportunity</td><td>Account.Name via AccountId</td></tr>
+      <tr><td><code>{{Account.BillingCity}}</code></td><td>Opportunity</td><td>Account.BillingCity</td></tr>
+      <tr><td><code>{{Account.Donor_Type__c}}</code></td><td>Opportunity</td><td>Custom field on Account</td></tr>
+      <tr><td><code>{{Account.Website}}</code></td><td>Opportunity</td><td>Account.Website</td></tr>
+      <tr><td><code>{{Owner.Name}}</code></td><td>Any</td><td>User.Name via OwnerId</td></tr>
+      <tr><td><code>{{Owner.Email}}</code></td><td>Any</td><td>User.Email via OwnerId</td></tr>
+    </table>
+
+    <h3>Child record tables</h3>
+    <p>Wrap any repeating HTML block with the child relationship open and close tags. Everything inside renders once per child record.</p>
+    <pre>&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th&gt;Programme&lt;/th&gt;&lt;th&gt;Quantity&lt;/th&gt;&lt;th&gt;Amount&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    {{#OpportunityLineItems}}
+    &lt;tr&gt;
+      &lt;td&gt;{{Contribution_Type__c}}&lt;/td&gt;
+      &lt;td&gt;{{Quantity}}&lt;/td&gt;
+      &lt;td&gt;{{TotalPrice}}&lt;/td&gt;
+    &lt;/tr&gt;
+    {{/OpportunityLineItems}}
+  &lt;/tbody&gt;
+&lt;/table&gt;</pre>
+
+    <h3>Common child relationships</h3>
+    <table>
+      <tr><th>Relationship name (in template)</th><th>Child SObject API name</th><th>Parent object</th></tr>
+      <tr><td>OpportunityLineItems</td><td>OpportunityLineItem</td><td>Opportunity</td></tr>
+      <tr><td>Contacts</td><td>Contact</td><td>Account</td></tr>
+      <tr><td>Opportunities</td><td>Opportunity</td><td>Account</td></tr>
+      <tr><td>Cases</td><td>Case</td><td>Account</td></tr>
+      <tr><td>ActivityHistories</td><td>Activity</td><td>Any</td></tr>
+      <tr><td><em>CustomObject__r</em></td><td>Custom SObject</td><td>Any (via custom lookup)</td></tr>
+    </table>
+    <div class="callout warn">
+      <strong>Child records are capped at 200 rows by default.</strong>
+      Change this in the <em>DocGen Config</em> custom metadata record (<code>Max_Repeating_Rows__c</code> field).
+    </div>
+  </div>
+
+  <div class="section" id="format">
+    <h2>7. Format Overrides</h2>
+    <p>Each field mapping in the builder has an optional <strong>Format Override</strong>. This controls how the raw Salesforce value is displayed in the rendered document, without modifying the underlying data.</p>
+    <table>
+      <tr><th>Format string</th><th>Effect</th><th>Example output</th></tr>
+      <tr><td><code>currency</code></td><td>Prefixes with <code>$</code>, formats to 2 decimal places</td><td><code>$71,000.00</code></td></tr>
+      <tr><td><code>date:MM/dd/yyyy</code></td><td>Formats a date using Java date pattern</td><td><code>09/30/2026</code></td></tr>
+      <tr><td><code>date:MMMM d, yyyy</code></td><td>Long-form date</td><td><code>September 30, 2026</code></td></tr>
+      <tr><td><code>date:dd MMM yyyy</code></td><td>European/UK format</td><td><code>30 Sep 2026</code></td></tr>
+      <tr><td><code>number:2</code></td><td>Rounds to N decimal places</td><td><code>71000.00</code></td></tr>
+      <tr><td><code>upper</code></td><td>Converts to UPPERCASE</td><td><code>FOUNDATION</code></td></tr>
+      <tr><td><code>lower</code></td><td>Converts to lowercase</td><td><code>foundation</code></td></tr>
+    </table>
+    <div class="callout tip">
+      <strong>Format overrides are per-mapping</strong>
+      The same field can appear multiple times in a template with different token names, each configured with a different format override.
+    </div>
+  </div>
+
+  <div class="section" id="troubleshoot">
+    <h2>8. Troubleshooting</h2>
+
+    <h3>Token renders blank in the PDF</h3>
+    <ul>
+      <li>Open Template Builder → Mappings tab and verify the token has a mapping configured.</li>
+      <li>Check that the mapped field has a non-null value on the test record used in Preview.</li>
+      <li>If the token is inside a child section, confirm the mapping type is <em>Repeating</em> with the correct child object selected.</li>
+      <li>Run <em>Auto-fill</em> — if the token name does not match any field API name it cannot be auto-resolved and must be mapped manually.</li>
+    </ul>
+
+    <h3>Child table does not render or is empty</h3>
+    <ul>
+      <li>Confirm the relationship name in the template (e.g. <code>{{#OpportunityLineItems}}</code>) matches the Salesforce child relationship name (case-insensitive).</li>
+      <li>Ensure child records exist for the test Record ID used in the Preview step.</li>
+      <li>Verify the running user has Read access to the child object and all mapped fields (FLS).</li>
+      <li>Check <code>Max_Repeating_Rows__c</code> in the DocGen Config CMT — if set to 0, no rows are returned.</li>
+    </ul>
+
+    <h3>Conditional block is not showing</h3>
+    <ul>
+      <li>Confirm the variable name in <code>{{#if variableName}}</code> exactly matches the variable name configured in Step 4 — this is case-sensitive.</li>
+      <li>For EXPRESSION variables, verify the field API name (left-hand side) exists on the primary object and is accessible to the running user via FLS.</li>
+      <li>Use the Preview step to inspect what value the variable resolved to before saving.</li>
+    </ul>
+
+    <h3>Permission / access errors on generation</h3>
+    <ul>
+      <li>Assign <code>DocGen_Full_Access</code> permission set to the running user for full wizard and generation access.</li>
+      <li>Assign <code>DocGen_Demo_Fields</code> permission set to grant FLS on the demo custom fields (<code>Donor_ID__c</code>, <code>Donor_Type__c</code>, <code>Campaign_Name__c</code>, <code>Donation_Type__c</code>, <code>Total_Donation__c</code>, <code>Is_Major_Donor__c</code>, <code>Contribution_Type__c</code>).</li>
+      <li>DocGen uses <code>WITH SECURITY_ENFORCED</code> on all SOQL. If a mapped field is inaccessible to the user, the query will throw a QueryException. Grant FLS via profile or permission set.</li>
+    </ul>
+
+    <h3>Template upload fails</h3>
+    <ul>
+      <li>Confirm the file is valid UTF-8 encoded HTML (not a Word document, PDF, or binary file).</li>
+      <li>File size must be under 5 MB.</li>
+      <li>The running user needs <em>Create</em> permission on ContentVersion — included in <code>DocGen_Full_Access</code>.</li>
+    </ul>
+
+    <h3>PDF has no styling / looks unstyled</h3>
+    <ul>
+      <li>DocGen renders HTML through the Salesforce Visualforce PDF renderer. Inline CSS (<code>style=""</code> attributes) and <code>&lt;style&gt;</code> blocks in the <code>&lt;head&gt;</code> are fully supported.</li>
+      <li>External stylesheet URLs (CDN links, Google Fonts) are <em>not</em> fetched by the renderer. Embed all styles inline.</li>
+      <li>Complex CSS (flexbox, grid) may not be fully supported by the PDF renderer — use table-based layouts for reliable cross-page formatting.</li>
+    </ul>
+
+    <h3>Mapping mismatch — wrong field value appears</h3>
+    <ul>
+      <li>In the mapping builder, verify the <em>Source Object</em> and <em>Source Field</em> for each token. A common mistake is mapping a child-section token to a primary object field.</li>
+      <li>For parent traversal tokens (e.g. <code>{{Account.Name}}</code>), ensure the <em>Relationship Path</em> field is set to <code>Account.Name</code>, not just <code>Name</code>.</li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    DocGen User Guide · v2.0 · May 2026 · Internal use only
+  </div>
+</div>
+</body>
+</html>

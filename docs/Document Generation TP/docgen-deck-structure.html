@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DocGen — Presentation Structure</title>
+<style>
+/* ── Reset & Base ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px;
+       color: #172B4D; background: #F0F2F7; }
+
+/* ── Page Header ──────────────────────────────────────────── */
+.page-header {
+  background: linear-gradient(135deg, #091E42 0%, #0052CC 100%);
+  color: #fff; padding: 44px 56px 40px;
+}
+.page-header h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.3px; }
+.page-header .sub { font-size: 13px; opacity: .75; }
+.page-header .sub span { margin-right: 28px; }
+.badge-row { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; }
+.hbadge { background: rgba(255,255,255,.15); border-radius: 20px;
+          padding: 4px 14px; font-size: 12px; font-weight: 600; }
+
+/* ── Wrapper ──────────────────────────────────────────────── */
+.wrapper { max-width: 1140px; margin: 0 auto; padding: 40px 24px 80px; }
+
+/* ── Design System Card ───────────────────────────────────── */
+.design-system {
+  background: #fff; border-radius: 10px; padding: 28px 32px;
+  margin-bottom: 40px; box-shadow: 0 2px 12px rgba(0,0,0,.08);
+}
+.design-system h2 { font-size: 15px; font-weight: 700; color: #0052CC;
+  border-bottom: 2px solid #0052CC; padding-bottom: 8px; margin-bottom: 20px; }
+.ds-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.ds-item { }
+.ds-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; color: #6B778C;
+  margin-bottom: 8px; }
+.color-swatch { height: 36px; border-radius: 6px; margin-bottom: 6px; }
+.color-name { font-size: 12px; color: #42526E; font-weight: 600; }
+.color-hex  { font-size: 11px; color: #6B778C; font-family: monospace; }
+.font-demo { font-size: 20px; font-weight: 700; color: #172B4D; }
+.font-sub  { font-size: 13px; color: #6B778C; }
+.type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* ── Slide Wrapper ────────────────────────────────────────── */
+.slide-block {
+  background: #fff; border-radius: 10px; margin-bottom: 48px;
+  box-shadow: 0 2px 16px rgba(0,0,0,.09); overflow: hidden;
+}
+.slide-header {
+  background: #F4F5F7; padding: 14px 28px; display: flex;
+  align-items: center; gap: 14px; border-bottom: 1px solid #DFE1E6;
+}
+.slide-num {
+  background: #0052CC; color: #fff; border-radius: 6px;
+  width: 36px; height: 36px; display: flex; align-items: center;
+  justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0;
+}
+.slide-header-text h3 { font-size: 15px; font-weight: 700; color: #172B4D; }
+.slide-header-text span { font-size: 12px; color: #6B778C; }
+.slide-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.slide-preview { padding: 28px; border-right: 1px solid #DFE1E6; background: #FAFBFC; }
+.slide-specs   { padding: 28px; }
+
+/* ── Slide Canvas (16:9 mockup) ───────────────────────────── */
+.canvas {
+  width: 100%; aspect-ratio: 16/9; border-radius: 8px;
+  overflow: hidden; position: relative; font-family: 'Segoe UI', Arial, sans-serif;
+  box-shadow: 0 4px 20px rgba(0,0,0,.15);
+}
+
+/* ── Spec Sections ────────────────────────────────────────── */
+.spec-section { margin-bottom: 18px; }
+.spec-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  color: #6B778C; margin-bottom: 6px;
+}
+.spec-content { font-size: 13px; color: #172B4D; line-height: 1.7; }
+.spec-tag {
+  display: inline-block; background: #DEEBFF; color: #0052CC;
+  border-radius: 3px; padding: 2px 8px; font-size: 11px; font-weight: 600;
+  margin: 2px 3px 2px 0;
+}
+.spec-tag.green  { background: #E3FCEF; color: #006644; }
+.spec-tag.purple { background: #EAE6FF; color: #403294; }
+.spec-tag.orange { background: #FFF7E6; color: #974F0C; }
+.spec-tag.red    { background: #FFEBE6; color: #BF2600; }
+.spec-anim { background: #F4F5F7; border-radius: 4px; padding: 8px 12px;
+  font-size: 12.5px; color: #42526E; border-left: 3px solid #6554C0; }
+.spec-screenshot { background: #FFFAE6; border-radius: 4px; padding: 8px 12px;
+  font-size: 12.5px; color: #3D2B00; border-left: 3px solid #FF8B00; }
+
+/* ════════════════════════════════════════════════════════════
+   SLIDE CANVAS STYLES
+════════════════════════════════════════════════════════════ */
+
+/* ─ Slide 1: Title ─ */
+.s1 { background: linear-gradient(135deg, #091E42 0%, #0052CC 100%); }
+.s1 .title-eyebrow { position: absolute; top: 14%; left: 50%; transform: translateX(-50%);
+  background: rgba(255,255,255,.12); border-radius: 20px; padding: 3px 14px;
+  font-size: 7px; letter-spacing: 1.5px; font-weight: 700; color: rgba(255,255,255,.8);
+  white-space: nowrap; }
+.s1 .title-logo { position: absolute; top: 28%; left: 50%; transform: translateX(-50%);
+  font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -1px; white-space: nowrap; }
+.s1 .title-logo span { color: #79E2F2; }
+.s1 .title-tag { position: absolute; top: 52%; left: 50%; transform: translateX(-50%);
+  font-size: 9px; color: rgba(255,255,255,.65); white-space: nowrap; }
+.s1 .title-pill { position: absolute; top: 64%; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 6px; white-space: nowrap; }
+.s1 .pill { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+  border-radius: 12px; padding: 2px 10px; font-size: 7px; color: rgba(255,255,255,.75);
+  font-weight: 600; letter-spacing: .5px; }
+.s1 .title-grid { position: absolute; inset: 0; opacity: .04;
+  background-image: linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
+  background-size: 40px 40px; }
+.s1 .title-dot { position: absolute; border-radius: 50%; background: rgba(121,226,242,.15); }
+
+/* ─ Slide 2: Problem ─ */
+.s2 { background: #fff; }
+.s2 .s-title { position: absolute; top: 8%; left: 6%; font-size: 11px; font-weight: 700;
+  color: #0052CC; letter-spacing: .5px; }
+.s2 .problem-headline { position: absolute; top: 16%; left: 6%; font-size: 15px;
+  font-weight: 800; color: #172B4D; line-height: 1.2; }
+.s2 .pain-grid { position: absolute; top: 36%; left: 4%; right: 4%;
+  display: flex; gap: 1.5%; }
+.s2 .pain-card { flex: 1; background: #FFEBE6; border-radius: 6px; padding: 6px 5px 5px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.s2 .pain-icon { font-size: 14px; }
+.s2 .pain-label { font-size: 6px; font-weight: 700; color: #BF2600;
+  text-align: center; line-height: 1.3; }
+.s2 .pain-bar { position: absolute; bottom: 12%; left: 6%; right: 6%;
+  background: #F4F5F7; border-radius: 6px; padding: 6px 12px; }
+.s2 .pain-bar-text { font-size: 6.5px; color: #6B778C; text-align: center; }
+.s2 .accent-line { position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+  background: linear-gradient(180deg, #DE350B, #FF8B00); border-radius: 4px 0 0 4px; }
+
+/* ─ Slide 3: Solution ─ */
+.s3 { background: #F0F4FF; }
+.s3 .s-title { position: absolute; top: 7%; left: 6%; font-size: 11px; font-weight: 700;
+  color: #0052CC; letter-spacing: .5px; }
+.s3 .flow-row { position: absolute; top: 24%; left: 4%; right: 4%;
+  display: flex; align-items: center; gap: 0; }
+.s3 .flow-node { flex: 1; background: #fff; border-radius: 6px; padding: 6px 4px;
+  text-align: center; box-shadow: 0 2px 8px rgba(0,82,204,.12); }
+.s3 .fn-icon { font-size: 14px; }
+.s3 .fn-label { font-size: 6px; font-weight: 700; color: #172B4D; margin-top: 2px; }
+.s3 .fn-sub { font-size: 5px; color: #6B778C; margin-top: 1px; }
+.s3 .flow-arrow { font-size: 12px; color: #0052CC; font-weight: 700; padding: 0 2px; flex-shrink: 0; }
+.s3 .badge-row-s { position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 8px; white-space: nowrap; }
+.s3 .s-badge { background: #0052CC; color: #fff; border-radius: 12px; padding: 3px 10px;
+  font-size: 6.5px; font-weight: 700; letter-spacing: .3px; }
+.s3 .s-badge.outline { background: transparent; border: 1.5px solid #0052CC;
+  color: #0052CC; }
+
+/* ─ Slide 4: Use Case ─ */
+.s4 { background: #fff; }
+.s4 .s-title { position: absolute; top: 7%; left: 6%; font-size: 11px; font-weight: 700;
+  color: #0052CC; letter-spacing: .5px; }
+.s4 .left-panel { position: absolute; top: 20%; left: 5%; width: 38%;
+  bottom: 10%; background: #F4F5F7; border-radius: 8px; padding: 8px; }
+.s4 .lp-header { background: #0052CC; border-radius: 5px; padding: 4px 8px;
+  font-size: 6px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+.s4 .lp-field { background: #fff; border-radius: 3px; padding: 3px 6px; margin-bottom: 3px; }
+.s4 .lp-fl { font-size: 5px; color: #6B778C; }
+.s4 .lp-fv { font-size: 7px; font-weight: 600; color: #172B4D; }
+.s4 .center-arrow { position: absolute; top: 50%; left: 46%; transform: translateY(-50%);
+  font-size: 18px; color: #0052CC; font-weight: 900; }
+.s4 .right-panel { position: absolute; top: 20%; right: 5%; width: 38%;
+  bottom: 10%; background: #fff; border: 2px solid #DFE1E6; border-radius: 8px;
+  padding: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+.s4 .rp-header { background: #172B4D; border-radius: 5px; padding: 4px 8px;
+  font-size: 6px; font-weight: 700; color: #fff; margin-bottom: 5px; text-align: center; }
+.s4 .rp-banner { background: #DEEBFF; border-left: 3px solid #0052CC; padding: 3px 5px;
+  font-size: 5.5px; color: #0052CC; font-weight: 600; margin-bottom: 5px; border-radius: 0 3px 3px 0; }
+.s4 .rp-row { display: flex; justify-content: space-between;
+  border-bottom: 1px solid #F4F5F7; padding: 2px 0; }
+.s4 .rp-rl { font-size: 5.5px; color: #6B778C; }
+.s4 .rp-rv { font-size: 5.5px; font-weight: 700; color: #172B4D; }
+.s4 .rp-table { margin-top: 4px; border-top: 1px solid #DFE1E6; padding-top: 3px; }
+.s4 .rp-th { display: flex; gap: 4px; margin-bottom: 2px; }
+.s4 .rp-thc { flex: 1; font-size: 5px; font-weight: 700; color: #42526E;
+  background: #F4F5F7; padding: 1px 3px; border-radius: 2px; }
+.s4 .rp-tr { display: flex; gap: 4px; margin-bottom: 1px; }
+.s4 .rp-trc { flex: 1; font-size: 5px; color: #172B4D; }
+
+/* ─ Slide 5: Admin Flow ─ */
+.s5 { background: #fff; }
+.s5 .s-title { position: absolute; top: 7%; left: 6%; font-size: 11px; font-weight: 700;
+  color: #0052CC; letter-spacing: .5px; }
+.s5 .flow-wrap { position: absolute; top: 22%; left: 4%; right: 4%;
+  display: flex; align-items: flex-start; gap: 0; }
+.s5 .step-col { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+.s5 .step-circle { width: 26px; height: 26px; border-radius: 50%; background: #0052CC;
+  color: #fff; font-size: 9px; font-weight: 700; display: flex;
+  align-items: center; justify-content: center; z-index: 2; flex-shrink: 0; }
+.s5 .step-line { position: absolute; top: 13px; left: calc(50% + 13px);
+  right: -13px; height: 2px; background: #DEEBFF; z-index: 1; }
+.s5 .step-icon-box { width: 32px; height: 32px; border-radius: 8px; background: #EAF1FF;
+  display: flex; align-items: center; justify-content: center; font-size: 14px; margin: 6px 0 5px; }
+.s5 .step-label { font-size: 6.5px; font-weight: 700; color: #172B4D; text-align: center;
+  line-height: 1.4; max-width: 60px; }
+.s5 .step-sub { font-size: 5.5px; color: #6B778C; text-align: center; max-width: 60px;
+  margin-top: 2px; line-height: 1.4; }
+.s5 .step-col:last-child .step-line { display: none; }
+
+/* ─ Slide 6: Generation Flow ─ */
+.s6 { background: linear-gradient(160deg, #F0F4FF 0%, #E8F4FD 100%); }
+.s6 .s-title { position: absolute; top: 7%; left: 6%; font-size: 11px; font-weight: 700;
+  color: #0052CC; letter-spacing: .5px; }
+.s6 .three-col { position: absolute; top: 22%; left: 4%; right: 4%; bottom: 14%;
+  display: flex; align-items: center; gap: 2%; }
+.s6 .col-panel { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 6px; }
+.s6 .panel-card { background: #fff; border-radius: 8px; width: 100%; padding: 8px 6px;
+  text-align: center; box-shadow: 0 2px 10px rgba(0,82,204,.1); }
+.s6 .pc-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+.s6 .pc-label { font-size: 7px; font-weight: 700; color: #172B4D; }
+.s6 .pc-sub { font-size: 6px; color: #6B778C; margin-top: 2px; }
+.s6 .pc-btn { display: inline-block; background: #0052CC; color: #fff; border-radius: 4px;
+  padding: 3px 10px; font-size: 6px; font-weight: 700; margin-top: 6px; }
+.s6 .big-arrow { font-size: 22px; color: #0052CC; font-weight: 900; flex-shrink: 0; }
+.s6 .bottom-bar { position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%);
+  background: #0052CC; color: #fff; border-radius: 16px; padding: 3px 16px;
+  font-size: 7px; font-weight: 700; white-space: nowrap; letter-spacing: .3px; }
+
+/* ─ Slide 7: PDF Engine ─ */
+.s7 { background: #091E42; }
+.s7 .s-title { position: absolute; top: 7%; left: 6%; font-size: 11px; font-weight: 700;
+  color: #79E2F2; letter-spacing: .5px; }
+.s7 .eng-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #0052CC, #79E2F2);
+  display: flex; align-items: center; justify-content: center; font-size: 22px;
+  box-shadow: 0 0 30px rgba(121,226,242,.3); z-index: 2; }
+.s7 .eng-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 100px; height: 100px; border-radius: 50%;
+  border: 1px solid rgba(121,226,242,.15); }
+.s7 .eng-ring2 { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 160px; height: 160px; border-radius: 50%;
+  border: 1px dashed rgba(121,226,242,.08); }
+.s7 .eng-node { position: absolute; background: rgba(255,255,255,.06);
+  border: 1px solid rgba(121,226,242,.2); border-radius: 8px;
+  padding: 5px 8px; text-align: center; backdrop-filter: blur(4px); }
+.s7 .en-icon { font-size: 12px; }
+.s7 .en-label { font-size: 6px; font-weight: 700; color: #79E2F2; margin-top: 2px; }
+.s7 .en-sub { font-size: 5px; color: rgba(255,255,255,.4); margin-top: 1px; }
+/* Node positions */
+.s7 .n-top    { top: 8%;  left: 50%; transform: translateX(-50%); }
+.s7 .n-right  { top: 50%; right: 6%; transform: translateY(-50%); }
+.s7 .n-bottom { bottom: 8%; left: 50%; transform: translateX(-50%); }
+.s7 .n-left   { top: 50%; left: 6%; transform: translateY(-50%); }
+.s7 .conn-line { position: absolute; background: rgba(121,226,242,.15); }
+
+/* ─ Slide 8: Key Features ─ */
+.s8 { background: #fff; }
+.s8 .s-title { position: absolute; top: 7%; left: 6%; font-size: 11px; font-weight: 700;
+  color: #0052CC; letter-spacing: .5px; }
+.s8 .feat-grid { position: absolute; top: 20%; left: 4%; right: 4%;
+  display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr;
+  gap: 8px; bottom: 8%; }
+.s8 .feat-card { background: #F4F8FF; border-radius: 8px; padding: 8px 10px;
+  display: flex; flex-direction: column; gap: 4px;
+  border: 1px solid #DEEBFF; }
+.s8 .fc-icon { font-size: 16px; }
+.s8 .fc-label { font-size: 7.5px; font-weight: 700; color: #172B4D; }
+.s8 .fc-sub { font-size: 6px; color: #6B778C; line-height: 1.5; }
+.s8 .fc-tag { align-self: flex-start; background: #DEEBFF; color: #0052CC;
+  border-radius: 10px; padding: 1px 7px; font-size: 5.5px; font-weight: 700; }
+
+/* ─ Slide 9: Roadmap ─ */
+.s9 { background: #F4F8FF; }
+.s9 .s-title { position: absolute; top: 7%; left: 6%; font-size: 11px; font-weight: 700;
+  color: #0052CC; letter-spacing: .5px; }
+.s9 .road-now { position: absolute; top: 7%; right: 6%; background: #0052CC; color: #fff;
+  border-radius: 12px; padding: 2px 10px; font-size: 6px; font-weight: 700; }
+.s9 .timeline { position: absolute; top: 50%; left: 6%; right: 6%; height: 3px;
+  background: linear-gradient(90deg, #0052CC, #79E2F2); border-radius: 2px;
+  transform: translateY(-50%); }
+.s9 .road-items { position: absolute; top: 20%; left: 4%; right: 4%;
+  display: flex; gap: 2%; }
+.s9 .road-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.s9 .ri-icon-wrap { width: 30px; height: 30px; border-radius: 50%; background: #fff;
+  border: 2px solid #DEEBFF; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; box-shadow: 0 2px 8px rgba(0,82,204,.12); }
+.s9 .ri-icon-wrap.active { border-color: #0052CC; background: #0052CC; }
+.s9 .ri-label { font-size: 6px; font-weight: 700; color: #172B4D; text-align: center;
+  line-height: 1.4; max-width: 55px; }
+.s9 .ri-phase { font-size: 5px; color: #6B778C; text-align: center; }
+.s9 .ri-dot { width: 8px; height: 8px; border-radius: 50%; background: #0052CC;
+  border: 2px solid #fff; box-shadow: 0 0 0 2px #0052CC; }
+.s9 .ri-dot.future { background: #DFE1E6; border-color: #fff; box-shadow: 0 0 0 2px #DFE1E6; }
+
+/* ─ Slide 10: Outro ─ */
+.s10 { background: linear-gradient(135deg, #091E42 0%, #0052CC 100%); }
+.s10 .s10-grid { position: absolute; inset: 0; opacity: .04;
+  background-image: linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
+  background-size: 40px 40px; }
+.s10 .s10-content { position: absolute; inset: 0; display: flex;
+  flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+.s10 .s10-eyebrow { background: rgba(255,255,255,.12); border-radius: 16px;
+  padding: 3px 14px; font-size: 6.5px; letter-spacing: 1.5px; font-weight: 700;
+  color: rgba(255,255,255,.7); }
+.s10 .s10-headline { font-size: 22px; font-weight: 800; color: #fff;
+  letter-spacing: -0.5px; text-align: center; line-height: 1.2; }
+.s10 .s10-headline span { color: #79E2F2; }
+.s10 .s10-sub { font-size: 8px; color: rgba(255,255,255,.55); text-align: center;
+  max-width: 60%; line-height: 1.6; }
+.s10 .s10-pillrow { display: flex; gap: 6px; margin-top: 4px; }
+.s10 .s10-pill { border: 1px solid rgba(255,255,255,.25); border-radius: 14px;
+  padding: 3px 12px; font-size: 6.5px; font-weight: 600; color: rgba(255,255,255,.7); }
+
+/* ── Global Canvas Utility ────────────────────────────────── */
+.canvas * { box-sizing: border-box; }
+
+/* ── Flow Guide Bar ───────────────────────────────────────── */
+.flow-guide {
+  background: #fff; border-radius: 10px; padding: 20px 28px;
+  margin-bottom: 40px; box-shadow: 0 2px 12px rgba(0,0,0,.07);
+}
+.flow-guide h2 { font-size: 14px; font-weight: 700; color: #0052CC;
+  border-bottom: 2px solid #0052CC; padding-bottom: 6px; margin-bottom: 16px; }
+.fg-row { display: flex; align-items: center; gap: 0; flex-wrap: nowrap; overflow-x: auto; }
+.fg-node { text-align: center; padding: 6px 10px; flex-shrink: 0; }
+.fg-circle { width: 32px; height: 32px; border-radius: 50%; background: #0052CC;
+  color: #fff; font-size: 11px; font-weight: 700; display: flex;
+  align-items: center; justify-content: center; margin: 0 auto 5px; }
+.fg-label { font-size: 9px; font-weight: 600; color: #172B4D; white-space: nowrap; }
+.fg-arrow { font-size: 16px; color: #DEEBFF; padding: 0 2px; flex-shrink: 0; }
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 800px) {
+  .slide-body { grid-template-columns: 1fr; }
+  .slide-preview { border-right: none; border-bottom: 1px solid #DFE1E6; }
+  .ds-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════
+     PAGE HEADER
+════════════════════════════════════════════════════════════ -->
+<div class="page-header">
+  <h1>DocGen — Presentation Structure</h1>
+  <div class="sub">
+    <span><strong>Version:</strong> 1.0</span>
+    <span><strong>Slides:</strong> 10</span>
+    <span><strong>Format:</strong> 16:9 Widescreen</span>
+    <span><strong>Target:</strong> Google Slides / PowerPoint / Figma</span>
+    <span><strong>Use:</strong> Supports demo video + narration — not standalone</span>
+  </div>
+  <div class="badge-row">
+    <span class="hbadge">🎨 Minimal Design</span>
+    <span class="hbadge">🏢 Enterprise SaaS</span>
+    <span class="hbadge">📊 Visually Driven</span>
+    <span class="hbadge">⚡ 10 Slides Max</span>
+    <span class="hbadge">🔵 Salesforce Native</span>
+  </div>
+</div>
+
+<div class="wrapper">
+
+<!-- ════════════════════════════════════════════════════════════
+     DESIGN SYSTEM
+════════════════════════════════════════════════════════════ -->
+<div class="design-system">
+  <h2>Design System — Colours, Typography, Spacing</h2>
+  <div class="ds-grid">
+    <div>
+      <div class="ds-label">PRIMARY PALETTE</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div>
+          <div class="color-swatch" style="background:#0052CC;"></div>
+          <div class="color-name">Salesforce Blue</div>
+          <div class="color-hex">#0052CC</div>
+        </div>
+        <div>
+          <div class="color-swatch" style="background:#091E42;"></div>
+          <div class="color-name">Midnight Navy</div>
+          <div class="color-hex">#091E42</div>
+        </div>
+        <div>
+          <div class="color-swatch" style="background:#79E2F2;"></div>
+          <div class="color-name">Cyan Accent</div>
+          <div class="color-hex">#79E2F2</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="ds-label">SUPPORTING PALETTE</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div>
+          <div class="color-swatch" style="background:#00875A;"></div>
+          <div class="color-name">Success Green</div>
+          <div class="color-hex">#00875A</div>
+        </div>
+        <div>
+          <div class="color-swatch" style="background:#DE350B;"></div>
+          <div class="color-name">Problem Red</div>
+          <div class="color-hex">#DE350B</div>
+        </div>
+        <div>
+          <div class="color-swatch" style="background:#6554C0;"></div>
+          <div class="color-name">Variable Purple</div>
+          <div class="color-hex">#6554C0</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="ds-label">NEUTRALS</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div>
+          <div class="color-swatch" style="background:#172B4D;"></div>
+          <div class="color-name">Body Dark</div><div class="color-hex">#172B4D</div>
+        </div>
+        <div>
+          <div class="color-swatch" style="background:#F4F5F7;"></div>
+          <div class="color-name">Background Light</div><div class="color-hex">#F4F5F7</div>
+        </div>
+        <div>
+          <div class="color-swatch" style="background:#DFE1E6;"></div>
+          <div class="color-name">Border / Divider</div><div class="color-hex">#DFE1E6</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="ds-label">TYPOGRAPHY & RULES</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <div class="font-demo">Inter / Segoe UI</div>
+          <div class="font-sub">Primary typeface — use system stack</div>
+        </div>
+        <div class="type-grid">
+          <div><div style="font-size:18px;font-weight:800;color:#172B4D;">H1 — 32px</div><div class="font-sub">Slide headlines</div></div>
+          <div><div style="font-size:14px;font-weight:700;color:#0052CC;">H2 — 18px</div><div class="font-sub">Section labels</div></div>
+          <div><div style="font-size:13px;color:#172B4D;">Body — 14px</div><div class="font-sub">Max 8 words per line</div></div>
+          <div><div style="font-size:11px;color:#6B778C;letter-spacing:.5px;font-weight:700;">EYEBROW — 11px</div><div class="font-sub">All-caps labels</div></div>
+        </div>
+        <div style="font-size:12px;color:#6B778C;line-height:1.7;">
+          ● No body text paragraphs on slides<br>
+          ● Max 6 words per bullet/label<br>
+          ● Icons from Lucide, Phosphor, or SF Lightning<br>
+          ● 48px minimum touch target for icons
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     PRESENTATION FLOW
+════════════════════════════════════════════════════════════ -->
+<div class="flow-guide">
+  <h2>Presentation Flow — 10 Slides</h2>
+  <div class="fg-row">
+    <div class="fg-node"><div class="fg-circle">1</div><div class="fg-label">Title</div></div>
+    <div class="fg-arrow">›</div>
+    <div class="fg-node"><div class="fg-circle">2</div><div class="fg-label">Problem</div></div>
+    <div class="fg-arrow">›</div>
+    <div class="fg-node"><div class="fg-circle">3</div><div class="fg-label">Solution</div></div>
+    <div class="fg-arrow">›</div>
+    <div class="fg-node"><div class="fg-circle">4</div><div class="fg-label">Use Case</div></div>
+    <div class="fg-arrow">›</div>
+    <div class="fg-node"><div class="fg-circle">5</div><div class="fg-label">Admin Flow</div></div>
+    <div class="fg-arrow">›</div>
+    <div class="fg-node"><div class="fg-circle">6</div><div class="fg-label">Gen Flow</div></div>
+    <div class="fg-arrow">›</div>
+    <div class="fg-node"><div class="fg-circle">7</div><div class="fg-label">PDF Engine</div></div>
+    <div class="fg-arrow">›</div>
+    <div class="fg-node"><div class="fg-circle">8</div><div class="fg-label">Features</div></div>
+    <div class="fg-arrow">›</div>
+    <div class="fg-node"><div class="fg-circle">9</div><div class="fg-label">Roadmap</div></div>
+    <div class="fg-arrow">›</div>
+    <div class="fg-node"><div class="fg-circle">10</div><div class="fg-label">Outro</div></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 1 — TITLE
+════════════════════════════════════════════════════════════ -->
+<div class="slide-block">
+  <div class="slide-header">
+    <div class="slide-num">1</div>
+    <div class="slide-header-text">
+      <h3>Title Slide</h3>
+      <span>Dark navy gradient · Centred layout · Product name hero</span>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="slide-preview">
+      <div class="canvas s1">
+        <div class="title-grid"></div>
+        <div class="title-dot" style="width:200px;height:200px;top:-60px;right:-60px;"></div>
+        <div class="title-dot" style="width:120px;height:120px;bottom:-30px;left:10%;"></div>
+        <div class="title-eyebrow">SALESFORCE NATIVE · ENTERPRISE DOCUMENT GENERATION</div>
+        <div class="title-logo">Doc<span>Gen</span></div>
+        <div class="title-tag">Native Salesforce Document Generation. Zero Dependencies.</div>
+        <div class="title-pill">
+          <span class="pill">Metadata-Driven</span>
+          <span class="pill">PDF Engine</span>
+          <span class="pill">Admin-Configurable</span>
+        </div>
+      </div>
+    </div>
+    <div class="slide-specs">
+      <div class="spec-section">
+        <div class="spec-label">KEY TEXT</div>
+        <div class="spec-content">
+          <strong>Product name:</strong> DocGen (large hero treatment)<br>
+          <strong>Tagline:</strong> "Native Salesforce Document Generation. Zero Dependencies."<br>
+          <strong>Eyebrow:</strong> SALESFORCE NATIVE · ENTERPRISE DOCUMENT GENERATION
+        </div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">VISUAL ELEMENTS</div>
+        <span class="spec-tag">Dark navy gradient background</span>
+        <span class="spec-tag">Subtle grid overlay (4% opacity)</span>
+        <span class="spec-tag">Cyan accent on "Gen"</span>
+        <span class="spec-tag">3 capability pills (bottom)</span>
+        <span class="spec-tag">Soft glow circles (abstract)</span>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">LAYOUT</div>
+        <div class="spec-content">Fully centred. Product name at vertical 35%. Tagline at 55%. Pills at 68%. Nothing else — maximum whitespace.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">ANIMATION</div>
+        <div class="spec-anim">Fade in eyebrow → fade in product name (scale from 0.95) → fade in tagline → pills slide up. Total: 1.2 sec.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">ICON / ASSET</div>
+        <div class="spec-content">Optional: Salesforce AppExchange badge (bottom-right corner, 20% opacity)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 2 — PROBLEM
+════════════════════════════════════════════════════════════ -->
+<div class="slide-block">
+  <div class="slide-header">
+    <div class="slide-num">2</div>
+    <div class="slide-header-text">
+      <h3>Problem Statement</h3>
+      <span>White background · 5 pain-point cards · Red accent</span>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="slide-preview">
+      <div class="canvas s2">
+        <div class="accent-line"></div>
+        <div class="s-title">THE PROBLEM</div>
+        <div class="problem-headline">Traditional document<br>generation is broken.</div>
+        <div class="pain-grid">
+          <div class="pain-card">
+            <div class="pain-icon">🔒</div>
+            <div class="pain-label">Hardcoded<br>Mappings</div>
+          </div>
+          <div class="pain-card">
+            <div class="pain-icon">📄</div>
+            <div class="pain-label">Rigid<br>Templates</div>
+          </div>
+          <div class="pain-card">
+            <div class="pain-icon">🔧</div>
+            <div class="pain-label">Developer<br>Dependency</div>
+          </div>
+          <div class="pain-card">
+            <div class="pain-icon">🖨️</div>
+            <div class="pain-label">Legacy PDF<br>Rendering</div>
+          </div>
+          <div class="pain-card">
+            <div class="pain-icon">⏱️</div>
+            <div class="pain-label">Slow<br>Maintenance</div>
+          </div>
+        </div>
+        <div class="pain-bar">
+          <div class="pain-bar-text">Every template change requires a developer · Data leaves Salesforce · No conditional rendering</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-specs">
+      <div class="spec-section">
+        <div class="spec-label">KEY TEXT</div>
+        <div class="spec-content">
+          <strong>Eyebrow:</strong> THE PROBLEM<br>
+          <strong>Headline:</strong> "Traditional document generation is broken."<br>
+          <strong>Sub-bar:</strong> "Every change requires a developer · Data leaves Salesforce · No conditional rendering"
+        </div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">5 PAIN POINT CARDS</div>
+        <span class="spec-tag red">🔒 Hardcoded Mappings</span>
+        <span class="spec-tag red">📄 Rigid Templates</span>
+        <span class="spec-tag red">🔧 Developer Dependency</span>
+        <span class="spec-tag red">🖨️ Legacy PDF Rendering</span>
+        <span class="spec-tag red">⏱️ Slow Maintenance</span>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">LAYOUT</div>
+        <div class="spec-content">White background. Red left-border accent strip. Headline top-left. 5 equal-width cards in a horizontal row. Sub-summary bar at bottom. No right-side imagery.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">ANIMATION</div>
+        <div class="spec-anim">Headline fades in. Cards cascade left-to-right with 0.15 sec stagger. Bottom bar slides up last.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">COLOUR NOTE</div>
+        <div class="spec-content">Pain cards: <code>#FFEBE6</code> background, <code>#BF2600</code> icon/text. Accent border strip: gradient Red → Orange.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 3 — SOLUTION
+════════════════════════════════════════════════════════════ -->
+<div class="slide-block">
+  <div class="slide-header">
+    <div class="slide-num">3</div>
+    <div class="slide-header-text">
+      <h3>Solution Overview</h3>
+      <span>Flow diagram · Light blue background · 5-node pipeline</span>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="slide-preview">
+      <div class="canvas s3">
+        <div class="s-title">THE SOLUTION</div>
+        <div style="position:absolute;top:15%;left:50%;transform:translateX(-50%);font-size:13px;font-weight:800;color:#172B4D;white-space:nowrap;">One platform. End-to-end.</div>
+        <div class="flow-row">
+          <div class="flow-node"><div class="fn-icon">📝</div><div class="fn-label">Template</div><div class="fn-sub">HTML upload</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node"><div class="fn-icon">🔗</div><div class="fn-label">Mapping Engine</div><div class="fn-sub">Token resolver</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node"><div class="fn-icon">⚙️</div><div class="fn-label">Variable Engine</div><div class="fn-sub">IF conditions</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node"><div class="fn-icon">🖨️</div><div class="fn-label">PDF Engine</div><div class="fn-sub">Server-side render</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node" style="background:#E3FCEF;border:1px solid #00875A;"><div class="fn-icon">📄</div><div class="fn-label" style="color:#006644;">Generated Doc</div><div class="fn-sub">Attached to record</div></div>
+        </div>
+        <div class="badge-row-s">
+          <span class="s-badge">Salesforce-Native</span>
+          <span class="s-badge outline">Metadata-Driven</span>
+          <span class="s-badge outline">Zero External APIs</span>
+          <span class="s-badge outline">Admin-Configurable</span>
+        </div>
+      </div>
+    </div>
+    <div class="slide-specs">
+      <div class="spec-section">
+        <div class="spec-label">KEY TEXT</div>
+        <div class="spec-content">
+          <strong>Eyebrow:</strong> THE SOLUTION<br>
+          <strong>Headline:</strong> "One platform. End-to-end."<br>
+          <strong>Flow nodes (5):</strong> Template → Mapping Engine → Variable Engine → PDF Engine → Generated Doc
+        </div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">BOTTOM BADGES</div>
+        <span class="spec-tag">Salesforce-Native</span>
+        <span class="spec-tag">Metadata-Driven</span>
+        <span class="spec-tag">Zero External APIs</span>
+        <span class="spec-tag">Admin-Configurable</span>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">LAYOUT</div>
+        <div class="spec-content">Light blue (#F0F4FF) background. 5-node horizontal pipeline at vertical centre. Final node (Generated Doc) in green to signal success state. 4 badge pills at bottom.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">ANIMATION</div>
+        <div class="spec-anim">Nodes reveal left-to-right with 0.2 sec stagger + connecting arrows draw between them. Badges fade in last as group.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">SCREENSHOT REC.</div>
+        <div class="spec-screenshot">If possible, use an actual DocGen Wizard screenshot as a faint background watermark behind the flow nodes (15% opacity).</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 4 — USE CASE
+════════════════════════════════════════════════════════════ -->
+<div class="slide-block">
+  <div class="slide-header">
+    <div class="slide-num">4</div>
+    <div class="slide-header-text">
+      <h3>Real-World Use Case</h3>
+      <span>Story-driven · Split panel · Salesforce record → PDF output</span>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="slide-preview">
+      <div class="canvas s4">
+        <div class="s-title">REAL-WORLD SCENARIO</div>
+        <div style="position:absolute;top:14%;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:#172B4D;white-space:nowrap;">Nonprofit · Major Gift Proposal · Robert Thomas · $71,000</div>
+        <div class="left-panel">
+          <div class="lp-header">📊 Salesforce Opportunity</div>
+          <div class="lp-field"><div class="lp-fl">Donor</div><div class="lp-fv">Robert Thomas</div></div>
+          <div class="lp-field"><div class="lp-fl">Campaign</div><div class="lp-fv">Education Support Fund</div></div>
+          <div class="lp-field"><div class="lp-fl">Amount</div><div class="lp-fv">$71,000</div></div>
+          <div class="lp-field"><div class="lp-fl">Type</div><div class="lp-fv">Major Gift</div></div>
+          <div class="lp-field"><div class="lp-fl">Line Items</div><div class="lp-fv">Annual Fund · Programme Support</div></div>
+        </div>
+        <div class="center-arrow">→</div>
+        <div class="right-panel">
+          <div class="rp-header">📄 Generated PDF Proposal</div>
+          <div class="rp-banner">★ Major Donor Acknowledgement — Conditional Section</div>
+          <div class="rp-row"><span class="rp-rl">Donor</span><span class="rp-rv">Robert Thomas</span></div>
+          <div class="rp-row"><span class="rp-rl">Amount</span><span class="rp-rv">$71,000.00</span></div>
+          <div class="rp-row"><span class="rp-rl">Campaign</span><span class="rp-rv">Education Support Fund</span></div>
+          <div class="rp-table">
+            <div class="rp-th">
+              <div class="rp-thc">Item</div><div class="rp-thc">Qty</div><div class="rp-thc">Amount</div>
+            </div>
+            <div class="rp-tr">
+              <div class="rp-trc">Annual Fund</div><div class="rp-trc">1</div><div class="rp-trc">$50,000</div>
+            </div>
+            <div class="rp-tr">
+              <div class="rp-trc">Programme Support</div><div class="rp-trc">1</div><div class="rp-trc">$21,000</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-specs">
+      <div class="spec-section">
+        <div class="spec-label">SCENARIO LABEL</div>
+        <div class="spec-content">Nonprofit · Major Gift Proposal · Robert Thomas · $71,000</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">LEFT PANEL — SALESFORCE RECORD</div>
+        <span class="spec-tag">Opportunity Name</span>
+        <span class="spec-tag">Donor (Account)</span>
+        <span class="spec-tag">Amount $71,000</span>
+        <span class="spec-tag">2 Line Items</span>
+        <span class="spec-tag">Campaign Name</span>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">RIGHT PANEL — GENERATED PDF</div>
+        <span class="spec-tag green">Conditional banner (isMajorDonor = true)</span>
+        <span class="spec-tag green">Formatted currency</span>
+        <span class="spec-tag green">Child table rows</span>
+        <span class="spec-tag green">Parent Account data</span>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">LAYOUT</div>
+        <div class="spec-content">38% left (Salesforce record mockup) · 8% centre arrow · 38% right (PDF output preview). White background with light grey left panel.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">ANIMATION</div>
+        <div class="spec-anim">Left panel slides in from left. Arrow fades in. Right panel slides in from right. Conditional banner pulses once (highlight glow) to draw attention.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">SCREENSHOT REC.</div>
+        <div class="spec-screenshot">Replace right panel with an actual screenshot of the generated DocGen PDF for Robert Thomas. Crop to show: donor block + conditional banner + line items table.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 5 — ADMIN FLOW
+════════════════════════════════════════════════════════════ -->
+<div class="slide-block">
+  <div class="slide-header">
+    <div class="slide-num">5</div>
+    <div class="slide-header-text">
+      <h3>Admin Configuration Flow</h3>
+      <span>5-step numbered workflow · Icons · Connector arrows</span>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="slide-preview">
+      <div class="canvas s5">
+        <div class="s-title">ADMIN SETUP — ONE TIME ONLY</div>
+        <div style="position:absolute;top:14%;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:#172B4D;white-space:nowrap;">Set up once. Reused forever.</div>
+        <div class="flow-wrap">
+          <div class="step-col">
+            <div class="step-line"></div>
+            <div class="step-circle">1</div>
+            <div class="step-icon-box">📤</div>
+            <div class="step-label">Upload Template</div>
+            <div class="step-sub">HTML file with<br>{{tokens}}</div>
+          </div>
+          <div class="step-col">
+            <div class="step-line"></div>
+            <div class="step-circle">2</div>
+            <div class="step-icon-box">🗂️</div>
+            <div class="step-label">Select Objects</div>
+            <div class="step-sub">Primary · Parent<br>Child records</div>
+          </div>
+          <div class="step-col">
+            <div class="step-line"></div>
+            <div class="step-circle">3</div>
+            <div class="step-icon-box">🔗</div>
+            <div class="step-label">Map Tokens</div>
+            <div class="step-sub">Free-form names<br>→ SF fields</div>
+          </div>
+          <div class="step-col">
+            <div class="step-line"></div>
+            <div class="step-circle">4</div>
+            <div class="step-icon-box">⚙️</div>
+            <div class="step-label">Set Variables</div>
+            <div class="step-sub">IF conditions<br>Business rules</div>
+          </div>
+          <div class="step-col">
+            <div class="step-circle">5</div>
+            <div class="step-icon-box" style="background:#E3FCEF;">✅</div>
+            <div class="step-label">Preview &amp; Save</div>
+            <div class="step-sub">Live render<br>Template stored</div>
+          </div>
+        </div>
+        <div style="position:absolute;bottom:8%;left:50%;transform:translateX(-50%);background:#F4F5F7;border-radius:12px;padding:3px 14px;font-size:6px;color:#6B778C;white-space:nowrap;">No code · No developer · Admin-owned configuration</div>
+      </div>
+    </div>
+    <div class="slide-specs">
+      <div class="spec-section">
+        <div class="spec-label">KEY TEXT</div>
+        <div class="spec-content">
+          <strong>Eyebrow:</strong> ADMIN SETUP — ONE TIME ONLY<br>
+          <strong>Subtitle:</strong> "Set up once. Reused forever."<br>
+          <strong>Footer pill:</strong> "No code · No developer · Admin-owned configuration"
+        </div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">5 STEPS</div>
+        <span class="spec-tag">① Upload Template</span>
+        <span class="spec-tag">② Select Objects</span>
+        <span class="spec-tag">③ Map Tokens</span>
+        <span class="spec-tag">④ Set Variables</span>
+        <span class="spec-tag green">⑤ Preview &amp; Save</span>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">LAYOUT</div>
+        <div class="spec-content">5 equal-width columns connected by a horizontal line through the numbered circles. Icon box below each number. Label + sub-caption below each icon. Step 5 in green to signal completion.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">ANIMATION</div>
+        <div class="spec-anim">Steps reveal sequentially left-to-right. Connecting line "draws" between circles as each step appears. 0.25 sec stagger per step.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">SCREENSHOT REC.</div>
+        <div class="spec-screenshot">Below each step title, embed a small cropped screenshot of that actual wizard screen (thumbnail size, rounded corners). This is optional but highly impactful.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 6 — GENERATION FLOW
+════════════════════════════════════════════════════════════ -->
+<div class="slide-block">
+  <div class="slide-header">
+    <div class="slide-num">6</div>
+    <div class="slide-header-text">
+      <h3>Document Generation Flow — Business User</h3>
+      <span>3-panel layout · One-click emphasis · Light blue gradient</span>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="slide-preview">
+      <div class="canvas s6">
+        <div class="s-title">BUSINESS USER EXPERIENCE</div>
+        <div style="position:absolute;top:14%;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:#172B4D;white-space:nowrap;">No setup. No training. One click.</div>
+        <div class="three-col">
+          <div class="col-panel">
+            <div class="panel-card">
+              <span class="pc-icon">📊</span>
+              <div class="pc-label">Opportunity Record</div>
+              <div class="pc-sub">Robert Thomas · $71,000<br>Education Support Fund</div>
+            </div>
+          </div>
+          <div class="big-arrow">→</div>
+          <div class="col-panel">
+            <div class="panel-card" style="background:#0052CC;">
+              <span class="pc-icon">⚡</span>
+              <div class="pc-label" style="color:#fff;">Generate Document</div>
+              <div class="pc-sub" style="color:rgba(255,255,255,.7);">Single button click<br>No wizard · No config</div>
+              <div class="pc-btn" style="background:#fff;color:#0052CC;margin-top:8px;">Generate PDF</div>
+            </div>
+          </div>
+          <div class="big-arrow">→</div>
+          <div class="col-panel">
+            <div class="panel-card" style="border:2px solid #00875A;">
+              <span class="pc-icon">📄</span>
+              <div class="pc-label">PDF Generated</div>
+              <div class="pc-sub">Auto-attached to record<br>Download ready</div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-bar">Business user flow — zero technical knowledge required</div>
+      </div>
+    </div>
+    <div class="slide-specs">
+      <div class="spec-section">
+        <div class="spec-label">KEY TEXT</div>
+        <div class="spec-content">
+          <strong>Eyebrow:</strong> BUSINESS USER EXPERIENCE<br>
+          <strong>Subtitle:</strong> "No setup. No training. One click."<br>
+          <strong>Bottom pill:</strong> "Business user flow — zero technical knowledge required"
+        </div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">3 PANELS</div>
+        <span class="spec-tag">📊 Opportunity Record</span>
+        <span class="spec-tag" style="background:#DEEBFF;color:#0052CC;">⚡ Generate Document (CTA)</span>
+        <span class="spec-tag green">📄 PDF Generated + Auto-Attached</span>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">LAYOUT</div>
+        <div class="spec-content">3 panels of equal width separated by large arrows. Centre panel (Generate button) in Salesforce Blue to draw the eye. Right panel (PDF) with green border to signal success.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">ANIMATION</div>
+        <div class="spec-anim">Left panel appears first. Arrow 1 draws. Centre button panel appears with a subtle pulse animation (simulate click). Arrow 2 draws. Right panel appears with green checkmark reveal.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">SCREENSHOT REC.</div>
+        <div class="spec-screenshot">Replace left panel with actual Opportunity record screenshot (cropped to show record header + Generate button). Replace right panel with PDF thumbnail.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 7 — PDF ENGINE
+════════════════════════════════════════════════════════════ -->
+<div class="slide-block">
+  <div class="slide-header">
+    <div class="slide-num">7</div>
+    <div class="slide-header-text">
+      <h3>Centralised PDF Engine — Architecture</h3>
+      <span>Dark navy · Hub-and-spoke diagram · Cyan accents</span>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="slide-preview">
+      <div class="canvas s7">
+        <div class="s-title">ARCHITECTURE — CENTRALISED ENGINE</div>
+        <div style="position:absolute;top:14%;right:6%;font-size:6.5px;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:.5px;">All processing stays inside Salesforce</div>
+        <!-- Hub -->
+        <div class="eng-ring2"></div>
+        <div class="eng-ring"></div>
+        <div class="eng-center">⚙️</div>
+        <!-- Nodes -->
+        <div class="eng-node n-top">
+          <div class="en-icon">🔗</div>
+          <div class="en-label">Dynamic Resolver</div>
+          <div class="en-sub">Parent · Child · Primary</div>
+        </div>
+        <div class="eng-node n-right">
+          <div class="en-icon">🗺️</div>
+          <div class="en-label">Mapping Engine</div>
+          <div class="en-sub">Token → Field</div>
+        </div>
+        <div class="eng-node n-bottom">
+          <div class="en-icon">📄</div>
+          <div class="en-label">PDF Generator</div>
+          <div class="en-sub">Server-side render</div>
+        </div>
+        <div class="eng-node n-left">
+          <div class="en-icon">⚡</div>
+          <div class="en-label">Variable Engine</div>
+          <div class="en-sub">IF · Boolean · Formula</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-specs">
+      <div class="spec-section">
+        <div class="spec-label">KEY TEXT</div>
+        <div class="spec-content">
+          <strong>Eyebrow:</strong> ARCHITECTURE — CENTRALISED ENGINE<br>
+          <strong>Sub-label:</strong> "All processing stays inside Salesforce"<br>
+          <strong>No headline text</strong> — architecture diagram is the message
+        </div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">4 ENGINE COMPONENTS</div>
+        <span class="spec-tag">🔗 Dynamic Resolver (top)</span>
+        <span class="spec-tag">🗺️ Mapping Engine (right)</span>
+        <span class="spec-tag">📄 PDF Generator (bottom)</span>
+        <span class="spec-tag">⚡ Variable Engine (left)</span>
+        <span class="spec-tag purple">⚙️ Core Orchestrator (centre)</span>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">LAYOUT</div>
+        <div class="spec-content">Dark navy (#091E42) background. Central hub icon (DocGen core). 4 engine nodes at compass points. Two subtle concentric rings. Cyan (#79E2F2) as accent throughout.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">ANIMATION</div>
+        <div class="spec-anim">Rings expand outward from centre. Core icon fades in. 4 nodes appear one at a time, clockwise. Optional: thin connector lines animate from centre to each node.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">DESIGN NOTE</div>
+        <div class="spec-content">Keep this slide sparse. The dark background with glow effects communicates "robust infrastructure" without requiring text explanation. Trust the visual.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 8 — KEY FEATURES
+════════════════════════════════════════════════════════════ -->
+<div class="slide-block">
+  <div class="slide-header">
+    <div class="slide-num">8</div>
+    <div class="slide-header-text">
+      <h3>Key Features</h3>
+      <span>6-card grid · Icon-first · Light blue cards</span>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="slide-preview">
+      <div class="canvas s8">
+        <div class="s-title">KEY CAPABILITIES</div>
+        <div style="position:absolute;top:14%;left:6%;font-size:11px;font-weight:700;color:#172B4D;">Everything your team needs. Nothing they don't.</div>
+        <div class="feat-grid">
+          <div class="feat-card">
+            <div class="fc-icon">🎯</div>
+            <div class="fc-label">Free-Form Tokens</div>
+            <div class="fc-sub">Name tokens anything — no SF API dependency</div>
+            <div class="fc-tag">Core</div>
+          </div>
+          <div class="feat-card">
+            <div class="fc-icon">🔗</div>
+            <div class="fc-label">Parent + Child Mapping</div>
+            <div class="fc-sub">Traverse lookups &amp; related lists automatically</div>
+            <div class="fc-tag">Data</div>
+          </div>
+          <div class="feat-card">
+            <div class="fc-icon">⚡</div>
+            <div class="fc-label">Conditional Rendering</div>
+            <div class="fc-sub">IF blocks · Boolean expressions · Dynamic sections</div>
+            <div class="fc-tag">Logic</div>
+          </div>
+          <div class="feat-card">
+            <div class="fc-icon">📄</div>
+            <div class="fc-label">Real PDF Generation</div>
+            <div class="fc-sub">Server-side · Consistent · Auto-attached to record</div>
+            <div class="fc-tag">Output</div>
+          </div>
+          <div class="feat-card">
+            <div class="fc-icon">🏗️</div>
+            <div class="fc-label">Metadata-Driven</div>
+            <div class="fc-sub">All config in Salesforce · Deployable via MDT</div>
+            <div class="fc-tag">Architecture</div>
+          </div>
+          <div class="feat-card">
+            <div class="fc-icon">📈</div>
+            <div class="fc-label">Scalable Design</div>
+            <div class="fc-sub">Unlimited templates · Multi-object · Reusable</div>
+            <div class="fc-tag">Scale</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-specs">
+      <div class="spec-section">
+        <div class="spec-label">KEY TEXT</div>
+        <div class="spec-content">
+          <strong>Eyebrow:</strong> KEY CAPABILITIES<br>
+          <strong>Subtitle:</strong> "Everything your team needs. Nothing they don't."
+        </div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">6 FEATURE CARDS (3×2 grid)</div>
+        <span class="spec-tag">🎯 Free-Form Tokens</span>
+        <span class="spec-tag">🔗 Parent + Child Mapping</span>
+        <span class="spec-tag purple">⚡ Conditional Rendering</span>
+        <span class="spec-tag green">📄 Real PDF Generation</span>
+        <span class="spec-tag">🏗️ Metadata-Driven</span>
+        <span class="spec-tag">📈 Scalable Design</span>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">LAYOUT</div>
+        <div class="spec-content">White background. 3-column × 2-row card grid. Each card: icon (top-left), feature name (bold), 1-line description (grey), category tag (bottom-left). Light blue (#F4F8FF) card backgrounds.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">ANIMATION</div>
+        <div class="spec-anim">Cards reveal in reading order (left-to-right, top-to-bottom) with 0.1 sec stagger. Subtle scale-up from 0.95 on entry.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">DESIGN NOTE</div>
+        <div class="spec-content">Keep description lines to MAX 8 words. The category tag (Core / Data / Logic / Output / Architecture / Scale) provides instant visual classification.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 9 — ROADMAP
+════════════════════════════════════════════════════════════ -->
+<div class="slide-block">
+  <div class="slide-header">
+    <div class="slide-num">9</div>
+    <div class="slide-header-text">
+      <h3>Future Roadmap</h3>
+      <span>Timeline · Icon nodes · Light blue · Phase labels</span>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="slide-preview">
+      <div class="canvas s9">
+        <div class="s-title">ROADMAP — WHAT'S NEXT</div>
+        <div class="road-now">✅ Production Ready Today</div>
+        <div class="road-items">
+          <div class="road-item">
+            <div class="ri-icon-wrap active">📄</div>
+            <div class="ri-dot"></div>
+            <div class="ri-label">Current Foundation</div>
+            <div class="ri-phase">Live Now</div>
+          </div>
+          <div class="road-item">
+            <div class="ri-icon-wrap">🔍</div>
+            <div class="ri-dot future"></div>
+            <div class="ri-label">OCR Ingestion</div>
+            <div class="ri-phase">Next</div>
+          </div>
+          <div class="road-item">
+            <div class="ri-icon-wrap">🤖</div>
+            <div class="ri-dot future"></div>
+            <div class="ri-label">AI Field Mapping</div>
+            <div class="ri-phase">Q3 2026</div>
+          </div>
+          <div class="road-item">
+            <div class="ri-icon-wrap">🖼️</div>
+            <div class="ri-dot future"></div>
+            <div class="ri-label">Image Extraction</div>
+            <div class="ri-phase">Q4 2026</div>
+          </div>
+          <div class="road-item">
+            <div class="ri-icon-wrap">🌍</div>
+            <div class="ri-dot future"></div>
+            <div class="ri-label">Multi-Language</div>
+            <div class="ri-phase">2027</div>
+          </div>
+          <div class="road-item">
+            <div class="ri-icon-wrap">⚡</div>
+            <div class="ri-dot future"></div>
+            <div class="ri-label">Workflow Automation</div>
+            <div class="ri-phase">2027</div>
+          </div>
+        </div>
+        <div class="timeline"></div>
+        <div style="position:absolute;bottom:8%;left:50%;transform:translateX(-50%);font-size:6px;color:#6B778C;white-space:nowrap;">Architecture is designed for extension — each capability is an additive service layer</div>
+      </div>
+    </div>
+    <div class="slide-specs">
+      <div class="spec-section">
+        <div class="spec-label">KEY TEXT</div>
+        <div class="spec-content">
+          <strong>Eyebrow:</strong> ROADMAP — WHAT'S NEXT<br>
+          <strong>Badge:</strong> "✅ Production Ready Today" (top-right)<br>
+          <strong>Footer:</strong> "Architecture is designed for extension — each capability is an additive service layer"
+        </div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">6 ROADMAP NODES</div>
+        <span class="spec-tag green">📄 Current Foundation — Live Now</span>
+        <span class="spec-tag orange">🔍 OCR Ingestion — Next</span>
+        <span class="spec-tag orange">🤖 AI Field Mapping — Q3 2026</span>
+        <span class="spec-tag orange">🖼️ Image Extraction — Q4 2026</span>
+        <span class="spec-tag orange">🌍 Multi-Language — 2027</span>
+        <span class="spec-tag orange">⚡ Workflow Automation — 2027</span>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">LAYOUT</div>
+        <div class="spec-content">Light blue background. Horizontal timeline bar at vertical centre. 6 icon nodes above the line. Dot connectors on the line. Current phase in solid blue; future phases in grey outline. Phase labels below each node.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">ANIMATION</div>
+        <div class="spec-anim">Timeline line draws left to right. Nodes appear sequentially. Current node glows to signal "active state". Future nodes fade in at lower opacity (60%) to imply "coming soon".</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">DESIGN NOTE</div>
+        <div class="spec-content">Do not list feature details on this slide — icons + labels only. The message is momentum and vision, not specification.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 10 — OUTRO
+════════════════════════════════════════════════════════════ -->
+<div class="slide-block">
+  <div class="slide-header">
+    <div class="slide-num">10</div>
+    <div class="slide-header-text">
+      <h3>Outro — Closing Slide</h3>
+      <span>Dark navy gradient · Centred · Mirror of title slide</span>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="slide-preview">
+      <div class="canvas s10">
+        <div class="s10-grid"></div>
+        <div class="s10-content">
+          <div class="s10-eyebrow">PRODUCTION-READY · ENTERPRISE-GRADE · SALESFORCE-NATIVE</div>
+          <div class="s10-headline">Document Generation,<br><span>reimagined.</span></div>
+          <div class="s10-sub">Metadata-driven · Admin-owned · Zero developer dependency<br>Scalable architecture · Native PDF engine · Built for the enterprise</div>
+          <div class="s10-pillrow">
+            <div class="s10-pill">Salesforce-Native</div>
+            <div class="s10-pill">Metadata-Driven</div>
+            <div class="s10-pill">Production-Ready</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-specs">
+      <div class="spec-section">
+        <div class="spec-label">KEY TEXT</div>
+        <div class="spec-content">
+          <strong>Eyebrow:</strong> PRODUCTION-READY · ENTERPRISE-GRADE · SALESFORCE-NATIVE<br>
+          <strong>Headline:</strong> "Document Generation, <em>reimagined.</em>"<br>
+          <strong>Sub:</strong> "Metadata-driven · Admin-owned · Zero developer dependency<br>Scalable architecture · Native PDF engine · Built for the enterprise"<br>
+          <strong>Pills:</strong> Salesforce-Native · Metadata-Driven · Production-Ready
+        </div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">VISUAL ELEMENTS</div>
+        <span class="spec-tag">Dark navy gradient (mirrors slide 1)</span>
+        <span class="spec-tag">Subtle grid overlay</span>
+        <span class="spec-tag">Cyan accent on "reimagined."</span>
+        <span class="spec-tag">3 outline pills (bottom)</span>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">LAYOUT</div>
+        <div class="spec-content">Intentionally mirrors Slide 1 to create visual bookending. Same gradient, same grid, same centred composition. This signals closure and brand consistency.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">ANIMATION</div>
+        <div class="spec-anim">Eyebrow fades in. Headline types on character by character (typewriter effect, 0.8 sec). "reimagined." fades in cyan after headline. Sub-text and pills fade in as a group. Hold for 2 seconds before fade-out.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-label">NO CTA</div>
+        <div class="spec-content">Do not add a contact email, website, or "Book a Demo" CTA on this slide. The demo video is the CTA. This slide closes on product, not on sales.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     PRODUCTION GUIDANCE
+════════════════════════════════════════════════════════════ -->
+<div class="design-system">
+  <h2>Production Guidance — Building in Google Slides / PowerPoint / Figma</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+    <div>
+      <div style="font-size:12px;font-weight:700;color:#6B778C;letter-spacing:.5px;margin-bottom:10px;">GOOGLE SLIDES</div>
+      <ul style="font-size:13px;line-height:2;color:#172B4D;padding-left:18px;">
+        <li>File → Page Setup → Custom: 1920 × 1080px</li>
+        <li>Use Inter (Google Fonts) — import via Extensis Fonts add-on</li>
+        <li>Slide transition: <strong>Fade</strong>, 0.3 sec, all slides</li>
+        <li>Element animations: <strong>Appear</strong> or <strong>Fade in</strong> only — avoid Fly</li>
+        <li>Export as MP4 → File → Download → MP4 (for video sync)</li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:700;color:#6B778C;letter-spacing:.5px;margin-bottom:10px;">FIGMA (recommended for polish)</div>
+      <ul style="font-size:13px;line-height:2;color:#172B4D;padding-left:18px;">
+        <li>Frame size: 1920 × 1080, auto-layout for responsive cards</li>
+        <li>Use Figma Prototype mode for transitions</li>
+        <li>Export each slide as PNG (300dpi) for fallback</li>
+        <li>Use Figma Presentation mode for live demos</li>
+        <li>Component library: Phosphor Icons or Lucide Icons plugin</li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:700;color:#6B778C;letter-spacing:.5px;margin-bottom:10px;">ICON RECOMMENDATIONS</div>
+      <ul style="font-size:13px;line-height:2;color:#172B4D;padding-left:18px;">
+        <li><strong>Lucide Icons</strong> — clean, minimal, free (lucide.dev)</li>
+        <li><strong>Phosphor Icons</strong> — duotone style for architecture slides</li>
+        <li><strong>Salesforce Lightning Icons</strong> — for record/object slides</li>
+        <li>Minimum icon size: 48px render, scale to slide proportionally</li>
+        <li>Consistent icon weight across all slides (no mixing stroke weights)</li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:700;color:#6B778C;letter-spacing:.5px;margin-bottom:10px;">VIDEO SYNC GUIDANCE</div>
+      <ul style="font-size:13px;line-height:2;color:#172B4D;padding-left:18px;">
+        <li>Slides support the demo video — not a replacement</li>
+        <li>Switch slides at section boundaries in the narration script</li>
+        <li>Hold Slide 4 (use case) during Section 3 admin config flow</li>
+        <li>Switch to Slide 7 (engine) during Section 5 generation narration</li>
+        <li>Slide 10 (outro) stays on screen for entire Section 8 narration</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrapper -->
+</body>
+</html>

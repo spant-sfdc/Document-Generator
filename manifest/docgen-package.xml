@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+
+    <types>
+        <members>DocGen_Controller</members>
+        <members>DocGen_DataResolverService</members>
+        <members>DocGen_DocumentGeneratorService</members>
+        <members>DocGen_Exception</members>
+        <members>DocGen_FileService</members>
+        <members>DocGen_HtmlViewerController</members>
+        <members>DocGen_MergeEngineService</members>
+        <members>DocGen_PdfController</members>
+        <members>DocGen_SchemaService</members>
+        <members>DocGen_SmartTokenResolver</members>
+        <members>DocGen_TemplateService</members>
+        <members>DocGen_VariableResolverService</members>
+        <members>DocGen_Wrappers</members>
+        <name>ApexClass</name>
+    </types>
+
+    <types>
+        <members>DocGen_HtmlViewer</members>
+        <members>DocGen_PdfRenderer</members>
+        <name>ApexPage</name>
+    </types>
+
+    <types>
+        <members>docGenEditButton</members>
+        <members>docGenErrorPanel</members>
+        <members>docGenFieldPickerDual</members>
+        <members>docGenFieldSelector</members>
+        <members>docGenMappingBuilder</members>
+        <members>docGenObjectSelector</members>
+        <members>docGenPreviewDownload</members>
+        <members>docGenProgressBar</members>
+        <members>docGenRecordAction</members>
+        <members>docGenTemplateUpload</members>
+        <members>docGenTokenBadge</members>
+        <members>docGenVariablesPanel</members>
+        <members>docGenWizard</members>
+        <name>LightningComponentBundle</name>
+    </types>
+
+    <types>
+        <members>Document_Template__c</members>
+        <members>Document_Field_Mapping__c</members>
+        <members>Document_Variable__c</members>
+        <members>Document_Generation_Log__c</members>
+        <members>DocGen_Config__mdt</members>
+        <members>Demo_Mode__mdt</members>
+        <name>CustomObject</name>
+    </types>
+
+    <types>
+        <members>DocGen_Config__mdt.Default</members>
+        <members>Demo_Mode__mdt.Donation_Demo</members>
+        <name>CustomMetadata</name>
+    </types>
+
+    <types>
+        <members>Account.Donor_ID__c</members>
+        <members>Account.Donor_Type__c</members>
+        <members>Opportunity.Donation_Type__c</members>
+        <members>Opportunity.Campaign_Name__c</members>
+        <members>Opportunity.Total_Donation__c</members>
+        <members>Opportunity.Is_Major_Donor__c</members>
+        <members>OpportunityLineItem.Contribution_Type__c</members>
+        <name>CustomField</name>
+    </types>
+
+    <types>
+        <members>DocGen_Full_Access</members>
+        <members>DocGen_Demo_Fields</members>
+        <name>PermissionSet</name>
+    </types>
+
+    <types>
+        <members>DocGen_Wizard</members>
+        <name>CustomTab</name>
+    </types>
+
+    <types>
+        <members>DocGen_Document_Generator</members>
+        <name>CustomApplication</name>
+    </types>
+
+    <types>
+        <members>DocGen_Template_Builder_Home</members>
+        <members>DocGen_Wizard_Page</members>
+        <name>FlexiPage</name>
+    </types>
+
+    <version>62.0</version>
+</Package>

@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DocGen — Developer Guide</title>
+<style>
+  :root {
+    --blue:   #0176d3;
+    --navy:   #032d60;
+    --green:  #2e7d32;
+    --amber:  #e65100;
+    --red:    #c62828;
+    --purple: #6a0dad;
+    --bg:     #f3f2f2;
+    --white:  #ffffff;
+    --border: #dddbda;
+    --text:   #181818;
+    --muted:  #444746;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Salesforce Sans', Arial, sans-serif; font-size: 14px;
+         color: var(--text); background: var(--bg); line-height: 1.6; }
+  a { color: var(--blue); }
+  .page { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  .hero { background: linear-gradient(135deg, #032d60 0%, #0176d3 100%);
+          color: #fff; border-radius: 8px; padding: 36px 40px 32px; margin-bottom: 32px; }
+  .hero h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+  .hero .sub { font-size: 14px; opacity: .85; }
+  .badge-row { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  .badge { background: rgba(255,255,255,.18); border-radius: 4px;
+           padding: 3px 10px; font-size: 12px; font-weight: 600; }
+
+  .toc { background: var(--white); border: 1px solid var(--border); border-radius: 8px;
+         padding: 20px 24px; margin-bottom: 32px; }
+  .toc h2 { font-size: 12px; font-weight: 700; text-transform: uppercase;
+             letter-spacing: .08em; color: var(--muted); margin-bottom: 12px; }
+  .toc-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; }
+  .toc ol { padding-left: 18px; }
+  .toc li { margin-bottom: 4px; }
+  .toc a { color: var(--blue); font-size: 13px; }
+
+  .section { background: var(--white); border: 1px solid var(--border); border-radius: 8px;
+             padding: 28px 32px; margin-bottom: 24px; }
+  .section h2 { font-size: 20px; font-weight: 700; color: var(--navy);
+                border-bottom: 2px solid var(--blue); padding-bottom: 8px; margin-bottom: 20px; }
+  .section h3 { font-size: 15px; font-weight: 700; color: var(--navy); margin: 22px 0 8px; }
+  .section h4 { font-size: 13px; font-weight: 700; color: var(--muted);
+                margin: 14px 0 6px; text-transform: uppercase; letter-spacing: .06em; }
+  .section p  { margin-bottom: 12px; }
+  .section ul, .section ol { padding-left: 20px; margin-bottom: 12px; }
+  .section li { margin-bottom: 5px; }
+
+  .callout { border-radius: 6px; padding: 14px 16px; margin: 16px 0;
+             border-left: 4px solid; font-size: 13px; }
+  .callout.tip   { background: #e8f4fd; border-color: var(--blue); }
+  .callout.warn  { background: #fff3e0; border-color: var(--amber); }
+  .callout.info  { background: #e8f5e9; border-color: var(--green); }
+  .callout.note  { background: #f3f0fa; border-color: var(--purple); }
+  .callout strong { display: block; margin-bottom: 4px; }
+
+  code { background: #f4f5f7; border: 1px solid #dfe1e6; border-radius: 4px;
+         padding: 2px 6px; font-family: 'SFMono-Regular', Consolas, monospace;
+         font-size: 12px; color: #172b4d; }
+  pre  { background: #1b2a41; color: #cdd9e5; border-radius: 8px;
+         padding: 16px 20px; font-family: 'SFMono-Regular', Consolas, monospace;
+         font-size: 12px; overflow-x: auto; margin: 12px 0; line-height: 1.7; }
+  pre .kw  { color: #79c0ff; }
+  pre .str { color: #a5d6ff; }
+  pre .cmt { color: #768390; font-style: italic; }
+  pre .cls { color: #e3b341; }
+  pre .met { color: #d2a8ff; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 13px; }
+  th { background: var(--navy); color: #fff; padding: 9px 12px; text-align: left; font-weight: 600; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: #fafafa; }
+
+  /* Architecture diagram */
+  .arch { display: flex; align-items: center; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+  .arch-box { background: var(--navy); color: #fff; border-radius: 6px;
+              padding: 10px 16px; font-size: 12px; font-weight: 700; text-align: center;
+              min-width: 120px; }
+  .arch-box.green { background: var(--green); }
+  .arch-box.blue  { background: var(--blue); }
+  .arch-box.amber { background: var(--amber); }
+  .arch-arrow { font-size: 20px; color: var(--muted); padding: 0 6px; }
+  .arch-sub { font-size: 10px; font-weight: 400; opacity: .8; margin-top: 2px; }
+
+  /* Component table chip */
+  .chip { display: inline-block; background: #e8f4fd; color: var(--blue);
+          border: 1px solid #bee3f8; border-radius: 12px;
+          padding: 1px 8px; font-size: 11px; font-weight: 700; margin-right: 4px; }
+  .chip.apex { background: #fff3e0; color: var(--amber); border-color: #ffd0a0; }
+  .chip.lwc  { background: #e8f5e9; color: var(--green); border-color: #b2dfdb; }
+  .chip.meta { background: #f3f0fa; color: var(--purple); border-color: #d7c9f0; }
+
+  .footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 40px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero">
+    <h1>Document Generation — Developer Guide</h1>
+    <div class="sub">Architecture, data flow, component inventory, and deployment reference for DocGen v2.0</div>
+    <div class="badge-row">
+      <span class="badge">Version 2.0</span>
+      <span class="badge">May 2026</span>
+      <span class="badge">API v62</span>
+      <span class="badge">13 Apex classes</span>
+      <span class="badge">13 LWC components</span>
+    </div>
+  </div>
+
+  <div class="toc">
+    <h2>Contents</h2>
+    <div class="toc-cols">
+      <ol>
+        <li><a href="#architecture">Architecture Overview</a></li>
+        <li><a href="#request-lifecycle">Request Lifecycle</a></li>
+        <li><a href="#token-resolver">Smart Token Resolver</a></li>
+        <li><a href="#merge-engine">Merge Engine</a></li>
+        <li><a href="#variable-engine">Variable Engine</a></li>
+        <li><a href="#data-resolver">Data Resolver</a></li>
+      </ol>
+      <ol start="7">
+        <li><a href="#parent-child-impl">Parent / Child Resolution Implementation</a></li>
+        <li><a href="#components">Component Inventory</a></li>
+        <li><a href="#metadata">Metadata Reference</a></li>
+        <li><a href="#deployment">Deployment Notes</a></li>
+        <li><a href="#security">Security Model</a></li>
+        <li><a href="#extension">Extension Points</a></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- 1. Architecture -->
+  <div class="section" id="architecture">
+    <h2>1. Architecture Overview</h2>
+    <p>DocGen is a pure Salesforce-native platform built on <strong>LWC + Apex</strong>. There are no managed packages, no external services, and no per-document API calls. All logic — template parsing, data resolution, merge, and PDF rendering — runs inside the Salesforce org.</p>
+
+    <h3>Service layer map</h3>
+    <div class="arch">
+      <div class="arch-box">LWC Wizard<div class="arch-sub">docGenWizard</div></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box blue">DocGen_Controller<div class="arch-sub">AuraEnabled entry point</div></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box green">Template Service<div class="arch-sub">upload / extract / save</div></div>
+    </div>
+    <div class="arch">
+      <div class="arch-box">End User LWC<div class="arch-sub">docGenRecordAction</div></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box blue">Controller: generateDocument<div class="arch-sub">orchestrates full pipeline</div></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box amber">DataResolverService<div class="arch-sub">SOQL + flatten</div></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box amber">MergeEngineService<div class="arch-sub">merge + conditionals</div></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box green">FileService → PDF<div class="arch-sub">VF render + save</div></div>
+    </div>
+
+    <h3>Key design principles</h3>
+    <ul>
+      <li><strong>Metadata-driven</strong> — template configs (mappings, variables) are stored as JSON on ContentVersion records; no custom SObjects required for template state.</li>
+      <li><strong>Security-first</strong> — every SOQL uses <code>WITH SECURITY_ENFORCED</code>; schema operations check <code>isAccessible()</code> on every field before including it in a query.</li>
+      <li><strong>Auto-resolve first, manual override</strong> — the SmartTokenResolver auto-matches tokens to fields so admins don't need to map everything manually. Explicit mappings always take priority over auto-resolved ones.</li>
+      <li><strong>Renderer agnostic</strong> — the merge engine produces clean HTML; the VF PDF renderer consumes it. Swapping the renderer requires only changing <code>DocGen_FileService</code>.</li>
+    </ul>
+  </div>
+
+  <!-- 2. Request Lifecycle -->
+  <div class="section" id="request-lifecycle">
+    <h2>2. Request Lifecycle — Document Generation</h2>
+    <p>When an end user clicks <em>Generate Document</em>, the following sequence executes in a single synchronous Apex transaction:</p>
+
+    <ol>
+      <li><strong>LWC calls <code>DocGen_Controller.generateDocument(recordId, templateRecordId)</code></strong><br/>The controller is the single entry point for generation. It loads the template config JSON from the ContentVersion record.</li>
+      <li><strong>Variable resolution — <code>DocGen_VariableResolverService.resolveWithData()</code></strong><br/>System variables (today, currentUser, orgName, EIN, etc.) are resolved first. EXPRESSION-type variables are evaluated against the primary record data loaded in the next step.</li>
+      <li><strong>Data resolution — <code>DocGen_DataResolverService.resolveData()</code></strong><br/>Groups all field mappings by object. Executes one SOQL per object (primary + each unique child). Flattens SObject results into <code>Map&lt;String, Object&gt;</code> for the merge engine. Parent traversal fields are included in the primary SOQL as dot-notation paths (e.g. <code>Account.Name</code>).</li>
+      <li><strong>Template merge — <code>DocGen_MergeEngineService.mergeTemplate()</code></strong><br/>
+        <ul>
+          <li>Injects resolved variable values</li>
+          <li>Expands repeating child sections (<code>{{#RelName}}...{{/RelName}}</code>)</li>
+          <li>Evaluates conditional blocks (<code>{{#if var}}...{{/if}}</code>)</li>
+          <li>Replaces all primary field tokens with their resolved values</li>
+          <li>Applies format overrides (currency, date, upper, lower, number)</li>
+        </ul>
+      </li>
+      <li><strong>PDF rendering — <code>DocGen_FileService</code> → VF page</strong><br/>The merged HTML is passed to <code>DocGen_PdfRenderer</code> (a Visualforce page with <code>renderAs="pdf"</code>). The VF page HTML viewer renders the document and the binary PDF blob is captured.</li>
+      <li><strong>File save — <code>DocGen_FileService.saveDocument()</code></strong><br/>The PDF blob is saved as a new ContentVersion and linked to the originating record via ContentDocumentLink. The ContentDocumentId is returned to the LWC for the download link.</li>
+    </ol>
+  </div>
+
+  <!-- 3. Smart Token Resolver -->
+  <div class="section" id="token-resolver">
+    <h2>3. Smart Token Resolver — <code>DocGen_SmartTokenResolver</code></h2>
+    <p>The SmartTokenResolver parses HTML template content and automatically produces <code>TokenMappingWrapper</code> objects for every unmapped <code>{{token}}</code> it can resolve against the primary object's schema.</p>
+
+    <h3>Public API</h3>
+    <table>
+      <tr><th>Method</th><th>Purpose</th></tr>
+      <tr><td><code>mergeWithAutoResolved(primaryObject, templateHtml, explicitMappings)</code></td><td>Merges auto-resolved mappings with an existing explicit list. Explicit mappings take priority — tokens already covered are skipped.</td></tr>
+      <tr><td><code>resolve(primaryObject, templateHtml, skipKeys)</code></td><td>Pure auto-resolve — produces a mapping list from scratch. Throws <code>DocGen_Exception</code> for tokens that cannot be resolved.</td></tr>
+    </table>
+
+    <h3>Token parsing logic</h3>
+    <p>The parser uses a regex <code>\\{\\{([^{}]+)\\}\\}</code> to extract all tokens and a <strong>section stack</strong> to track which tokens are inside child relationship blocks:</p>
+    <ul>
+      <li><code>{{#RelName}}</code> — pushes <code>RelName</code> onto the section stack; emits a child section mapping</li>
+      <li><code>{{/RelName}}</code> — pops the stack; no mapping emitted</li>
+      <li><code>{{#if ...}}</code> — pushed to stack but treated as a directive, not a child relationship</li>
+      <li><code>{{sys.*}}</code> — skipped entirely (handled by VariableResolverService)</li>
+      <li>All other tokens — resolved based on current stack context</li>
+    </ul>
+
+    <h3>Resolution dispatch</h3>
+    <table>
+      <tr><th>Token pattern</th><th>Resolution path</th></tr>
+      <tr><td><code>{{FieldName}}</code> (no dot, not in section)</td><td>Direct primary field lookup via <code>primaryFieldMap</code></td></tr>
+      <tr><td><code>{{Rel.FieldName}}</code> (contains dot)</td><td>Parent traversal — validates relationship name + final field via describe; sets <code>relationshipPath</code></td></tr>
+      <tr><td><code>{{#SectionName}}</code></td><td>Child section — looks up <code>childRelNameToObj</code>; sets <code>isRepeating=true</code>, <code>repeatObject=childSObjectApiName</code></td></tr>
+      <tr><td><code>{{FieldName}}</code> inside a section</td><td>Child field — looks up <code>childFieldMaps[childObj]</code>; sets <code>isRepeating=true</code>, <code>repeatObject=childObj</code></td></tr>
+    </table>
+
+    <div class="callout note">
+      <strong>Context key deduplication</strong>
+      The resolver uses context keys in the format <code>"childObj|{{token}}"</code> or <code>"__primary__|{{token}}"</code> to avoid emitting duplicate mappings when the same token appears multiple times in the template.
+    </div>
+
+    <h3>Schema model (<code>ObjSchema</code>)</h3>
+    <p>Built once per resolve call via <code>Schema.getGlobalDescribe()</code>. Contains:</p>
+    <ul>
+      <li><code>primaryFieldMap</code> — lowercase field name → API field name (primary object only)</li>
+      <li><code>relNameToRefObject</code> — lowercase relationship name → referenced SObject API name (for parent traversal)</li>
+      <li><code>childRelNameToObj</code> — lowercase child relationship name → child SObject API name</li>
+      <li><code>childFieldMaps</code> — child SObject API name → (lowercase → API field name)</li>
+    </ul>
+  </div>
+
+  <!-- 4. Merge Engine -->
+  <div class="section" id="merge-engine">
+    <h2>4. Merge Engine — <code>DocGen_MergeEngineService</code></h2>
+    <p>The merge engine takes the resolved data maps and the template HTML and produces the final merged HTML in a single pass. It processes content in a strict order to ensure correctness.</p>
+
+    <h3>Merge order</h3>
+    <ol>
+      <li><strong>Variable injection</strong> — all <code>{{varName}}</code> and <code>{{sys.varName}}</code> tokens replaced with their resolved values from <code>resolvedVariables</code> map.</li>
+      <li><strong>Repeating section expansion</strong> — child sections detected with regex <code>\\{\\{#([a-zA-Z0-9_]+)\\}\\}([\\s\\S]*?)\\{\\{/\\1\\}\\}</code>. For each section, <code>getSectionMappings()</code> retrieves the child field mappings; the row template is cloned and field-merged once per child record.</li>
+      <li><strong>Conditional block evaluation</strong> — <code>{{#if varName}}...{{/if}}</code> blocks evaluated against a combined data map (primary fields + resolved variables). Block is retained if the variable is truthy, removed if falsy.</li>
+      <li><strong>Primary field replacement</strong> — all non-repeating token mappings iterated; each token replaced with the value extracted from <code>primaryData</code> via <code>sourceField</code> or <code>relationshipPath</code>. Format override applied if set.</li>
+    </ol>
+
+    <h3>Format override implementation</h3>
+    <p><code>applyFormat(rawValue, formatOverride)</code> parses the override as <code>type:param</code>:</p>
+    <pre><span class="kw">if</span> (fType == <span class="str">'currency'</span>)  → <span class="str">'$'</span> + Decimal.valueOf(rawValue).setScale(2)
+<span class="kw">if</span> (fType == <span class="str">'date'</span>)      → Datetime.format(fParam)   <span class="cmt">// e.g. 'MM/dd/yyyy'</span>
+<span class="kw">if</span> (fType == <span class="str">'number'</span>)    → Decimal.setScale(Integer.valueOf(fParam))
+<span class="kw">if</span> (fType == <span class="str">'upper'</span>)     → rawValue.toUpperCase()
+<span class="kw">if</span> (fType == <span class="str">'lower'</span>)     → rawValue.toLowerCase()</pre>
+
+    <h3>Child section field resolution — getSectionMappings()</h3>
+    <p>The method resolves the effective child SObject API name by looking up the section's structural marker (the <code>{{#RelName}}</code> token with no <code>sourceField</code>). It then collects field mappings using two strategies:</p>
+    <ul>
+      <li><strong>Primary</strong>: <code>isRepeating == true</code> AND <code>repeatObject == effectiveObj</code></li>
+      <li><strong>Fallback</strong>: <code>sourceObject == effectiveObj</code> (handles mappings with blank <code>repeatObject</code>)</li>
+    </ul>
+
+    <h3>Truthiness evaluation</h3>
+    <p><code>isTruthy(Object val)</code>: returns <code>false</code> for <code>null</code>, Boolean <code>false</code>, string <code>"false"</code>, string <code>"0"</code>, empty string, or string <code>"null"</code>. Returns <code>true</code> for everything else including Boolean <code>true</code> and any non-empty, non-zero string.</p>
+  </div>
+
+  <!-- 5. Variable Engine -->
+  <div class="section" id="variable-engine">
+    <h2>5. Variable Engine — <code>DocGen_VariableResolverService</code></h2>
+
+    <h3>Resolution methods</h3>
+    <table>
+      <tr><th>Method</th><th>Description</th></tr>
+      <tr><td><code>resolve(variables)</code></td><td>Resolves all non-EXPRESSION variable types. Also pre-populates system variables (today, currentUser, orgName, EIN, address, phone, website, userEmail) from UserInfo and <code>DocGen_Config__mdt</code>.</td></tr>
+      <tr><td><code>resolveWithData(variables, primaryData)</code></td><td>Calls <code>resolve()</code> first, then processes EXPRESSION and BOOLEAN types by evaluating the expression string against the primary record data map.</td></tr>
+    </table>
+
+    <h3>System variable sources</h3>
+    <table>
+      <tr><th>Variable key</th><th>Source</th><th>CMT override?</th></tr>
+      <tr><td>today</td><td><code>Date.today().format()</code></td><td>No</td></tr>
+      <tr><td>currentUser</td><td><code>UserInfo.getName()</code></td><td>No</td></tr>
+      <tr><td>userEmail</td><td><code>UserInfo.getUserEmail()</code></td><td>No</td></tr>
+      <tr><td>orgName</td><td><code>UserInfo.getOrganizationName()</code></td><td>Yes — <code>Org_Display_Name__c</code></td></tr>
+      <tr><td>orgEIN</td><td>—</td><td>Yes — <code>Org_EIN__c</code></td></tr>
+      <tr><td>orgAddress</td><td>—</td><td>Yes — <code>Org_Address__c</code></td></tr>
+      <tr><td>orgPhone</td><td>—</td><td>Yes — <code>Org_Phone__c</code></td></tr>
+      <tr><td>orgWebsite</td><td>—</td><td>Yes — <code>Org_Website__c</code></td></tr>
+    </table>
+
+    <h3>Expression evaluation</h3>
+    <p><code>evaluateExpression(expr, data)</code> splits the expression string on the first operator found (tried in order: <code>&gt;=</code>, <code>&lt;=</code>, <code>!=</code>, <code>==</code>, <code>&gt;</code>, <code>&lt;</code>). Left-hand side is used as a key to look up a value in the primary data map. Right-hand side is compared numerically if both sides parse as <code>Decimal</code>, or as strings otherwise. The special value <code>null</code> on the right-hand side is supported for <code>==</code> and <code>!=</code> only.</p>
+
+    <div class="callout warn">
+      <strong>Expression evaluation order dependency</strong>
+      <code>resolveWithData()</code> receives the primary data map from <code>DataResolverService</code>, which is populated first. EXPRESSION variables cannot reference other variables — only primary object field values.
+    </div>
+  </div>
+
+  <!-- 6. Data Resolver -->
+  <div class="section" id="data-resolver">
+    <h2>6. Data Resolver — <code>DocGen_DataResolverService</code></h2>
+    <p>Responsible for converting the token mapping list into live Salesforce data. Executes one SOQL query per unique object (primary + each child SObject), then flattens results into <code>Map&lt;String, Object&gt;</code> for the merge engine.</p>
+
+    <h3>SOQL construction strategy</h3>
+    <ul>
+      <li>Groups mappings by object using <code>groupFieldsByObject()</code>.</li>
+      <li>Parent traversal fields (those with a <code>relationshipPath</code>) are added to the <em>primary</em> object's SOQL as dot-notation paths, e.g. <code>SELECT Account.Name, Account.BillingCity FROM Opportunity WHERE Id = :recordId</code>.</li>
+      <li>Child object SOQLs are built dynamically: <code>SELECT [fields] FROM [childObj] WHERE [lookupField] = :recordId WITH SECURITY_ENFORCED LIMIT [maxRows]</code>.</li>
+      <li>The parent lookup field is discovered at runtime via <code>getParentLookupField()</code>, which iterates all REFERENCE fields on the child SObject to find one that references the parent object.</li>
+    </ul>
+
+    <h3>Field validation — buildFieldList()</h3>
+    <p>Before including any field in a SOQL query, <code>buildFieldList()</code> checks:</p>
+    <ul>
+      <li>For simple fields: field exists in <code>Schema.getGlobalDescribe()</code> field map AND <code>isAccessible() == true</code></li>
+      <li>For traversal paths: <code>validateTraversalPath()</code> walks each relationship segment by matching <code>getRelationshipName()</code> (not the field API name) and confirms the final field is accessible</li>
+    </ul>
+
+    <h3>Record flattening — flattenRecord()</h3>
+    <p>Uses <code>SObject.getPopulatedFieldsAsMap()</code> (not <code>SObject.get()</code>) to avoid <code>SObjectException: Invalid field</code> on relationship keys. Nested SObject values (parent traversals returned by SOQL) are recursively flattened with dot-notation keys, e.g. <code>{"Account.Name": "Robert Thomas Foundation"}</code>.</p>
+
+    <h3>Child section key</h3>
+    <p>Child results are stored in <code>childRecords</code> keyed by the <em>section name as used in the template</em> (e.g. <code>"OpportunityLineItems"</code>), not by the SObject API name. This allows the merge engine to look up child data using the same relationship name from the template token.</p>
+  </div>
+
+  <!-- 7. Parent/Child Implementation -->
+  <div class="section" id="parent-child-impl">
+    <h2>7. Parent / Child Resolution Implementation</h2>
+
+    <h3>Parent traversal path handling</h3>
+    <p>A parent traversal token (<code>{{Account.Name}}</code>) flows through the system as follows:</p>
+    <ol>
+      <li><strong>SmartTokenResolver</strong>: detects the dot, splits on first dot, looks up the relationship name in <code>relNameToRefObject</code>, validates the final field on the referenced object, then sets <code>m.relationshipPath = "Account.Name"</code>.</li>
+      <li><strong>DataResolverService</strong>: adds <code>"Account.Name"</code> to the primary object's field list. Generates SOQL: <code>SELECT Account.Name FROM Opportunity WHERE Id = :recordId</code>.</li>
+      <li><strong>flattenRecord()</strong>: the SOQL result contains a nested Account SObject. Flattening produces <code>{"Account.Name": "Robert Thomas Foundation"}</code>.</li>
+      <li><strong>MergeEngineService.extractValueFromData()</strong>: uses <code>mapping.relationshipPath</code> as the key to look up <code>"Account.Name"</code> in the flat data map.</li>
+    </ol>
+
+    <h3>Child repeating section handling</h3>
+    <ol>
+      <li><strong>Template</strong>: <code>{{#OpportunityLineItems}}...{{/OpportunityLineItems}}</code></li>
+      <li><strong>SmartTokenResolver</strong>: emits a structural marker mapping (<code>token="{{#OpportunityLineItems}}"</code>, <code>repeatObject="OpportunityLineItem"</code>, <code>sourceField=null</code>).</li>
+      <li><strong>DataResolverService</strong>: detects <code>isRepeating=true</code>, executes <code>SELECT [fields] FROM OpportunityLineItem WHERE OpportunityId = :recordId</code>, stores result as <code>childRecords["OpportunityLineItems"]</code>.</li>
+      <li><strong>MergeEngineService.processRepeatingSections()</strong>: matches the section name, retrieves rows, clones the row template, merges each row's field values, concatenates all rows, replaces the full <code>{{#...}}...{{/...}}</code> block with the expanded HTML.</li>
+    </ol>
+    <div class="callout note">
+      <strong>Section name vs SObject API name</strong>
+      The template uses the child <em>relationship name</em> (<code>OpportunityLineItems</code>) but the child SObject API name is <code>OpportunityLineItem</code> (singular). The structural marker's <code>repeatObject</code> field bridges this distinction. <code>getSectionMappings()</code> resolves the effective SObject name from the marker before collecting field mappings.
+    </div>
+  </div>
+
+  <!-- 8. Component Inventory -->
+  <div class="section" id="components">
+    <h2>8. Component Inventory</h2>
+
+    <h3>Apex classes</h3>
+    <table>
+      <tr><th>Class</th><th>Role</th><th>Access</th></tr>
+      <tr><td><code>DocGen_Controller</code></td><td>AuraEnabled entry point for all LWC → Apex calls. Orchestrates the generation pipeline.</td><td><code>with sharing</code></td></tr>
+      <tr><td><code>DocGen_SmartTokenResolver</code></td><td>Parses HTML templates and auto-resolves token-to-field mappings using schema introspection.</td><td><code>with sharing</code></td></tr>
+      <tr><td><code>DocGen_MergeEngineService</code></td><td>Merges primaryData + childData + resolvedVariables into the template HTML. Handles sections, conditionals, format overrides.</td><td>Public (no sharing)</td></tr>
+      <tr><td><code>DocGen_DataResolverService</code></td><td>Builds and executes SOQL queries for primary and child records. Flattens SObject results to flat maps.</td><td><code>with sharing</code></td></tr>
+      <tr><td><code>DocGen_VariableResolverService</code></td><td>Resolves all variable types including EXPRESSION evaluation against live record data.</td><td><code>with sharing</code></td></tr>
+      <tr><td><code>DocGen_TemplateService</code></td><td>Uploads, extracts tokens from, and saves configuration to ContentVersion records.</td><td><code>with sharing</code></td></tr>
+      <tr><td><code>DocGen_SchemaService</code></td><td>Schema describe utilities — object search, field list, child/parent relationship lookup, object name validation (SOQL injection guard).</td><td><code>with sharing</code></td></tr>
+      <tr><td><code>DocGen_FileService</code></td><td>Saves generated PDF blobs as ContentVersion + ContentDocumentLink records on the originating record.</td><td><code>with sharing</code></td></tr>
+      <tr><td><code>DocGen_DocumentGeneratorService</code></td><td>Top-level generation orchestrator called by the controller. Calls DataResolver → VariableResolver → MergeEngine → FileService in sequence.</td><td><code>with sharing</code></td></tr>
+      <tr><td><code>DocGen_PdfController</code></td><td>Visualforce controller for <code>DocGen_PdfRenderer</code> page. Receives merged HTML via page state and serves it for PDF rendering.</td><td><code>with sharing</code></td></tr>
+      <tr><td><code>DocGen_HtmlViewerController</code></td><td>Visualforce controller for <code>DocGen_HtmlViewer</code> page. Serves preview HTML in an iframe within the LWC wizard.</td><td><code>with sharing</code></td></tr>
+      <tr><td><code>DocGen_Wrappers</code></td><td>Inner class library. Defines all data transfer objects: <code>TokenMappingWrapper</code>, <code>DocumentVariableWrapper</code>, <code>TemplateConfigWrapper</code>, <code>DocumentResponseWrapper</code>, etc.</td><td>Public</td></tr>
+      <tr><td><code>DocGen_Exception</code></td><td>Custom exception class for DocGen-specific errors. Thrown on invalid object names, unresolvable tokens, and configuration failures.</td><td>Public</td></tr>
+    </table>
+
+    <h3>LWC components</h3>
+    <table>
+      <tr><th>Component</th><th>Role</th><th>Exposed on</th></tr>
+      <tr><td><code>docGenWizard</code></td><td>5-step template configuration wizard. Orchestrates all admin-facing sub-components. Manages wizard state and step navigation.</td><td>FlexiPage (Template Builder Home)</td></tr>
+      <tr><td><code>docGenTemplateUpload</code></td><td>File upload step — drag-and-drop HTML file input, calls <code>uploadTemplate</code> and <code>extractTokens</code>.</td><td>Child of docGenWizard</td></tr>
+      <tr><td><code>docGenObjectSelector</code></td><td>Object search and selection. Calls <code>searchObjects</code>. Emits selected object API name upstream.</td><td>Child of docGenWizard</td></tr>
+      <tr><td><code>docGenMappingBuilder</code></td><td>Token mapping UI. Renders one row per token with type picker, object/field selectors, format override input, and auto-fill trigger.</td><td>Child of docGenWizard</td></tr>
+      <tr><td><code>docGenFieldSelector</code></td><td>Single field selector dropdown. Calls <code>getFields(objectName)</code> and displays the result.</td><td>Child of docGenMappingBuilder</td></tr>
+      <tr><td><code>docGenFieldPickerDual</code></td><td>Dual-panel field picker for repeating child section configuration — shows child object fields alongside primary object fields.</td><td>Child of docGenMappingBuilder</td></tr>
+      <tr><td><code>docGenVariablesPanel</code></td><td>Variable configuration UI. Allows adding EXPRESSION, IMAGE, system, and static variable types with a name and value/expression input.</td><td>Child of docGenWizard</td></tr>
+      <tr><td><code>docGenPreviewDownload</code></td><td>Preview and download step. Calls <code>generateDocument</code>, renders the HTML preview in an iframe, and exposes the Download PDF button.</td><td>Child of docGenWizard</td></tr>
+      <tr><td><code>docGenProgressBar</code></td><td>Step indicator bar. Displays current wizard step, highlights completed steps, allows backward navigation.</td><td>Child of docGenWizard</td></tr>
+      <tr><td><code>docGenRecordAction</code></td><td>End-user generation button. Placed on record page layouts. Launches generation modal with template selector, progress feedback, inline PDF preview, and download.</td><td>Record page (any object)</td></tr>
+      <tr><td><code>docGenTokenBadge</code></td><td>Renders a single <code>{{token}}</code> as a visual chip/badge. Used in the mapping builder to display the token name prominently.</td><td>Child of docGenMappingBuilder</td></tr>
+      <tr><td><code>docGenEditButton</code></td><td>Inline edit trigger for existing template configurations. Opens the wizard in edit mode pre-populated with saved mappings and variables.</td><td>Template list / record page</td></tr>
+      <tr><td><code>docGenErrorPanel</code></td><td>Standardised error display panel. Renders Apex AuraHandledException messages with icon and retry guidance.</td><td>Child of all major components</td></tr>
+    </table>
+
+    <h3>Visualforce pages</h3>
+    <table>
+      <tr><th>Page</th><th>Controller</th><th>Purpose</th></tr>
+      <tr><td><code>DocGen_PdfRenderer</code></td><td><code>DocGen_PdfController</code></td><td>Renders merged HTML as PDF using Salesforce native <code>renderAs="pdf"</code>. Called internally by <code>DocGen_FileService</code>.</td></tr>
+      <tr><td><code>DocGen_HtmlViewer</code></td><td><code>DocGen_HtmlViewerController</code></td><td>Serves merged HTML for inline browser preview in the wizard's Preview step. Loaded in an iframe by <code>docGenPreviewDownload</code>.</td></tr>
+    </table>
+  </div>
+
+  <!-- 9. Metadata Reference -->
+  <div class="section" id="metadata">
+    <h2>9. Metadata Reference</h2>
+
+    <h3>Custom Metadata Types</h3>
+    <h4>DocGen_Config__mdt</h4>
+    <p>Singleton configuration record (DeveloperName = <code>Default</code>). Drives org-level DocGen behaviour.</p>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Purpose</th></tr>
+      <tr><td><code>Org_Display_Name__c</code></td><td>Text</td><td>Overrides <code>{{sys.orgName}}</code> (e.g. legal organisation name for letterhead)</td></tr>
+      <tr><td><code>Org_EIN__c</code></td><td>Text</td><td>Employer Identification Number for <code>{{sys.orgEIN}}</code></td></tr>
+      <tr><td><code>Org_Address__c</code></td><td>Text Area</td><td>Organisation mailing address for <code>{{sys.orgAddress}}</code></td></tr>
+      <tr><td><code>Org_Phone__c</code></td><td>Text</td><td>Organisation phone for <code>{{sys.orgPhone}}</code></td></tr>
+      <tr><td><code>Org_Website__c</code></td><td>Text</td><td>Organisation website for <code>{{sys.orgWebsite}}</code></td></tr>
+      <tr><td><code>Default_Date_Format__c</code></td><td>Text</td><td>Default Java date format string (e.g. <code>MM/dd/yyyy</code>)</td></tr>
+      <tr><td><code>Max_Repeating_Rows__c</code></td><td>Number</td><td>Maximum child rows per section. Default: 200.</td></tr>
+      <tr><td><code>PDF_Page_Size__c</code></td><td>Text</td><td>Visualforce PDF page size attribute (e.g. <code>A4</code>, <code>Letter</code>)</td></tr>
+    </table>
+
+    <h4>Demo_Mode__mdt</h4>
+    <p>Controls the Demo Mode feature — pre-populates wizard mappings and variables for fast demo setup.</p>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Purpose</th></tr>
+      <tr><td><code>Is_Enabled__c</code></td><td>Checkbox</td><td>Toggle demo mode on/off. Only the first enabled record is used.</td></tr>
+      <tr><td><code>Scenario_Name__c</code></td><td>Text</td><td>Display label for the demo scenario shown in the wizard</td></tr>
+      <tr><td><code>Auto_Mapping_JSON__c</code></td><td>Long Text</td><td>JSON array of <code>TokenMappingWrapper</code> objects pre-loaded into the mapping step</td></tr>
+      <tr><td><code>Auto_Variables_JSON__c</code></td><td>Long Text</td><td>JSON array of <code>DocumentVariableWrapper</code> objects pre-loaded into the variables step</td></tr>
+    </table>
+
+    <h3>Permission Sets</h3>
+    <table>
+      <tr><th>Permission Set</th><th>Grants</th><th>Assign to</th></tr>
+      <tr><td><code>DocGen_Full_Access</code></td><td>Read/Create/Edit on ContentVersion, ContentDocument, ContentDocumentLink. Access to all DocGen LWC components, Apex classes, VF pages, tabs, and app.</td><td>All users who administer or generate documents</td></tr>
+      <tr><td><code>DocGen_Demo_Fields</code></td><td>FLS Read/Edit on custom demo fields: <code>Account.Donor_ID__c</code>, <code>Account.Donor_Type__c</code>, <code>Opportunity.Campaign_Name__c</code>, <code>Opportunity.Donation_Type__c</code>, <code>Opportunity.Total_Donation__c</code>, <code>Opportunity.Is_Major_Donor__c</code>, <code>OpportunityLineItem.Contribution_Type__c</code>.</td><td>Users demonstrating the DocGen nonprofit scenario</td></tr>
+    </table>
+
+    <h3>Custom fields (demo scenario)</h3>
+    <table>
+      <tr><th>Object</th><th>Field API Name</th><th>Type</th><th>Purpose</th></tr>
+      <tr><td>Account</td><td><code>Donor_ID__c</code></td><td>Text(20)</td><td>Unique donor identifier (e.g. DON-2026-RTF-001)</td></tr>
+      <tr><td>Account</td><td><code>Donor_Type__c</code></td><td>Picklist</td><td>Individual / Corporate / Foundation / Government</td></tr>
+      <tr><td>Account</td><td><code>Preferred_Contact_Method__c</code></td><td>Picklist</td><td>Email / Phone / Mail</td></tr>
+      <tr><td>Opportunity</td><td><code>Campaign_Name__c</code></td><td>Text(100)</td><td>Free-text campaign name for the donation</td></tr>
+      <tr><td>Opportunity</td><td><code>Donation_Type__c</code></td><td>Picklist</td><td>Grant / In-Kind / Recurring / One-Time</td></tr>
+      <tr><td>Opportunity</td><td><code>Total_Donation__c</code></td><td>Currency</td><td>Total donation amount (may be set independently of Amount)</td></tr>
+      <tr><td>Opportunity</td><td><code>Is_Major_Donor__c</code></td><td>Formula (Boolean)</td><td>Auto-calculated formula. Used as variable for conditional sections.</td></tr>
+      <tr><td>OpportunityLineItem</td><td><code>Contribution_Type__c</code></td><td>Text(100)</td><td>Free-text label for the contribution category (e.g. Annual Fund)</td></tr>
+    </table>
+  </div>
+
+  <!-- 10. Deployment -->
+  <div class="section" id="deployment">
+    <h2>10. Deployment Notes</h2>
+
+    <h3>Full deployment (first-time)</h3>
+    <pre><span class="cmt"># Deploy all DocGen components</span>
+sf project deploy start --manifest manifest/docgen-package.xml --target-org &lt;alias&gt;
+
+<span class="cmt"># If custom fields fail due to PermissionSet dependency, deploy fields first</span>
+sf project deploy start --manifest manifest/docgen-fields-only.xml --target-org &lt;alias&gt;
+sf project deploy start --manifest manifest/docgen-package.xml --target-org &lt;alias&gt;</pre>
+
+    <h3>Package manifest contents (<code>docgen-package.xml</code>)</h3>
+    <ul>
+      <li>13 Apex classes (<code>DocGen_*</code>)</li>
+      <li>13 LWC components (<code>docGen*</code>)</li>
+      <li>2 Custom Metadata Types (<code>DocGen_Config__mdt</code>, <code>Demo_Mode__mdt</code>)</li>
+      <li>1 Custom Metadata record (<code>DocGen_Config__mdt.Default</code>)</li>
+      <li>6 Custom Objects / Platform Events (DocGenerationBatchProcess, DocGenerationQueryResult, DocumentGenerationProcess fields)</li>
+      <li>7 Custom Fields (across Account, Opportunity, OpportunityLineItem)</li>
+      <li>2 Permission Sets (<code>DocGen_Full_Access</code>, <code>DocGen_Demo_Fields</code>)</li>
+      <li>2 Visualforce Pages (<code>DocGen_PdfRenderer</code>, <code>DocGen_HtmlViewer</code>)</li>
+      <li>1 Custom Tab (<code>DocGen_Wizard</code>)</li>
+      <li>1 Custom App (<code>DocGen_Document_Generator</code>)</li>
+      <li>2 FlexiPages (<code>DocGen_Template_Builder_Home</code>, <code>DocGen_Wizard_Page</code>)</li>
+    </ul>
+
+    <h3>Post-deployment setup checklist</h3>
+    <ol>
+      <li>Assign <code>DocGen_Full_Access</code> to all DocGen users via Setup → Permission Sets</li>
+      <li>Assign <code>DocGen_Demo_Fields</code> to demo / admin users</li>
+      <li>Open <code>DocGen_Config__mdt</code> in Setup → Custom Metadata Types → Manage Records and populate <code>Org_Display_Name__c</code>, <code>Org_EIN__c</code>, <code>Org_Address__c</code>, <code>Org_Phone__c</code>, and <code>Org_Website__c</code></li>
+      <li>Add the <code>DocGen_Wizard_Page</code> or <code>DocGen_Template_Builder_Home</code> flexipage to the relevant Lightning App pages via App Builder</li>
+      <li>Add the <code>docGenRecordAction</code> LWC component to the record page layout of your primary object(s) via Lightning App Builder</li>
+      <li>Run the demo data Apex script (<code>scripts/create-demo-records-foundation.apex</code>) in the target org to create the Robert Thomas Foundation scenario</li>
+    </ol>
+
+    <h3>Common deployment failures</h3>
+    <table>
+      <tr><th>Error</th><th>Cause</th><th>Fix</th></tr>
+      <tr><td><code>No CustomField named Account.Donor_ID__c found</code></td><td>PermissionSet references a field that hasn't been deployed yet</td><td>Deploy fields first with <code>docgen-fields-only.xml</code>, then redeploy the full package</td></tr>
+      <tr><td><code>DocGen_Demo_Fields: field not visible</code></td><td>FLS not granted to running user after deployment</td><td>Assign <code>DocGen_Demo_Fields</code> perm set to the user</td></tr>
+      <tr><td>VF page compile error</td><td>Apex controller referenced in VF page not yet deployed</td><td>Ensure all Apex classes are in the manifest and deploy as a single unit</td></tr>
+    </table>
+  </div>
+
+  <!-- 11. Security -->
+  <div class="section" id="security">
+    <h2>11. Security Model</h2>
+
+    <h3>SOQL security</h3>
+    <p>All dynamic SOQL queries in <code>DocGen_DataResolverService</code> use <code>WITH SECURITY_ENFORCED</code>. If any field in the SELECT clause is inaccessible to the running user, Salesforce throws a <code>System.QueryException</code> — DocGen surfaces this as a user-visible error rather than silently omitting the field.</p>
+
+    <h3>Schema validation (SOQL injection guard)</h3>
+    <p><code>DocGen_SchemaService.validateObjectName()</code> is called before every dynamic SOQL construction. It verifies the supplied object name exists in <code>Schema.getGlobalDescribe()</code>. This prevents SOQL injection via crafted object name strings passed from the LWC.</p>
+
+    <h3>Field-level security</h3>
+    <p><code>buildFieldList()</code> checks <code>isAccessible()</code> on every field before including it in a query. Fields that fail the check are silently excluded from the field list rather than throwing, to prevent template generation from failing when a user lacks access to optional fields.</p>
+
+    <h3>Sharing model</h3>
+    <p>All Apex classes use <code>with sharing</code> except <code>DocGen_MergeEngineService</code> (pure string manipulation, no data access) and <code>DocGen_Wrappers</code> (data transfer objects only). Record-level sharing rules are therefore enforced for all data reads.</p>
+
+    <h3>ContentVersion access</h3>
+    <p>Template HTML files and generated PDFs are stored as Salesforce Files (ContentVersion). Access is governed by standard Salesforce file sharing — the running user must have access to the record the file is linked to. <code>DocGen_Full_Access</code> grants the Create permission on ContentVersion needed to upload templates and save generated PDFs.</p>
+  </div>
+
+  <!-- 12. Extension Points -->
+  <div class="section" id="extension">
+    <h2>12. Extension Points</h2>
+
+    <h3>Adding a new variable type</h3>
+    <ol>
+      <li>Add a new <code>when</code> branch in <code>DocGen_VariableResolverService.resolve()</code> for the new type string.</li>
+      <li>Add the type option to the <code>docGenVariablesPanel</code> LWC type picklist.</li>
+      <li>If the type requires runtime data (like EXPRESSION), handle it in <code>resolveWithData()</code> instead of <code>resolve()</code>.</li>
+    </ol>
+
+    <h3>Adding a new format override</h3>
+    <p>Add a new <code>if (fType == '...')</code> branch in <code>DocGen_MergeEngineService.applyFormat()</code>. No other changes are needed — the format string is stored in the mapping config and applied at merge time.</p>
+
+    <h3>Replacing the PDF renderer</h3>
+    <p>All PDF rendering is isolated in <code>DocGen_FileService</code> and the two VF pages. To replace the Visualforce renderer (e.g. with a third-party API), modify only <code>DocGen_FileService</code>. The merge engine, token resolver, and data resolver are completely decoupled from the rendering mechanism.</p>
+
+    <h3>Supporting multi-hop parent traversal</h3>
+    <p>Currently, <code>DocGen_SmartTokenResolver.resolveParentTraversal()</code> handles single-hop only (one dot in the token, e.g. <code>{{Account.Name}}</code>). Multi-hop (e.g. <code>{{Account.Owner.Name}}</code>) would require extending <code>validateTraversalPath()</code> in <code>DocGen_DataResolverService</code> and the field list builder to support deeper relationship paths.</p>
+
+    <h3>Demo Mode extension</h3>
+    <p>The <code>Demo_Mode__mdt</code> CMT allows pre-seeding a wizard session with a complete set of mappings and variables. To add a new scenario, create a new CMT record with <code>Is_Enabled__c = true</code> (only one record should be enabled at a time) and populate <code>Auto_Mapping_JSON__c</code> and <code>Auto_Variables_JSON__c</code> with serialised JSON matching the wrapper schemas.</p>
+  </div>
+
+  <div class="footer">
+    DocGen Developer Guide · v2.0 · May 2026 · Internal use only
+  </div>
+</div>
+</body>
+</html>

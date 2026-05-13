@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>Account.Donor_ID__c</members>
+        <members>Account.Donor_Type__c</members>
+        <members>Opportunity.Campaign_Name__c</members>
+        <members>Opportunity.Donation_Type__c</members>
+        <members>Opportunity.Total_Donation__c</members>
+        <members>Opportunity.Is_Major_Donor__c</members>
+        <members>OpportunityLineItem.Contribution_Type__c</members>
+        <name>CustomField</name>
+    </types>
+    <version>62.0</version>
+</Package>

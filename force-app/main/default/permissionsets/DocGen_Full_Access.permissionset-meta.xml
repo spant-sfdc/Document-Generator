@@ -205,6 +205,10 @@
         <apexClass>DocGen_HtmlViewerController</apexClass>
         <enabled>true</enabled>
     </classAccesses>
+    <classAccesses>
+        <apexClass>DocGen_SmartTokenResolver</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
 
     <!-- ── Visualforce Page Access ── -->
     <pageAccesses>

@@ -49,15 +49,13 @@ public with sharing class DocGen_DocumentGeneratorService {
     }
 
     /**
+     * @deprecated PDF generation has moved to the client-side PDF-LIB engine
+     * (c/pdfGenerationEngine). PdfGenerationController.savePdf() handles storage.
+     * This method remains for backward compatibility but is no longer called
+     * by the DocGen LWC. Will be removed in a future release.
+     *
      * Generates a PDF by passing a committed ContentVersion ID as a tiny
      * URL parameter to the DocGen_PdfRenderer VF page.
-     *
-     * The ContentVersion must have been inserted (and committed) in a prior
-     * @AuraEnabled call. getContentAsPDF() fires a separate internal HTTP
-     * request — DML in the current transaction is not yet committed, making
-     * a same-transaction ContentVersion invisible to the VF controller.
-     * Splitting into two transactions (storeMergedHtml → generatePdfFromCv)
-     * solves this without relying on Platform Cache.
      */
     public static Blob generatePdfFromCv(String cvId) {
         if (String.isBlank(cvId)) {

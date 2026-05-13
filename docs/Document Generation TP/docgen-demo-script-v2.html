@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DocGen — Professional Demo Script v2</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #1a1a2e; margin: 0; padding: 0; background: #f7f8fc; }
+
+  /* ── Header ── */
+  .doc-header { background: linear-gradient(135deg, #0052CC 0%, #003884 100%); color: #fff; padding: 40px 48px 36px; }
+  .doc-header h1 { font-size: 28px; margin: 0 0 6px; font-weight: 700; letter-spacing: -0.3px; }
+  .doc-header .meta { font-size: 13px; opacity: 0.8; }
+  .doc-header .meta span { margin-right: 24px; }
+
+  /* ── Layout ── */
+  .wrapper { max-width: 1100px; margin: 0 auto; padding: 32px 24px 60px; }
+
+  /* ── Section header ── */
+  .section { margin-bottom: 48px; }
+  .section-title {
+    font-size: 18px; font-weight: 700; color: #0052CC;
+    border-bottom: 2px solid #0052CC; padding-bottom: 8px; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #0052CC; color: #fff; border-radius: 50%;
+    width: 28px; height: 28px; font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+
+  /* ── Card blocks ── */
+  .card { border-radius: 6px; padding: 18px 22px; margin-bottom: 16px; }
+  .narration {
+    background: #E8F4FD; border-left: 4px solid #0079BF;
+  }
+  .narration::before {
+    content: "🎙 NARRATION"; display: block; font-size: 10px; font-weight: 700;
+    color: #0052CC; letter-spacing: 1px; margin-bottom: 10px;
+  }
+  .narration p { margin: 0 0 10px; line-height: 1.8; font-size: 14px; color: #172B4D; }
+  .narration p:last-child { margin-bottom: 0; }
+
+  .actions {
+    background: #E3FCEF; border-left: 4px solid #00875A;
+  }
+  .actions::before {
+    content: "🖱 SCREEN ACTIONS"; display: block; font-size: 10px; font-weight: 700;
+    color: #00875A; letter-spacing: 1px; margin-bottom: 10px;
+  }
+  .actions ol, .actions ul { margin: 0; padding-left: 20px; line-height: 2.1; color: #172B4D; }
+  .actions li { font-size: 13.5px; }
+  .actions .pause { color: #FF8B00; font-weight: 700; }
+  .actions .click { color: #00875A; font-weight: 600; }
+  .actions .hover { color: #6554C0; }
+
+  .timing {
+    background: #FFF7E6; border-left: 4px solid #FF8B00;
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .timing::before {
+    content: "⏱ TIMING"; display: block; font-size: 10px; font-weight: 700;
+    color: #974F0C; letter-spacing: 1px; margin-bottom: 6px;
+  }
+  .timing-body { flex: 1; }
+  .timing-body p { margin: 0; color: #3D2B00; font-size: 13.5px; line-height: 1.8; }
+  .t-label { font-weight: 700; color: #974F0C; }
+
+  .transition {
+    background: #F4F0FF; border-left: 4px solid #6554C0;
+  }
+  .transition::before {
+    content: "➜ TRANSITION"; display: block; font-size: 10px; font-weight: 700;
+    color: #403294; letter-spacing: 1px; margin-bottom: 8px;
+  }
+  .transition p { margin: 0; color: #2B1E6B; font-size: 13.5px; line-height: 1.8; }
+
+  /* ── Subsection ── */
+  .sub { margin-bottom: 28px; }
+  .sub-title {
+    font-size: 14px; font-weight: 700; color: #253858;
+    background: #F4F5F7; border-radius: 4px; padding: 6px 12px;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .sub-badge {
+    background: #DFE1E6; color: #42526E; border-radius: 3px;
+    padding: 2px 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+  }
+
+  /* ── Checklist ── */
+  .checklist { list-style: none; padding: 0; margin: 0; }
+  .checklist li {
+    padding: 8px 12px 8px 36px; position: relative;
+    border-bottom: 1px solid #DFE1E6; font-size: 13.5px; color: #172B4D;
+    line-height: 1.6;
+  }
+  .checklist li::before {
+    content: "☐"; position: absolute; left: 10px; top: 8px;
+    font-size: 16px; color: #6B778C;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist .cat { font-weight: 700; color: #0052CC; font-size: 12px;
+    letter-spacing: 0.5px; display: block; margin-bottom: 2px; }
+
+  /* ── Summary bar ── */
+  .summary-bar {
+    background: #172B4D; color: #fff; border-radius: 6px;
+    padding: 16px 24px; display: flex; gap: 40px; margin-bottom: 32px;
+  }
+  .summary-bar .sb { text-align: center; }
+  .summary-bar .sb-val { font-size: 22px; font-weight: 700; color: #79E2F2; display: block; }
+  .summary-bar .sb-lbl { font-size: 11px; opacity: 0.7; letter-spacing: 0.5px; }
+
+  /* ── Table ── */
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th { background: #F4F5F7; color: #253858; font-weight: 700; text-align: left; padding: 8px 12px; border: 1px solid #DFE1E6; font-size: 12px; letter-spacing: 0.3px; }
+  td { padding: 7px 12px; border: 1px solid #DFE1E6; font-size: 13px; vertical-align: top; }
+  tr:nth-child(even) td { background: #FAFBFC; }
+
+  /* ── Callout ── */
+  .callout { background: #FFFAE6; border-left: 4px solid #FF8B00; padding: 10px 16px; border-radius: 4px; margin: 12px 0; font-size: 13px; color: #3D2B00; }
+  .callout strong { color: #974F0C; }
+
+  hr { border: none; border-top: 1px solid #DFE1E6; margin: 36px 0; }
+  code { background: #F4F5F7; border: 1px solid #DFE1E6; border-radius: 3px; padding: 1px 5px; font-family: monospace; font-size: 12.5px; }
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <h1>DocGen — Professional Demo Script</h1>
+  <div class="meta">
+    <span><strong>Version:</strong> 2.0</span>
+    <span><strong>Updated:</strong> May 2026</span>
+    <span><strong>Format:</strong> Silent Screen Recording + AI Voiceover</span>
+    <span><strong>Total Runtime:</strong> ~5 min 30 sec</span>
+    <span><strong>Module:</strong> Document Generation Only</span>
+  </div>
+</div>
+
+<div class="wrapper">
+
+  <!-- ─── SUMMARY BAR ─── -->
+  <div class="summary-bar">
+    <div class="sb"><span class="sb-val">8</span><span class="sb-lbl">SECTIONS</span></div>
+    <div class="sb"><span class="sb-val">~5:30</span><span class="sb-lbl">TOTAL RUNTIME</span></div>
+    <div class="sb"><span class="sb-val">6</span><span class="sb-lbl">SCREEN FLOWS</span></div>
+    <div class="sb"><span class="sb-val">0</span><span class="sb-lbl">eSign REFERENCES</span></div>
+    <div class="sb"><span class="sb-val">1</span><span class="sb-lbl">SCENARIO</span></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- PRE-DEMO CHECKLIST -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">✓</span>
+      Pre-Demo Preparation Checklist
+    </div>
+
+    <table>
+      <tr><th style="width:180px">Category</th><th>Item</th><th style="width:100px">Status</th></tr>
+      <tr><td><strong>Org</strong></td><td>Log into <code>rupali-np-org</code> as <code>akshitadhyani-kprr@force.com</code> before recording starts</td><td>☐</td></tr>
+      <tr><td><strong>Browser</strong></td><td>Chrome — Zoom at <strong>90%</strong>, full-screen maximised, hide bookmarks bar</td><td>☐</td></tr>
+      <tr><td><strong>Browser tabs</strong></td><td>Pre-open two tabs: (1) <strong>DocGen Wizard app</strong>, (2) <strong>Robert Thomas Opportunity</strong> record page</td><td>☐</td></tr>
+      <tr><td><strong>Template file</strong></td><td><code>donation-receipt-template.html</code> downloaded to Desktop, renamed clearly</td><td>☐</td></tr>
+      <tr><td><strong>Demo data</strong></td><td>Opportunity <em>$71000 Major Gift – Robert Thomas</em> exists with 2 OLIs (Annual Fund $50,000 · Programme Support $21,000)</td><td>☐</td></tr>
+      <tr><td><strong>Demo Mode</strong></td><td>Confirm <code>Demo_Mode__mdt.Donation_Demo</code> has <code>Is_Enabled__c = true</code></td><td>☐</td></tr>
+      <tr><td><strong>Existing templates</strong></td><td>Delete any previously saved <em>Education Support</em> templates so the wizard starts clean</td><td>☐</td></tr>
+      <tr><td><strong>Notifications</strong></td><td>Disable all OS and Slack notifications, set Do Not Disturb</td><td>☐</td></tr>
+      <tr><td><strong>Mouse</strong></td><td>Use slow, deliberate mouse movements — no rapid sweeps. Cursor visible at all times</td><td>☐</td></tr>
+      <tr><td><strong>Screen resolution</strong></td><td>1920 × 1080 minimum. Record at native resolution</td><td>☐</td></tr>
+      <tr><td><strong>Recording software</strong></td><td>Loom, OBS, or QuickTime — test audio mute, confirm recording region</td><td>☐</td></tr>
+      <tr><td><strong>Clock</strong></td><td>Hide system clock from taskbar if visible in recording region</td><td>☐</td></tr>
+    </table>
+  </div>
+
+  <hr>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SECTION 1 — INTRO -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">1</span>
+      Introduction
+    </div>
+
+    <div class="narration">
+      <p>
+        Every Salesforce implementation reaches the same inflection point — the moment a stakeholder asks: "Can we just generate a document from this record?" And suddenly what feels like a simple request turns into a conversation about template engines, middleware, third-party licences, and custom Apex.
+      </p>
+      <p>
+        What you're about to see is a different approach. DocGen is a fully Salesforce-native document generation framework — built from the ground up with a metadata-driven architecture. No middleware. No external dependencies. No hardcoded mappings.
+      </p>
+      <p>
+        It solves three specific problems that have frustrated teams for years. First — rigid templates that break the moment a field name changes. Second — relationship resolution that requires a developer every time you need parent or child data in a document. And third — PDF generation that either relies on legacy Visualforce or sends your data to an external service.
+      </p>
+      <p>
+        DocGen replaces all of that with a guided wizard, a dynamic token engine, and a centralised PDF renderer — all inside Salesforce. Let's walk through it.
+      </p>
+    </div>
+
+    <div class="actions card">
+      <ol>
+        <li><span class="pause">[Begin with screen blank or a clean Salesforce home page — no active records visible]</span></li>
+        <li><span class="hover">Cursor rests at centre of screen — no movement during narration</span></li>
+        <li><span class="pause">[Hold for full narration — approximately 40 seconds]</span></li>
+        <li>Slowly move cursor toward the App Launcher grid icon (top-left)</li>
+      </ol>
+    </div>
+
+    <div class="timing card">
+      <div class="timing-body">
+        <p><span class="t-label">Section duration:</span> ~45 seconds</p>
+        <p><span class="t-label">Pause after narration:</span> 1.5 seconds before first cursor movement</p>
+        <p><span class="t-label">Music note:</span> Calm, modern background track — begin at low volume here</p>
+      </div>
+    </div>
+
+    <div class="transition card">
+      <p>Cursor moves to App Launcher → searches "DocGen" → navigates to DocGen Document Generator app. This action bridges intro narration into the live product.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SECTION 2 — STORY / SCENARIO -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">2</span>
+      Business Scenario — Story Setup
+    </div>
+
+    <div class="narration">
+      <p>
+        Our story starts with a Development Director at a nonprofit organisation. Her name is Priya. Priya manages major gift campaigns and is preparing a formal donation proposal for Robert Thomas — a high-value donor who has committed to a $71,000 major gift to the Education Support Fund.
+      </p>
+      <p>
+        The proposal needs to pull donor information from the Account, include a breakdown of the donation line items, and — because this is a major gift above the organisation's threshold — display a dedicated acknowledgement section reserved exclusively for top-tier contributors.
+      </p>
+      <p>
+        Priya's team used to do this manually. A staff member would open Word, copy data from Salesforce, and paste it field by field. Every document took twenty minutes and carried the risk of stale data. Today, Priya does it in under two minutes, directly from Salesforce — and the document is automatically attached to the record the moment it is generated.
+      </p>
+      <p>
+        Let's see exactly how that works — starting with how an admin sets up the template.
+      </p>
+    </div>
+
+    <div class="actions card">
+      <ol>
+        <li><span class="hover">DocGen app is now open — Document Templates tab visible</span></li>
+        <li><span class="hover">Slowly pan cursor across the template list — let viewer read the screen</span></li>
+        <li><span class="pause">[Hold 2 seconds before clicking New]</span></li>
+      </ol>
+    </div>
+
+    <div class="timing card">
+      <div class="timing-body">
+        <p><span class="t-label">Section duration:</span> ~35 seconds</p>
+        <p><span class="t-label">Transition into Section 3:</span> Click <strong>New Document Template</strong> button as narration ends</p>
+      </div>
+    </div>
+
+    <div class="transition card">
+      <p>Click <strong>New Document Template</strong>. The wizard opens. Admin configuration flow begins.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SECTION 3 — ADMIN CONFIGURATION FLOW -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">3</span>
+      Admin Configuration Flow
+    </div>
+
+    <!-- ── 3A Upload ── -->
+    <div class="sub">
+      <div class="sub-title">
+        <span class="sub-badge">STEP A</span>
+        Upload Template
+      </div>
+
+      <div class="narration">
+        <p>
+          The first thing an admin does is upload the document template. Templates are written in HTML — a format that any designer, developer, or technically-minded admin can work with. It gives you full control over layout, typography, tables, and conditional sections without the constraints of a drag-and-drop builder.
+        </p>
+        <p>
+          The template uses a simple double-curly-brace syntax for placeholders — tokens like <code>{{donor_name}}</code>, <code>{{donation_amount}}</code>, or <code>{{campaign_title}}</code>. Crucially, these token names are completely free-form. You name them whatever makes sense to your team. There is no dependency on Salesforce field API names here.
+        </p>
+        <p>
+          The moment the file is uploaded, the wizard scans it and extracts every token automatically. No manual registration required.
+        </p>
+      </div>
+
+      <div class="actions card">
+        <ol>
+          <li><span class="click">Click</span> <strong>Upload HTML Template</strong></li>
+          <li>File picker opens → navigate to Desktop → <span class="click">select</span> <code>donation-receipt-template.html</code></li>
+          <li><span class="pause">[Pause 1.5 sec]</span> — progress bar animates as file is parsed</li>
+          <li><span class="hover">Slowly hover over a few tokens in the extracted token list</span> — let them appear on screen for ~3 seconds</li>
+          <li>Point cursor at <code>{{donor_name}}</code>, <code>{{donation_amount}}</code>, and the repeating section marker <code>{{#line_items}}</code></li>
+          <li><span class="pause">[Pause 2 sec before advancing]</span></li>
+        </ol>
+      </div>
+
+      <div class="timing card">
+        <div class="timing-body">
+          <p><span class="t-label">Step duration:</span> ~35 seconds</p>
+          <p><span class="t-label">Key pause:</span> 2 seconds on the token extraction list — let viewer absorb the auto-detection</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3B Object Selection ── -->
+    <div class="sub">
+      <div class="sub-title">
+        <span class="sub-badge">STEP B</span>
+        Object Selection
+      </div>
+
+      <div class="narration">
+        <p>
+          Next, we tell the wizard which Salesforce objects this document pulls data from. The primary object is the record we're generating from — in this case, the Opportunity. From there we can add parent objects, traversed via relationship, and child objects from related lists.
+        </p>
+        <p>
+          For this proposal, we need three objects. The Opportunity as our primary. The Account — Robert Thomas's donor record — as our parent. And Opportunity Line Items as our child object, which will populate the donation line item table.
+        </p>
+        <p>
+          What makes this powerful is that the relationship resolution happens dynamically at generation time. The system traverses standard and custom lookups automatically. You don't hardcode a relationship path or write a SOQL join — you just declare the object, and the engine handles the rest.
+        </p>
+      </div>
+
+      <div class="actions card">
+        <ol>
+          <li><span class="click">Click</span> <strong>Next: Select Objects</strong></li>
+          <li>Primary Object is pre-selected as <strong>Opportunity</strong> (context-aware from the record page) — <span class="hover">hover over it briefly to highlight</span></li>
+          <li><span class="click">Click</span> <strong>Add Parent Object</strong> → select <strong>Account</strong></li>
+          <li><span class="pause">[1 sec pause]</span></li>
+          <li><span class="click">Click</span> <strong>Add Child Object</strong> → select <strong>OpportunityLineItem</strong></li>
+          <li><span class="hover">Move cursor slowly across the three-object diagram — Primary / Parent / Child</span></li>
+          <li><span class="pause">[1.5 sec pause before advancing]</span></li>
+        </ol>
+      </div>
+
+      <div class="timing card">
+        <div class="timing-body">
+          <p><span class="t-label">Step duration:</span> ~30 seconds</p>
+          <p><span class="t-label">Key moment:</span> Pause when all three objects are visible on screen simultaneously</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3C Mapping ── -->
+    <div class="sub">
+      <div class="sub-title">
+        <span class="sub-badge">STEP C</span>
+        Token Mapping — <em>Move slowly here</em>
+      </div>
+
+      <div class="narration">
+        <p>
+          This is the core of what makes DocGen different — the mapping screen. Every token that was extracted from the template appears here as a row. And for each one, we define exactly where its value comes from.
+        </p>
+        <p>
+          Notice how the token names — <code>{{donor_name}}</code>, <code>{{donation_amount}}</code>, <code>{{campaign_title}}</code> — are written in plain language, not Salesforce API names. That's intentional. The mapping is the bridge between your human-readable template and the Salesforce data model. You control both sides independently.
+        </p>
+        <p>
+          For <code>{{donor_name}}</code>, we map it to the Account's Name field — traversing the parent relationship from the Opportunity. For <code>{{donation_amount}}</code>, we map it to Opportunity Amount, and we can apply a format override to render it as a currency string — dollar sign, two decimal places, all automatic.
+        </p>
+        <p>
+          For the repeating line items section — everything inside the <code>{{#line_items}}</code> block — we map each token to its corresponding OpportunityLineItem field. Contribution type, quantity, unit price, total price. The engine will iterate over every child record and render one row per item.
+        </p>
+        <p>
+          There is also a Demo Mode auto-fill here — for environments where the scenario is pre-configured. One click populates the entire mapping table instantly. In production, an admin builds this once and never touches it again.
+        </p>
+      </div>
+
+      <div class="actions card">
+        <ol>
+          <li><span class="click">Click</span> <strong>Next: Map Tokens</strong></li>
+          <li><span class="pause">[1 second pause as mapping table loads]</span></li>
+          <li><span class="hover">Slowly scroll through the token rows — do not rush</span></li>
+          <li>Hover over <code>{{donor_name}}</code> row → point at <strong>Source Object: Account</strong> and <strong>Relationship Path: Account.Name</strong></li>
+          <li><span class="pause">[1.5 sec]</span></li>
+          <li>Hover over <code>{{donation_amount}}</code> row → point at <strong>Format Override: currency</strong></li>
+          <li><span class="pause">[1.5 sec]</span></li>
+          <li>Scroll down to <code>{{#line_items}}</code> repeating section marker → hover</li>
+          <li>Hover over child field tokens: <code>{{contribution_type}}</code>, <code>{{unit_price}}</code>, <code>{{line_amount}}</code></li>
+          <li><span class="pause">[2 sec — longest pause in this section]</span></li>
+          <li><span class="click">Click</span> <strong>Auto Fill Mapping</strong> button in the Demo Mode banner</li>
+          <li><span class="pause">[1 sec — watch all rows populate instantly]</span></li>
+          <li><span class="hover">Slowly scroll the now-filled mapping table top to bottom</span></li>
+          <li><span class="pause">[1.5 sec pause before advancing]</span></li>
+        </ol>
+      </div>
+
+      <div class="timing card">
+        <div class="timing-body">
+          <p><span class="t-label">Step duration:</span> ~60 seconds — <strong>longest single step in the demo</strong></p>
+          <p><span class="t-label">Pacing note:</span> Deliberate, never rushed. This is the most technically rich screen — give the viewer time to absorb every detail</p>
+          <p><span class="t-label">Key pauses:</span> 1.5 sec on donor_name · 1.5 sec on currency format · 2 sec on child section · 1 sec post-autofill</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3D Variables ── -->
+    <div class="sub">
+      <div class="sub-title">
+        <span class="sub-badge">STEP D</span>
+        Variables — Conditional Logic
+      </div>
+
+      <div class="narration">
+        <p>
+          The variables screen is where business logic enters the document. Any <code>{{#if variableName}}</code> block in the template gets listed here automatically. An admin defines what that variable evaluates to — a boolean comparison, a static value, or a date expression.
+        </p>
+        <p>
+          For Robert Thomas's proposal, we have one variable: <code>isMajorDonor</code>. The expression is straightforward — if the mapped donation amount is greater than ten thousand dollars, the condition is true, and a major donor acknowledgement section appears in the document. If the amount is below that threshold, the section is invisible. Same template, different output based on live record data.
+        </p>
+        <p>
+          An admin can change this threshold, rename the variable, or add new conditions entirely — without touching a line of code. The logic lives in metadata.
+        </p>
+      </div>
+
+      <div class="actions card">
+        <ol>
+          <li><span class="click">Click</span> <strong>Next: Variables</strong></li>
+          <li><span class="hover">Hover over the pre-detected variable <code>isMajorDonor</code></span></li>
+          <li><span class="click">Click</span> <strong>Auto Fill Variables</strong></li>
+          <li>Expression populates: <code>donation_amount &gt; 10000</code>, Type: <strong>Boolean</strong></li>
+          <li><span class="hover">Hover slowly over the expression field — let viewer read it</span></li>
+          <li><span class="pause">[2 sec pause — this is a key differentiator moment]</span></li>
+        </ol>
+      </div>
+
+      <div class="timing card">
+        <div class="timing-body">
+          <p><span class="t-label">Step duration:</span> ~30 seconds</p>
+          <p><span class="t-label">Emphasis pause:</span> 2 seconds on the boolean expression — it is a key differentiator</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3E Preview ── -->
+    <div class="sub">
+      <div class="sub-title">
+        <span class="sub-badge">STEP E</span>
+        Preview
+      </div>
+
+      <div class="narration">
+        <p>
+          Before generating the final PDF, the wizard renders a live preview — fully populated with real record data from the Opportunity. What you see here is exactly what the document will look like.
+        </p>
+        <p>
+          Notice the donor name and ID pulled from the Account record. The donation amount formatted as a currency string. The line item table rendering two rows — one for the Annual Fund at fifty thousand, one for Programme Support at twenty-one thousand. And at the top of the document, the major donor acknowledgement section — visible because Robert Thomas's contribution of $71,000 satisfies our condition.
+        </p>
+        <p>
+          This preview renders in the browser instantly. When ready, the admin or business user clicks download to produce the final PDF — and the file is automatically attached to the Salesforce record.
+        </p>
+      </div>
+
+      <div class="actions card">
+        <ol>
+          <li><span class="click">Click</span> <strong>Next: Preview</strong></li>
+          <li><span class="pause">[1.5 sec as preview renders]</span></li>
+          <li><span class="hover">Slowly scroll through the rendered preview — top to bottom</span></li>
+          <li>Pause at each section:
+            <ul>
+              <li>Organisation header (org name, EIN, address)</li>
+              <li>Donor name + ID (Account data via parent mapping)</li>
+              <li>Major donor acknowledgement banner (conditional section — visible because $71k &gt; $10k)</li>
+              <li>Formatted donation amount</li>
+              <li>Line items table — two rendered rows</li>
+            </ul>
+          </li>
+          <li><span class="pause">[3 seconds total on preview — longest hold of the demo]</span></li>
+        </ol>
+      </div>
+
+      <div class="timing card">
+        <div class="timing-body">
+          <p><span class="t-label">Step duration:</span> ~35 seconds</p>
+          <p><span class="t-label">Key hold:</span> 3 seconds on fully rendered preview — this is the visual payoff moment</p>
+          <p><span class="t-label">Pacing:</span> Scroll slowly — approximately 1 second per section of the document</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3F Save ── -->
+    <div class="sub">
+      <div class="sub-title">
+        <span class="sub-badge">STEP F</span>
+        Save Template
+      </div>
+
+      <div class="narration">
+        <p>
+          The admin saves the template. All mappings, variables, and object relationships are stored in Salesforce metadata — ready to be reused across every Opportunity record in the org. The template is now live.
+        </p>
+      </div>
+
+      <div class="actions card">
+        <ol>
+          <li><span class="click">Click</span> <strong>Save Template</strong></li>
+          <li>Success toast notification appears — <span class="hover">let it sit for 1.5 seconds</span></li>
+          <li><span class="pause">[1 sec pause]</span></li>
+          <li>Navigate to <strong>Tab 2 — Robert Thomas Opportunity record</strong></li>
+        </ol>
+      </div>
+
+      <div class="timing card">
+        <div class="timing-body">
+          <p><span class="t-label">Step duration:</span> ~15 seconds including tab switch</p>
+        </div>
+      </div>
+
+      <div class="transition card">
+        <p>Switch from the admin wizard tab to the pre-opened Opportunity record tab. This visually signals the shift from admin configuration to business user experience.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SECTION 4 — BUSINESS USER FLOW -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">4</span>
+      Business User Flow
+    </div>
+
+    <div class="narration">
+      <p>
+        Now we're back in Priya's world — the business user. She has no awareness of tokens, mappings, or metadata. What she sees is the Opportunity record for Robert Thomas. And when she's ready to produce the proposal, the experience is a single button.
+      </p>
+      <p>
+        There is no wizard for the end user. No object selection. No field mapping. That work was done once by the admin and is now reusable indefinitely. Priya clicks Generate Document, the system resolves the data, merges it into the template, and produces the output.
+      </p>
+    </div>
+
+    <div class="actions card">
+      <ol>
+        <li>Opportunity record: <em>$71,000 Major Gift – Robert Thomas</em> is visible on screen</li>
+        <li><span class="hover">Scroll slowly down the record to show Amount, Stage, related Account, and Line Items related list</span></li>
+        <li><span class="pause">[1.5 sec pause — let viewer see the data context]</span></li>
+        <li>Locate the <strong>DocGen Wizard</strong> component in the record sidebar or related component</li>
+        <li><span class="click">Click</span> <strong>Generate Document</strong></li>
+      </ol>
+    </div>
+
+    <div class="timing card">
+      <div class="timing-body">
+        <p><span class="t-label">Section duration:</span> ~25 seconds</p>
+        <p><span class="t-label">Emphasis:</span> The contrast between the admin setup complexity and the user's one-click experience is the key message here</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SECTION 5 — DOCUMENT GENERATION FLOW -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">5</span>
+      Document Generation Flow
+    </div>
+
+    <div class="narration">
+      <p>
+        The generation flow kicks in immediately. The engine queries the Opportunity, traverses the Account relationship to retrieve donor data, and fetches all associated line items. It merges the data into the template, evaluates the boolean conditions, and renders the output — all in a single transaction.
+      </p>
+      <p>
+        The preview renders directly in the browser, showing Priya exactly what will be produced before she commits to the download. She can verify the donor details, confirm the line item breakdown, and check that the major donor section is visible — because at $71,000, it should be.
+      </p>
+    </div>
+
+    <div class="actions card">
+      <ol>
+        <li>Document generation modal or preview panel appears</li>
+        <li><span class="pause">[1 sec as generation completes]</span></li>
+        <li><span class="hover">Hover slowly over the generated preview panel — point at conditional section and child table</span></li>
+        <li><span class="pause">[2 sec pause on the preview]</span></li>
+      </ol>
+    </div>
+
+    <div class="timing card">
+      <div class="timing-body">
+        <p><span class="t-label">Section duration:</span> ~25 seconds</p>
+      </div>
+    </div>
+
+    <div class="transition card">
+      <p>From the generated preview, click <strong>Download PDF</strong>. The PDF opens in a new browser tab or in the system PDF viewer.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SECTION 6 — PDF DOWNLOAD SHOWCASE -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">6</span>
+      PDF Download Showcase
+    </div>
+
+    <div class="narration">
+      <p>
+        The PDF renders at full fidelity — professional formatting, accurate typography, and structured layout exactly as defined in the HTML template. This is a real PDF, not a screenshot of a web page.
+      </p>
+      <p>
+        Scrolling through: the organisation header with name, EIN, and address — drawn from the DocGen configuration. Robert Thomas's donor record — name and unique donor ID pulled directly from the Account via the parent relationship. The major donor acknowledgement banner — conditionally rendered because the amount exceeds the threshold. The donation summary table — two rows, each populated from a separate Opportunity Line Item, with currency formatting applied. And the campaign attribution at the bottom.
+      </p>
+      <p>
+        This document is also automatically attached to the Opportunity record as a Salesforce File the moment it is generated. No manual upload. The relationship between the record and its document is maintained natively in the platform.
+      </p>
+    </div>
+
+    <div class="actions card">
+      <ol>
+        <li>PDF opens in browser or PDF viewer</li>
+        <li><span class="pause">[1 sec before scrolling — let the first page land]</span></li>
+        <li>Scroll slowly — approximately one section per 1.5 seconds:
+          <ul>
+            <li><strong>Page top:</strong> Org name, EIN, address from DocGen Config</li>
+            <li><strong>Donor block:</strong> Robert Thomas, DON-2026-0041 — hover briefly</li>
+            <li><strong>Conditional banner:</strong> Major donor acknowledgement — hover and pause 1.5 sec</li>
+            <li><strong>Amount field:</strong> $71,000.00 formatted with currency override</li>
+            <li><strong>Line items table:</strong> Annual Fund $50,000 · Programme Support $21,000 — pause 2 sec</li>
+            <li><strong>Footer / campaign attribution</strong></li>
+          </ul>
+        </li>
+        <li><span class="pause">[Final 2 sec hold on the completed document]</span></li>
+        <li>Switch back to the <strong>Opportunity record</strong> — show PDF attached in Files related list</li>
+        <li><span class="pause">[1 sec on the Files list]</span></li>
+      </ol>
+    </div>
+
+    <div class="timing card">
+      <div class="timing-body">
+        <p><span class="t-label">Section duration:</span> ~45 seconds — second longest section</p>
+        <p><span class="t-label">Pacing note:</span> This is a visual showcase — do not narrate during scroll. Let the rendered document speak for itself</p>
+        <p><span class="t-label">Key hold:</span> 2 seconds on the line items table — most impactful data visualisation moment</p>
+        <p><span class="t-label">Music note:</span> Slight volume increase during PDF scroll to add polish</p>
+      </div>
+    </div>
+
+    <div class="transition card">
+      <p>Close PDF viewer / tab. Navigate back to the DocGen Document Templates tab. Transition narration: "And because the template lives in metadata — not in code — maintaining or evolving it requires no developer."</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SECTION 7 — TEMPLATE MAINTENANCE -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">7</span>
+      Template Edit &amp; Maintenance Flow
+    </div>
+
+    <div class="narration">
+      <p>
+        One of the most underestimated capabilities of this platform is how easy it is to maintain. If the organisation changes its threshold for major donor status from $10,000 to $25,000 — that's a five-second variable edit. If the legal team updates the language in a conditional section — the HTML template file is updated and re-uploaded. If a new field needs to appear in the document — a new mapping row is added.
+      </p>
+      <p>
+        No Apex changes. No deployment cycle. No developer ticket. The entire configuration surface is owned by the admin team, and every change takes effect immediately.
+      </p>
+      <p>
+        This is the architecture advantage that compounds over time. The first implementation is the hardest part. Every iteration after that is minutes, not days.
+      </p>
+    </div>
+
+    <div class="actions card">
+      <ol>
+        <li>Navigate to the saved template in the Document Templates list</li>
+        <li><span class="click">Click</span> the template name to open it in edit mode</li>
+        <li><span class="hover">Hover over the Mapping tab — show the existing rows</span></li>
+        <li><span class="hover">Hover over the Variables tab — show the <code>isMajorDonor</code> expression</span></li>
+        <li>Click into the expression field — change threshold value from <code>10000</code> to <code>25000</code></li>
+        <li><span class="pause">[1 sec — viewer sees the change is trivial]</span></li>
+        <li>Revert to <code>10000</code> (for demo reset) — or leave at 25000 to demonstrate live editability</li>
+        <li><span class="pause">[1.5 sec before closing the editor]</span></li>
+      </ol>
+    </div>
+
+    <div class="timing card">
+      <div class="timing-body">
+        <p><span class="t-label">Section duration:</span> ~35 seconds</p>
+        <p><span class="t-label">Key message:</span> The threshold edit is deliberately trivial — it makes the "no developer needed" point viscerally</p>
+      </div>
+    </div>
+
+    <div class="transition card">
+      <p>Close editor. Short pause. Begin outro narration. Optionally fade screen slightly before the outro to create a visual chapter break.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SECTION 8 — OUTRO -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">8</span>
+      Outro — Vision, Maturity, Advantage
+    </div>
+
+    <!-- 8A Future Scope -->
+    <div class="sub">
+      <div class="sub-title">
+        <span class="sub-badge">PART A</span>
+        Future Roadmap
+      </div>
+
+      <div class="narration">
+        <p>
+          What you've seen today is the production-ready foundation. And the roadmap extends it significantly. We are building OCR ingestion — the ability to upload a scanned PDF or image of an existing document and extract its structure automatically. AI-assisted field mapping, where the system analyses your template tokens and suggests the most probable Salesforce field for each one. Intelligent recommendations that learn from prior configurations across templates. And automated data extraction from legacy document archives.
+        </p>
+        <p>
+          The architecture is designed for exactly this expansion — each capability is a new service layer, not a rewrite.
+        </p>
+      </div>
+    </div>
+
+    <!-- 8B Product Maturity -->
+    <div class="sub">
+      <div class="sub-title">
+        <span class="sub-badge">PART B</span>
+        Production Maturity
+      </div>
+
+      <div class="narration">
+        <p>
+          The platform is production-ready today. The PDF engine is centralised and consistent — the same renderer is used regardless of the template or object. The architecture is metadata-driven end to end — every configuration is stored in Salesforce and deployable via standard metadata API. Field Level Security is enforced on every query. And the entire system is contained within Salesforce — no external API calls, no data leaving the platform.
+        </p>
+      </div>
+    </div>
+
+    <!-- 8C Competitive Advantage -->
+    <div class="sub">
+      <div class="sub-title">
+        <span class="sub-badge">PART C</span>
+        Competitive Advantage
+      </div>
+
+      <div class="narration">
+        <p>
+          Traditional document generation in Salesforce falls into one of two categories. Either it requires a third-party tool with a separate licence, data leaving Salesforce, and an integration to maintain. Or it requires custom Apex, hardcoded SOQL, and a developer every time something changes.
+        </p>
+        <p>
+          DocGen is neither. It is Salesforce-native, meaning no external dependency and no data transfer. It is fully configurable by admins, meaning no developer cycle for template changes. Its token engine is free-form, meaning templates can be written by designers without knowledge of the Salesforce data model. And its PDF generation is server-side and consistent, meaning no rendering differences between users or browsers.
+        </p>
+        <p>
+          For organisations that generate documents at scale — proposals, receipts, agreements, reports — this is the architecture that makes that sustainable. One implementation. Unlimited templates. Zero ongoing developer dependency.
+        </p>
+        <p>
+          That's DocGen.
+        </p>
+      </div>
+
+      <div class="actions card">
+        <ol>
+          <li><span class="hover">Screen fades to the DocGen Document Generator app home — clean, professional landing view</span></li>
+          <li><span class="pause">[Hold for full outro narration — approximately 50 seconds]</span></li>
+          <li><span class="pause">[2 second hold after "That's DocGen." — silence before fade]</span></li>
+          <li>Fade to black or to a static title card: <strong>DocGen — Native Salesforce Document Generation</strong></li>
+        </ol>
+      </div>
+
+      <div class="timing card">
+        <div class="timing-body">
+          <p><span class="t-label">Section duration:</span> ~50 seconds</p>
+          <p><span class="t-label">Music note:</span> Music fades gently under the final "That's DocGen." — do not cut abruptly</p>
+          <p><span class="t-label">Final hold:</span> 2 seconds of silence after the last narration line before any fade or title card</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- FULL TIMING SUMMARY -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">⏱</span>
+      Full Timing Summary
+    </div>
+
+    <table>
+      <tr>
+        <th style="width:40px">#</th>
+        <th>Section</th>
+        <th style="width:120px">Duration</th>
+        <th style="width:140px">Running Total</th>
+      </tr>
+      <tr><td>1</td><td>Introduction</td><td>~45 sec</td><td>0:45</td></tr>
+      <tr><td>2</td><td>Business Story Setup</td><td>~35 sec</td><td>1:20</td></tr>
+      <tr><td>3A</td><td>Upload Template</td><td>~35 sec</td><td>1:55</td></tr>
+      <tr><td>3B</td><td>Object Selection</td><td>~30 sec</td><td>2:25</td></tr>
+      <tr><td>3C</td><td>Token Mapping</td><td>~60 sec</td><td>3:25</td></tr>
+      <tr><td>3D</td><td>Variables</td><td>~30 sec</td><td>3:55</td></tr>
+      <tr><td>3E</td><td>Preview</td><td>~35 sec</td><td>4:30</td></tr>
+      <tr><td>3F</td><td>Save Template</td><td>~15 sec</td><td>4:45</td></tr>
+      <tr><td>4</td><td>Business User Flow</td><td>~25 sec</td><td>5:10</td></tr>
+      <tr><td>5</td><td>Document Generation</td><td>~25 sec</td><td>5:35</td></tr>
+      <tr><td>6</td><td>PDF Download Showcase</td><td>~45 sec</td><td>6:20</td></tr>
+      <tr><td>7</td><td>Template Maintenance</td><td>~35 sec</td><td>6:55</td></tr>
+      <tr><td>8</td><td>Outro</td><td>~50 sec</td><td>7:45</td></tr>
+      <tr style="font-weight:700; background:#F4F5F7">
+        <td colspan="2">TOTAL (with natural pauses)</td>
+        <td>~7:45</td>
+        <td>—</td>
+      </tr>
+    </table>
+
+    <div class="callout">
+      <strong>Edit guidance:</strong> If target is 5:30, trim Intro to 30 sec, compress Story to 20 sec, cut Template Maintenance to 20 sec, and abbreviate Outro to 35 sec. The mapping section should never be shortened — it is the technical core.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- POST-PRODUCTION NOTES -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">✦</span>
+      Post-Production Voiceover Notes
+    </div>
+
+    <table>
+      <tr><th>Element</th><th>Guidance</th></tr>
+      <tr><td><strong>Voice tone</strong></td><td>Confident, clear, mid-paced. Not a sales pitch. More "senior product manager explaining to a technical evaluator"</td></tr>
+      <tr><td><strong>Pace</strong></td><td>Slightly slower than natural speech — approximately 130 words per minute. AI voices often rush; reduce speed if needed</td></tr>
+      <tr><td><strong>Emphasis words</strong></td><td>Emphasise: "free-form tokens", "metadata-driven", "one click", "no developer", "native", "automatically attached"</td></tr>
+      <tr><td><strong>Code terms</strong></td><td>Read token names with natural cadence: "donor underscore name" → say "donor-name". Do not spell out underscores</td></tr>
+      <tr><td><strong>Currency</strong></td><td>Say "seventy-one thousand dollars" not "71,000". Full words for dollar amounts in narration</td></tr>
+      <tr><td><strong>Music</strong></td><td>Instrumental only, modern tech aesthetic — no lyrics. Low volume under narration (20-25%). Fade in with Intro, fade out after Outro</td></tr>
+      <tr><td><strong>Pauses</strong></td><td>Honour all [Pause X sec] markers — silence communicates confidence. Do not fill pauses with narration</td></tr>
+      <tr><td><strong>AI voice model</strong></td><td>Recommended: ElevenLabs "Adam" or "Callum", or equivalent neutral professional male voice. Test female voice for a different feel</td></tr>
+    </table>
+  </div>
+
+</div><!-- /wrapper -->
+</body>
+</html>

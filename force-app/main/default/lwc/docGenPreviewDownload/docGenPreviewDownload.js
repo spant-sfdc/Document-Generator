@@ -6,15 +6,21 @@ import storePreviewHtml     from '@salesforce/apex/DocGen_Controller.storePrevie
 import generateDocument     from '@salesforce/apex/DocGen_Controller.generateDocument';
 import saveTemplateConfig   from '@salesforce/apex/DocGen_Controller.saveTemplateConfig';
 import updateTemplateConfig from '@salesforce/apex/DocGen_Controller.updateTemplateConfig';
+import savePdf              from '@salesforce/apex/PdfGenerationController.savePdf';
+import {
+    initialize       as initPdfEngine,
+    htmlToPdf,
+    pdfBytesToBase64,
+    previewPdf       as createPreviewUrl,
+    revokePreviewed
+} from 'c/pdfGenerationEngine';
 
 export default class DocGenPreviewDownload extends NavigationMixin(LightningElement) {
-    // Use getter/setter so templateName can be pre-populated in edit mode
     _templateConfig = null;
     @api
     get templateConfig() { return this._templateConfig; }
     set templateConfig(val) {
         this._templateConfig = val;
-        // Pre-fill name only on first assignment (don't overwrite what the user typed)
         if (val && val.templateName && !this.templateName) {
             this.templateName = val.templateName;
         }
@@ -31,13 +37,25 @@ export default class DocGenPreviewDownload extends NavigationMixin(LightningElem
     @track savedTemplateName = null;
     @track error             = null;
 
-    // True when editing an already-saved template
+    _pdfPreviewUrl = null;   // object URL for PDF preview iframe
+
     get isEditMode()       { return !!(this._templateConfig && this._templateConfig.existingTemplateRecordId); }
     get saveButtonLabel()  { return this.isEditMode ? 'Update Template' : 'Save Template Config'; }
     get hasPreview()       { return !!this.previewCvId; }
     get hasSavedTemplate() { return !!this.savedTemplateId; }
     get fileUrl()          { return this.savedFileId ? `/lightning/r/ContentDocument/${this.savedFileId}/view` : '#'; }
     get previewSrc()       { return this.previewCvId ? `/apex/DocGen_HtmlViewer?cvId=${this.previewCvId}` : 'about:blank'; }
+
+    connectedCallback() {
+        // Load PDF-LIB + html2canvas eagerly so they are ready when user clicks
+        initPdfEngine(this).catch(err => {
+            console.warn('[DocGen] PDF engine libraries failed to load:', err);
+        });
+    }
+
+    disconnectedCallback() {
+        revokePreviewed(this._pdfPreviewUrl);
+    }
 
     handleRecordIdChange(evt)    { this.recordId    = evt.target.value; }
     handleTemplateNameChange(evt){ this.templateName = evt.target.value; }
@@ -58,14 +76,78 @@ export default class DocGenPreviewDownload extends NavigationMixin(LightningElem
         }
     }
 
-    handleDownloadPdf() {
-        if (!this.previewCvId) return;
-        window.open(`/apex/DocGen_HtmlViewer?cvId=${this.previewCvId}`, '_blank');
+    /**
+     * Download PDF using PDF-LIB: renders the in-memory previewHtml to a PDF
+     * and triggers a browser download. No server-side VF rendering.
+     */
+    async handleDownloadPdf() {
+        if (!this.previewHtml) return;
+        this.isGenerating = true;
+        this.error        = null;
+        try {
+            const pdfBytes = await htmlToPdf(this.previewHtml);
+            const base64   = pdfBytesToBase64(pdfBytes);
+            this._triggerBrowserDownload(
+                base64,
+                `Document_${_timestamp()}.pdf`,
+                'application/pdf'
+            );
+        } catch (e) {
+            this.error = e;
+        } finally {
+            this.isGenerating = false;
+        }
     }
 
     async handleDownloadWord() {
         await this._downloadDocument('WORD', 'application/msword');
     }
+
+    /**
+     * Generate PDF via PDF-LIB, save to Salesforce Files, and link to the record.
+     */
+    async handleSaveToFiles() {
+        if (!this.recordId) {
+            this.dispatchEvent(new ShowToastEvent({
+                title:   'Record ID Required',
+                message: 'Enter a Record ID to attach the file to a Salesforce record.',
+                variant: 'warning'
+            }));
+            return;
+        }
+        if (!this.previewHtml) {
+            this.dispatchEvent(new ShowToastEvent({
+                title:   'Generate Preview First',
+                message: 'Click "Generate Preview" before saving.',
+                variant: 'warning'
+            }));
+            return;
+        }
+        this.isGenerating = true;
+        this.error        = null;
+        try {
+            const pdfBytes  = await htmlToPdf(this.previewHtml);
+            const base64    = pdfBytesToBase64(pdfBytes);
+            const fileName  = `Document_${_timestamp()}`;
+            const docId     = await savePdf({
+                base64Pdf: base64,
+                fileName,
+                parentId: this.recordId
+            });
+            this.savedFileId = docId;
+            this.dispatchEvent(new ShowToastEvent({
+                title:   'PDF Saved',
+                message: 'Document saved to Files.',
+                variant: 'success'
+            }));
+        } catch (e) {
+            this.error = e;
+        } finally {
+            this.isGenerating = false;
+        }
+    }
+
+    // ── Word download still goes through the existing Apex route ─────────────
 
     async _downloadDocument(format, mimeType) {
         this.isGenerating = true;
@@ -103,24 +185,11 @@ export default class DocGenPreviewDownload extends NavigationMixin(LightningElem
         URL.revokeObjectURL(url);
     }
 
-    async handleSaveToFiles() {
-        if (!this.recordId) {
-            this.dispatchEvent(new ShowToastEvent({
-                title:   'Record ID Required',
-                message: 'Enter a Record ID to attach the file to a Salesforce record.',
-                variant: 'warning'
-            }));
-            return;
-        }
-        await this._downloadDocument('PDF', 'application/pdf');
-    }
-
     async handleSaveConfig() {
         this.error = null;
         try {
             const config = { ...this.templateConfig, templateName: this.templateName };
             let result;
-
             if (this.isEditMode) {
                 result = await updateTemplateConfig({
                     templateRecordId: config.existingTemplateRecordId,
@@ -129,7 +198,6 @@ export default class DocGenPreviewDownload extends NavigationMixin(LightningElem
             } else {
                 result = await saveTemplateConfig({ configJson: JSON.stringify(config) });
             }
-
             this.savedTemplateId   = result.templateId;
             this.savedTemplateName = result.templateName;
             this.dispatchEvent(new ShowToastEvent({
@@ -153,4 +221,8 @@ export default class DocGenPreviewDownload extends NavigationMixin(LightningElem
     handleBack() {
         this.dispatchEvent(new CustomEvent('stepback', { bubbles: true, composed: true }));
     }
+}
+
+function _timestamp() {
+    return new Date().toISOString().replace(/[-:T]/g, '').substring(0, 15);
 }

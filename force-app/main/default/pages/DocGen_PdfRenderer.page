@@ -1,3 +1,9 @@
-<apex:page controller="DocGen_PdfController" showHeader="false" sidebar="false" standardStylesheets="false" applyBodyTag="false" contentType="text/html">
+<apex:page controller="DocGen_PdfController"
+          showHeader="false"
+          sidebar="false"
+          standardStylesheets="false"
+          renderAs="pdf"
+          applyHtmlTag="false"
+          applyBodyTag="false">
     <apex:outputText value="{!content}" escape="false"/>
 </apex:page>

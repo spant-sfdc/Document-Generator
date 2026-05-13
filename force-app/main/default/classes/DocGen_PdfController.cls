@@ -6,26 +6,47 @@ public without sharing class DocGen_PdfController {
         Map<String, String> params = ApexPages.currentPage().getParameters();
 
         String cvId = params.get('cvId');
+        System.debug(LoggingLevel.ERROR, 'DocGen_PdfController INIT: cvId=' + cvId);
+
         if (String.isNotBlank(cvId)) {
             try {
                 List<ContentVersion> cvs = Database.queryWithBinds(
-                    'SELECT VersionData FROM ContentVersion WHERE Id = :cvId LIMIT 1',
+                    'SELECT VersionData, ContentSize FROM ContentVersion WHERE Id = :cvId LIMIT 1',
                     new Map<String, Object>{ 'cvId' => cvId },
                     AccessLevel.SYSTEM_MODE
                 );
+                System.debug(LoggingLevel.ERROR,
+                    'DocGen_PdfController: CV query rows=' + cvs.size());
+
                 if (!cvs.isEmpty() && cvs[0].VersionData != null) {
+                    System.debug(LoggingLevel.ERROR,
+                        'DocGen_PdfController: VersionData size=' + cvs[0].VersionData.size()
+                        + ' ContentSize=' + cvs[0].ContentSize);
                     content = sanitizeForPdf(cvs[0].VersionData.toString());
-                    System.debug(LoggingLevel.INFO,
-                        'DocGen_PdfController: loaded from ContentVersion. length=' + content.length());
+                    System.debug(LoggingLevel.ERROR,
+                        'DocGen_PdfController: content length after sanitize='
+                        + (content != null ? String.valueOf(content.length()) : 'NULL'));
+                    if (content != null && content.length() > 0) {
+                        System.debug(LoggingLevel.ERROR,
+                            'DocGen_PdfController: content preview='
+                            + content.substring(0, Math.min(200, content.length())));
+                    }
+                } else {
+                    System.debug(LoggingLevel.ERROR,
+                        'DocGen_PdfController: CV empty or VersionData null');
                 }
             } catch (Exception e) {
                 System.debug(LoggingLevel.ERROR,
-                    'DocGen_PdfController: ContentVersion query failed: ' + e.getMessage());
+                    'DocGen_PdfController: EXCEPTION: ' + e.getMessage()
+                    + ' | ' + e.getStackTraceString());
             }
+        } else {
+            System.debug(LoggingLevel.ERROR, 'DocGen_PdfController: NO cvId param');
         }
 
         if (content == null) {
-            System.debug(LoggingLevel.WARN, 'DocGen_PdfController: content is null — no valid cvId');
+            System.debug(LoggingLevel.ERROR,
+                'DocGen_PdfController: content NULL — falling back to error message');
             content = '<html><body><p style="font-family:Arial,sans-serif;padding:20px;">Document content unavailable.</p></body></html>';
         }
     }
